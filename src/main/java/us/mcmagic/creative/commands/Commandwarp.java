@@ -62,8 +62,15 @@ public class Commandwarp implements CommandExecutor {
                 return true;
             }
             if (warp.getName().toLowerCase().startsWith("dvc")) {
-                if (user.getRank().getRankId() < Rank.DVCMEMBER.getRankId()) {
-                    player.sendMessage(ChatColor.RED + "You must be a " + Rank.DVCMEMBER.getNameWithBrackets() +
+                if (user.getRank().getRankId() < Rank.DWELLER.getRankId()) {
+                    player.sendMessage(ChatColor.RED + "You must be a " + Rank.DWELLER.getNameWithBrackets() +
+                            ChatColor.RED + " or higher to go here!");
+                    return true;
+                }
+            }
+            if (warp.getName().toLowerCase().startsWith("share")) {
+                if (user.getRank().getRankId() < Rank.HONORABLE.getRankId()) {
+                    player.sendMessage(ChatColor.RED + "You must be a " + Rank.HONORABLE.getNameWithBrackets() +
                             ChatColor.RED + " or higher to go here!");
                     return true;
                 }

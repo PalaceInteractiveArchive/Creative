@@ -50,4 +50,22 @@ public class SqlUtil {
         }
         return new PlayerData(uuid, null, false, false, 5, false, false);
     }
+
+    public UUID getUniqueId(String username) {
+        try (Connection connection = getConnection()) {
+            PreparedStatement sql = connection.prepareStatement("SELECT uuid FROM player_data WHERE username=?");
+            sql.setString(1, username);
+            ResultSet result = sql.executeQuery();
+            if (!result.next()) {
+                return null;
+            }
+            UUID uuid = UUID.fromString(result.getString("uuid"));
+            result.close();
+            sql.close();
+            return uuid;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>us.mcmagic</groupId>
     <artifactId>Creative</artifactId>
-    <version>1.9.1</version>
+    <version>1.9.2</version>
     <repositories>
         <repository>
             <id>mcmagic</id>
@@ -35,8 +35,7 @@
             <artifactId>mcmagiccore</artifactId>
             <version>1.0-palace</version>
             <type>jar</type>
-            <scope>system</scope>
-            <systemPath>/Users/Marc/IdeaProjects/MCMagicCore/target/MCMagicCore-1.0-palace.jar</systemPath>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.intellectualcrafters</groupId>

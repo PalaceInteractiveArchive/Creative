@@ -1,6 +1,6 @@
 name: Creative
-author: MCMagicDev
-version: 1.9.1
+author: PalaceDev
+version: 1.9.2
 depend: [MCMagicCore, ProtocolLib, PlotSquared]
 description: MCMagic Creative Server Plugin
 main: us.mcmagic.creative.Creative

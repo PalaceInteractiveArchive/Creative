@@ -36,8 +36,8 @@ import java.util.UUID;
 @SuppressWarnings("deprecation")
 public class Commandcreator implements CommandExecutor {
     private static FormattedMessage msg = new FormattedMessage("Learn how to join The Creator Project: ")
-            .color(ChatColor.YELLOW).style(ChatColor.BOLD).then("https://mcmagic.us/cc").color(ChatColor.AQUA)
-            .link("https://mcmagic.us/cc").tooltip(ChatColor.GREEN + "Click to visit https://mcmagic.us/cc");
+            .color(ChatColor.YELLOW).style(ChatColor.BOLD).then("https://palace.network/cc").color(ChatColor.AQUA)
+            .link("https://palace.network/cc").tooltip(ChatColor.GREEN + "Click to visit https://palace.network/cc");
     private static PlotAPI api = new PlotAPI(Creative.getInstance());
 
     @Override
@@ -133,35 +133,37 @@ public class Commandcreator implements CommandExecutor {
                         }
                         String username = args[1];
                         Boolean value = Boolean.valueOf(args[2]);
+                        UUID uuid = null;
                         Player tp = Bukkit.getPlayer(username);
                         if (tp == null) {
-                            player.sendMessage(ChatColor.RED + "Player not found!");
-                            return true;
+                            uuid = Creative.sqlUtil.getUniqueId(username);
+                            if (uuid == null) {
+                                player.sendMessage(ChatColor.RED + "Player not found!");
+                                return true;
+                            }
+                        } else {
+                            username = tp.getName();
+                            uuid = tp.getUniqueId();
+                            if (value) {
+                                tp.sendMessage(ChatColor.GREEN + "You are now part of The Creator Project!");
+                            } else {
+                                tp.sendMessage(ChatColor.RED + "You are no longer a part of The Creator Project!");
+                            }
+                            Creative.getPlayerData(uuid).setCreator(value);
                         }
-                        if (MCMagicCore.getUser(tp.getUniqueId()).getRank().getRankId() > Rank.SHAREHOLDER.getRankId() && value) {
-                            player.sendMessage(ChatColor.RED + "Only Guests may be a part of The Creator Project!");
-                            return true;
-                        }
-                        Creative.getPlayerData(tp.getUniqueId()).setCreator(value);
                         try (Connection connection = SqlUtil.getConnection()) {
                             PreparedStatement sql = connection.prepareStatement("UPDATE creative SET creator=? WHERE uuid=?");
                             sql.setInt(1, value ? 1 : 0);
-                            sql.setString(2, tp.getUniqueId().toString());
+                            sql.setString(2, uuid.toString());
                             sql.execute();
                             sql.close();
                             if (value) {
-                                player.sendMessage(ChatColor.GREEN + tp.getName() + " is now part of The Creator Project!");
+                                player.sendMessage(ChatColor.GREEN + username + " is now part of The Creator Project!");
                             } else {
-                                player.sendMessage(ChatColor.RED + tp.getName() +
-                                        " is no longer a part of The Creator Project!");
+                                player.sendMessage(ChatColor.RED + username + " is no longer a part of The Creator Project!");
                             }
                         } catch (SQLException e) {
                             e.printStackTrace();
-                        }
-                        if (value) {
-                            tp.sendMessage(ChatColor.GREEN + "You are now part of The Creator Project!");
-                        } else {
-                            tp.sendMessage(ChatColor.RED + "You are no longer a part of The Creator Project!");
                         }
                         return true;
                     }
@@ -172,35 +174,37 @@ public class Commandcreator implements CommandExecutor {
                         }
                         String username = args[1];
                         Boolean value = Boolean.valueOf(args[2]);
+                        UUID uuid = null;
                         Player tp = Bukkit.getPlayer(username);
                         if (tp == null) {
-                            player.sendMessage(ChatColor.RED + "Player not found!");
-                            return true;
+                            uuid = Creative.sqlUtil.getUniqueId(username);
+                            if (uuid == null) {
+                                player.sendMessage(ChatColor.RED + "Player not found!");
+                                return true;
+                            }
+                        } else {
+                            username = tp.getName();
+                            uuid = tp.getUniqueId();
+                            if (value) {
+                                tp.sendMessage(ChatColor.GREEN + "You now have The Creator Tag!");
+                            } else {
+                                tp.sendMessage(ChatColor.RED + "You no longer have The Creator Tag!");
+                            }
+                            Creative.getPlayerData(uuid).setCreatorTag(value);
                         }
-                        if (MCMagicCore.getUser(tp.getUniqueId()).getRank().getRankId() > Rank.SHAREHOLDER.getRankId() && value) {
-                            player.sendMessage(ChatColor.RED + "Only Guests may have The Creator Tag!");
-                            return true;
-                        }
-                        Creative.getPlayerData(tp.getUniqueId()).setCreatorTag(value);
                         try (Connection connection = SqlUtil.getConnection()) {
                             PreparedStatement sql = connection.prepareStatement("UPDATE creative SET creatortag=? WHERE uuid=?");
                             sql.setInt(1, value ? 1 : 0);
-                            sql.setString(2, tp.getUniqueId().toString());
+                            sql.setString(2, uuid.toString());
                             sql.execute();
                             sql.close();
                             if (value) {
-                                player.sendMessage(ChatColor.GREEN + tp.getName() + " now has The Creator Tag!");
+                                player.sendMessage(ChatColor.GREEN + username + " now has The Creator Tag!");
                             } else {
-                                player.sendMessage(ChatColor.RED + tp.getName() +
-                                        " no longer has The Creator Tag!");
+                                player.sendMessage(ChatColor.RED + username + " no longer has The Creator Tag!");
                             }
                         } catch (SQLException e) {
                             e.printStackTrace();
-                        }
-                        if (value) {
-                            tp.sendMessage(ChatColor.GREEN + "You now have The Creator Tag!");
-                        } else {
-                            tp.sendMessage(ChatColor.RED + "You no longer have The Creator Tag!");
                         }
                         return true;
                     }

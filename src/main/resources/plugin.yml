@@ -5,6 +5,10 @@ depend: [MCMagicCore, ProtocolLib, PlotSquared]
 description: MCMagic Creative Server Plugin
 main: us.mcmagic.creative.Creative
 commands:
+   download:
+      description: Download your Plot
+      permission: mcmagic.warp
+      permission-message: §4You don’t have permission for this command
    vanish:
       description: Hides you from the Guests!
       permission: vanish.standard

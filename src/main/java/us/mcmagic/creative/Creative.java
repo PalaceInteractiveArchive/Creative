@@ -186,6 +186,7 @@ public class Creative extends JavaPlugin {
         getCommand("bc").setExecutor(new Commandbc());
         getCommand("creator").setExecutor(new Commandcreator());
         getCommand("delwarp").setExecutor(new Commanddelwarp());
+        getCommand("download").setExecutor(new Commanddownload());
         getCommand("give").setExecutor(new Commandgive());
         getCommand("give").setAliases(Arrays.asList("item", "i"));
         getCommand("head").setExecutor(new Commandhead());

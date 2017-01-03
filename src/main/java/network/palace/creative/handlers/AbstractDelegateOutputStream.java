@@ -1,4 +1,4 @@
-package us.mcmagic.creative.handlers;
+package network.palace.creative.handlers;
 
 import java.io.IOException;
 import java.io.OutputStream;

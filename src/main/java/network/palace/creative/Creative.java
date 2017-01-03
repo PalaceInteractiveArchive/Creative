@@ -189,6 +189,7 @@ public class Creative extends Plugin {
         registerCommand(new Commandbc());
         registerCommand(new Commandcreator());
         registerCommand(new Commanddelwarp());
+        registerCommand(new Commanddownload());
         registerCommand(new Commandgive());
         registerCommand(new Commandhead());
         registerCommand(new Commandheal());

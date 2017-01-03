@@ -1,4 +1,4 @@
-package us.mcmagic.creative.commands;
+package network.palace.creative.commands;
 
 import com.intellectualcrafters.jnbt.CompoundTag;
 import com.intellectualcrafters.jnbt.NBTOutputStream;
@@ -9,13 +9,15 @@ import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.RunnableVal;
 import com.intellectualcrafters.plot.util.TaskManager;
 import com.plotsquared.bukkit.util.BukkitSchematicHandler;
+import network.palace.core.command.CommandException;
+import network.palace.core.command.CommandMeta;
+import network.palace.core.command.CommandPermission;
+import network.palace.core.command.CoreCommand;
+import network.palace.core.message.FormattedMessage;
+import network.palace.core.player.CPlayer;
+import network.palace.core.player.Rank;
+import network.palace.creative.handlers.AbstractDelegateOutputStream;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import us.mcmagic.creative.handlers.AbstractDelegateOutputStream;
-import us.mcmagic.mcmagiccore.chat.formattedmessage.FormattedMessage;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -29,19 +31,21 @@ import java.util.zip.GZIPOutputStream;
 /**
  * Created by Marc on 12/27/16.
  */
-public class Commanddownload implements CommandExecutor {
+@CommandMeta(description = "Download your Plot")
+@CommandPermission(rank = Rank.WIZARD)
+public class Commanddownload extends CoreCommand {
+
+    public Commanddownload() {
+        super("download");
+    }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            return true;
-        }
-        Player player = (Player) sender;
+    protected void handleCommand(CPlayer player, String[] args) throws CommandException {
         PlotAPI api = new PlotAPI();
-        Plot plot = api.getPlot(player);
+        Plot plot = api.getPlot(player.getBukkitPlayer());
         if (!plot.getOwners().contains(player.getUniqueId())) {
             player.sendMessage(ChatColor.RED + "Only the Plot Owner can download a schematic of the plot!");
-            return true;
+            return;
         }
         plot.addRunning();
         player.sendMessage(ChatColor.GREEN + "Generating download link... (This could take a moment, be patient!)");
@@ -63,7 +67,6 @@ public class Commanddownload implements CommandExecutor {
                 });
             }
         });
-        return true;
     }
 
     public void upload(final CompoundTag tag, UUID uuid, String file, RunnableVal<URL> whenDone) {

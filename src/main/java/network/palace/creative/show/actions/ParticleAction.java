@@ -1,0 +1,72 @@
+package network.palace.creative.show.actions;
+
+import com.comphenix.protocol.wrappers.EnumWrappers;
+import network.palace.core.Core;
+import network.palace.core.player.CPlayer;
+import network.palace.core.utils.ItemUtil;
+import network.palace.creative.show.Show;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
+/**
+ * Created by Marc on 1/10/15
+ */
+public class ParticleAction extends ShowAction {
+    public EnumWrappers.Particle particle;
+    public Location loc;
+    public double offsetX;
+    public double offsetY;
+    public double offsetZ;
+    public float speed;
+    public int amount;
+
+    public ParticleAction(Integer id, Show show, Long time, EnumWrappers.Particle particle, Location loc, double offsetX,
+                          double offsetY, double offsetZ, float speed, int amount) {
+        super(id, show, time == null ? 0 : time);
+        DecimalFormat df = new DecimalFormat("#.##");
+        df.setRoundingMode(RoundingMode.CEILING);
+        this.particle = particle;
+        this.loc = new Location(loc.getWorld(), Double.parseDouble(df.format(loc.getX())),
+                Double.parseDouble(df.format(loc.getY())), Double.parseDouble(df.format(loc.getZ())));
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+        this.offsetZ = offsetZ;
+        this.speed = speed;
+        this.amount = amount;
+    }
+
+    @Override
+    public void play() {
+        if (particle != null) {
+            for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
+                p.getParticles().send(loc, particle, amount, (float) offsetX, (float) offsetY, (float) offsetZ, speed);
+            }
+        }
+    }
+
+    @Override
+    public ItemStack getItem() {
+        return ItemUtil.create(Material.NETHER_STAR, ChatColor.AQUA + "Particle Action");
+    }
+
+    @Override
+    public String toString() {
+        return time / 1000 + " Particle " + (particle == null ? "null" : particle.getName()) + " " + loc.getX() + "," +
+                loc.getY() + "," + loc.getZ() + " " + offsetX + " " + offsetY + " " + offsetZ + " " + speed + " " + amount;
+    }
+
+    @Override
+    public String getDescription() {
+        return ChatColor.GREEN + "Time: " + (time / 1000) + " Particle: " + caps(particle == null ? "none" :
+                particle.getName()) + " Loc: " + strLoc(loc);
+    }
+
+    public void setParticle(EnumWrappers.Particle particle) {
+        this.particle = particle;
+    }
+}

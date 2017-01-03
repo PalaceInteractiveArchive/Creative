@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>us.mcmagic</groupId>
     <artifactId>Creative</artifactId>
-    <version>1.9.2</version>
+    <version>2.0</version>
     <repositories>
         <repository>
             <id>mcmagic</id>
@@ -25,17 +25,32 @@
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
-            <version>1.8.8-R0.1</version>
+            <artifactId>spigot-api</artifactId>
+            <version>1.11.1-R0.1-SNAPSHOT</version>
             <type>jar</type>
-            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>us.mcmagic</groupId>
-            <artifactId>mcmagiccore</artifactId>
-            <version>1.0-palace</version>
+            <groupId>network.palace</groupId>
+            <artifactId>core</artifactId>
+            <version>1.4.0</version>
             <type>jar</type>
-            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>network.palace</groupId>
+            <artifactId>audio</artifactId>
+            <version>1.0.1</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.comphenix</groupId>
+            <artifactId>protocollib</artifactId>
+            <version>4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.10</version>
+            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>com.intellectualcrafters</groupId>
@@ -48,13 +63,6 @@
             <groupId>com.sk89q</groupId>
             <artifactId>worldguard</artifactId>
             <version>6.1</version>
-            <type>jar</type>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.comphenix</groupId>
-            <artifactId>protocollib</artifactId>
-            <version>3.6.4</version>
             <type>jar</type>
             <scope>provided</scope>
         </dependency>

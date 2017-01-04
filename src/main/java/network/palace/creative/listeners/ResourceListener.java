@@ -5,6 +5,7 @@ import network.palace.core.events.CurrentPackReceivedEvent;
 import network.palace.core.player.CPlayer;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.PlayerData;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,21 +21,23 @@ public class ResourceListener implements Listener {
         String current = event.getPack();
         PlayerData data = Creative.getPlayerData(player.getUniqueId());
         String preferred = data.getResourcePack();
-        if (Core.getResourceManager().getPack(preferred) == null) {
-            player.sendMessage(ChatColor.RED + "Your chosen Resource Pack is not available, choose a new one!");
-            //Choose a pack
-            return;
+        if (!preferred.equals("NoPrefer")) {
+            if (preferred.equals("none")) {
+                //Choose a pack
+                player.sendMessage(ChatColor.GREEN + "Please choose a Resource Pack option for Creative.");
+                Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () ->
+                        Creative.resourceUtil.openMenu(player), 20L);
+            } else if (Core.getResourceManager().getPack(preferred) == null) {
+                player.sendMessage(ChatColor.RED + "Your chosen Resource Pack is not available, choose a new one!");
+                //Choose a pack
+                Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () ->
+                        Creative.resourceUtil.openMenu(player), 20L);
+            } else if (preferred.equals("Blank") && !current.equals("none")) {
+                //Send blank
+                Core.getResourceManager().sendPack(player, "Blank");
+            } else if (!current.equalsIgnoreCase(preferred)) {
+                Core.getResourceManager().sendPack(player, preferred);
+            }
         }
-        if (preferred.equals("none")) {
-            //Choose a pack
-            return;
-        }
-        if (preferred.equals("Blank") && !current.equals("none")) {
-            //Send blank
-            return;
-        }
-        Core.getResourceManager().sendPack(player, preferred);
-        player.sendMessage(ChatColor.GREEN + "Attempting to send you the " + ChatColor.YELLOW + preferred +
-                ChatColor.GREEN + " Resource Pack...");
     }
 }

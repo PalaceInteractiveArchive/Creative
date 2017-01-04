@@ -1,5 +1,7 @@
 package network.palace.creative.listeners;
 
+import network.palace.creative.Creative;
+import network.palace.creative.handlers.BannerInventoryType;
 import network.palace.creative.handlers.CreativeInventoryType;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -7,8 +9,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
-import network.palace.creative.Creative;
-import network.palace.creative.handlers.BannerInventoryType;
 
 import java.io.IOException;
 
@@ -52,6 +52,9 @@ public class InventoryClick implements Listener {
             }
         }
         switch (title) {
+            case "Resource Pack":
+                Creative.resourceUtil.handle(event);
+                break;
             case "Creative Menu":
                 Creative.menuUtil.handleClick(event, CreativeInventoryType.MAIN);
                 break;
@@ -82,6 +85,8 @@ public class InventoryClick implements Listener {
             case "Choose Layer Color":
                 Creative.bannerUtil.handle(event, BannerInventoryType.LAYER_COLOR);
                 break;
+            case "Change Biome":
+                Creative.menuUtil.handleClick(event, CreativeInventoryType.CHANGE_BIOME);
             case "Select Color":
             case "Select Fade":
             case "Set Power":

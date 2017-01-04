@@ -37,6 +37,9 @@ public class BlockEdit implements Listener {
         blockBlackList.add(Material.DRAGON_EGG);
         blockBlackList.add(Material.FIRE);
         blockBlackList.add(Material.ENDER_PORTAL);
+        blockBlackList.add(Material.CHORUS_FLOWER);
+        blockBlackList.add(Material.CHORUS_PLANT);
+        blockBlackList.add(Material.END_CRYSTAL);
         itemBlackList.add(Material.MONSTER_EGG);
         itemBlackList.add(Material.MONSTER_EGGS);
         itemBlackList.add(Material.SNOW_BALL);

@@ -55,7 +55,20 @@ public class ShowManager implements Listener {
 
     public void loadTracks() {
         audioTracks.clear();
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(new File("plugins/Creative/tracks.yml"));
+        File f = new File("plugins/Creative/tracks.yml");
+        if (!f.exists()) {
+            try {
+                f.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
+        if (config.getConfigurationSection("tracks") == null) {
+            Core.logMessage("Creative", ChatColor.RED + "No audio tracks have been added!");
+            return;
+        }
         List<String> tracks = new ArrayList<>(config.getConfigurationSection("tracks").getKeys(false));
         Collections.sort(tracks);
         for (String s : tracks) {
@@ -135,6 +148,10 @@ public class ShowManager implements Listener {
         PlotAPI api = new PlotAPI(Creative.getInstance());
         Plot plot = api.getPlot(player.getBukkitPlayer());
         boolean owns = false;
+        if (plot == null) {
+            messagePlayer(player, ChatColor.RED + "You must start shows on your own Plot!");
+            return null;
+        }
         for (Plot pl : api.getPlayerPlots(Bukkit.getWorld("plotworld"), player.getBukkitPlayer())) {
             if (plot.getId().equals(pl.getId())) {
                 owns = true;

@@ -1,6 +1,8 @@
 package network.palace.creative;
 
+import network.palace.core.Core;
 import network.palace.core.plugin.Plugin;
+import network.palace.core.plugin.PluginInfo;
 import network.palace.creative.commands.*;
 import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.handlers.Warp;
@@ -10,8 +12,8 @@ import network.palace.creative.show.Show;
 import network.palace.creative.show.ShowManager;
 import network.palace.creative.utils.*;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
@@ -26,6 +28,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 12/14/14
  */
+@PluginInfo(name = "Creative")
 public class Creative extends Plugin {
     public static Creative inst;
     private static Location spawn;
@@ -41,11 +44,16 @@ public class Creative extends Plugin {
     public static ShowManager showManager;
     public static OnlineUtil onlineUtil;
     public static HeadUtil headUtil;
+    public static ResourceUtil resourceUtil;
     private static HashMap<UUID, PlayerData> playerData = new HashMap<>();
 
     @Override
     public void onPluginEnable() {
         inst = this;
+        File dir = new File("plugins/Creative/");
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
         sqlUtil = new SqlUtil();
         redstoneListener = new RedstoneListener();
         menuUtil = new MenuUtil();
@@ -55,10 +63,7 @@ public class Creative extends Plugin {
         showManager = new ShowManager();
         onlineUtil = new OnlineUtil();
         headUtil = new HeadUtil();
-        getLogger().info("Let's build!");
-        for (World w : Bukkit.getWorlds()) {
-            w.setTime(2000);
-        }
+        resourceUtil = new ResourceUtil();
         registerListeners();
         registerCommands();
         File showFolder = new File("plugins/Creative/shows/");
@@ -72,6 +77,17 @@ public class Creative extends Plugin {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            config = YamlConfiguration.loadConfiguration(cnfg);
+        } else {
+            config = YamlConfiguration.loadConfiguration(cnfg);
+            if (config.getString("spawn.world") == null) {
+                Core.logMessage("Creative", ChatColor.RED + "No spawn location has been defined!");
+                spawn = null;
+                return;
+            }
+            spawn = new Location(Bukkit.getWorld(config.getString("spawn.world")), config.getDouble("spawn.x"),
+                    config.getDouble("spawn.y"), config.getDouble("spawn.z"), config.getInt("spawn.yaw"),
+                    config.getInt("spawn.pitch"));
         }
         File warpFile = new File("plugins/Creative/warps.yml");
         if (!warpFile.exists()) {
@@ -80,20 +96,18 @@ public class Creative extends Plugin {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            warps.clear();
+            YamlConfiguration warpList = YamlConfiguration.loadConfiguration(warpFile);
+            List<String> list = warpList.getStringList("warps");
+            for (String item : list) {
+                Warp w = new Warp(item, warpList.getDouble("warp." + item + ".x"),
+                        warpList.getDouble("warp." + item + ".y"), warpList.getDouble("warp." + item + ".z"),
+                        (float) warpList.getInt("warp." + item + ".yaw"), (float) warpList.getInt("warp." + item + ".pitch"),
+                        warpList.getString("warp." + item + ".world"));
+                warps.add(w);
+            }
         }
-        YamlConfiguration warpList = YamlConfiguration.loadConfiguration(warpFile);
-        List<String> list = warpList.getStringList("warps");
-        for (String item : list) {
-            Warp w = new Warp(item, warpList.getDouble("warp." + item + ".x"),
-                    warpList.getDouble("warp." + item + ".y"), warpList.getDouble("warp." + item + ".z"),
-                    (float) warpList.getInt("warp." + item + ".yaw"), (float) warpList.getInt("warp." + item + ".pitch"),
-                    warpList.getString("warp." + item + ".world"));
-            warps.add(w);
-        }
-        config = YamlConfiguration.loadConfiguration(cnfg);
-        Bukkit.getScheduler().runTaskLater(this, () -> spawn = new Location(Bukkit.getWorld(config.getString("spawn.world")),
-                config.getDouble("spawn.x"), config.getDouble("spawn.y"), config.getDouble("spawn.z"), config.getInt("spawn.yaw"),
-                config.getInt("spawn.pitch")), 20L);
     }
 
     @Override
@@ -108,6 +122,9 @@ public class Creative extends Plugin {
     }
 
     public static Location getSpawn() {
+        if (spawn == null) {
+            return new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+        }
         return new Location(spawn.getWorld(), spawn.getX(), spawn.getY(), spawn.getZ(), spawn.getYaw(), spawn.getPitch());
     }
 
@@ -200,6 +217,7 @@ public class Creative extends Plugin {
         registerCommand(new Commandmore());
         registerCommand(new Commandmsg());
         registerCommand(new Commandnv());
+        registerCommand(new Commandpack());
         registerCommand(new Commandpt());
         registerCommand(new Commandptime());
         registerCommand(new Commandpweather());
@@ -222,11 +240,14 @@ public class Creative extends Plugin {
         PluginManager pm = Bukkit.getServer().getPluginManager();
         pm.registerEvents(new BlockEdit(), this);
         pm.registerEvents(new InventoryClick(), this);
+        pm.registerEvents(new PlayerDamage(), this);
         pm.registerEvents(new PlayerInteract(), this);
         pm.registerEvents(new PlayerJoinAndLeave(), this);
+        pm.registerEvents(new PlayerMove(), this);
         pm.registerEvents(redstoneListener, this);
         pm.registerEvents(new SignChange(), this);
         pm.registerEvents(new ResourceListener(), this);
+        pm.registerEvents(new WorldListener(), this);
         pm.registerEvents(showManager, this);
         pm.registerEvents(menuUtil, this);
     }

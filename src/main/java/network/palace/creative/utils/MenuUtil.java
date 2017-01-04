@@ -3,6 +3,7 @@ package network.palace.creative.utils;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.api.PlotAPI;
+import com.intellectualcrafters.plot.config.C;
 import com.intellectualcrafters.plot.flag.Flag;
 import com.intellectualcrafters.plot.flag.FlagManager;
 import com.intellectualcrafters.plot.object.Plot;
@@ -336,6 +337,8 @@ public class MenuUtil implements Listener {
                 List<String> not = Arrays.asList(ChatColor.GRAY + "Click to Select!");
                 inv.setItem(3, ItemUtil.create(Material.DOUBLE_PLANT, ChatColor.GREEN + "Clear",
                         weather.equals(PlotWeather.CLEAR) ? current : not));
+                inv.setItem(4, ItemUtil.create(Material.LONG_GRASS, 1, (byte) 1, ChatColor.DARK_GREEN +
+                        "Change Biome", new ArrayList<>()));
                 inv.setItem(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain",
                         weather.equals(PlotWeather.RAIN) ? current : not));
                 inv.setItem(9, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "6AM", time == 0 ? current : not));
@@ -346,6 +349,30 @@ public class MenuUtil implements Listener {
                 inv.setItem(15, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "9PM", time == 15000 ? current : not));
                 inv.setItem(16, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "12AM", time == 18000 ? current : not));
                 inv.setItem(17, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "3AM", time == 21000 ? current : not));
+                inv.setItem(22, back);
+                player.openInventory(inv);
+                break;
+            }
+            case CHANGE_BIOME: {
+                Plot plot = api.getPlot(player);
+                String biome = plot.getBiome();
+                List<String> empty = new ArrayList<>();
+                List<String> selected = Arrays.asList(ChatColor.YELLOW + "Currently Selected");
+                Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Change Biome");
+                inv.setItem(10, ItemUtil.create(Material.LONG_GRASS, 1, (byte) 1, ChatColor.GREEN +
+                        "Plains", biome.equalsIgnoreCase("plains") ? selected : empty));
+                inv.setItem(11, ItemUtil.create(Material.DEAD_BUSH, ChatColor.YELLOW + "Desert",
+                        biome.equalsIgnoreCase("desert") ? selected : empty));
+                inv.setItem(12, ItemUtil.create(Material.SAPLING, 1, (byte) 1, ChatColor.DARK_GREEN +
+                        "Forest", biome.equalsIgnoreCase("forest") ? selected : empty));
+                inv.setItem(13, ItemUtil.create(Material.VINE, ChatColor.DARK_GREEN + "Swampland",
+                        biome.equalsIgnoreCase("swampland") ? selected : empty));
+                inv.setItem(14, ItemUtil.create(Material.SAPLING, 1, (byte) 3, ChatColor.DARK_GREEN +
+                        "Jungle", biome.equalsIgnoreCase("jungle") ? selected : empty));
+                inv.setItem(15, ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 1, ChatColor.GOLD +
+                        "Mesa", biome.equalsIgnoreCase("mesa") ? selected : empty));
+                inv.setItem(16, ItemUtil.create(Material.PACKED_ICE, ChatColor.AQUA + "Ice Plains (Snow)",
+                        biome.equalsIgnoreCase("ice_flats") ? selected : empty));
                 inv.setItem(22, back);
                 player.openInventory(inv);
                 break;
@@ -816,6 +843,10 @@ public class MenuUtil implements Listener {
                         return;
                     }
                     Plot plot = api.getPlot(player);
+                    if (event.getSlot() == 4) {
+                        openMenu(player, CreativeInventoryType.CHANGE_BIOME);
+                        return;
+                    }
                     if (event.getSlot() < 9) {
                         //Weather
                         PlotWeather weather = getWeather(ChatColor.stripColor(item.getItemMeta().getDisplayName()));
@@ -840,6 +871,54 @@ public class MenuUtil implements Listener {
                     } else {
                         player.sendMessage(ChatColor.RED + "Error setting Plot Time! Please report this to a Cast Member.");
                     }
+                    break;
+                }
+                case CHANGE_BIOME: {
+                    if (isBack) {
+                        openMenu(player, CreativeInventoryType.PLOT_SETTINGS);
+                        return;
+                    }
+                    Plot plot = api.getPlot(player);
+                    String biome = "plains";
+                    switch (event.getSlot()) {
+                        case 10:
+                            biome = "plains";
+                            break;
+                        case 11:
+                            biome = "desert";
+                            break;
+                        case 12:
+                            biome = "forest";
+                            break;
+                        case 13:
+                            biome = "swampland";
+                            break;
+                        case 14:
+                            biome = "jungle";
+                            break;
+                        case 15:
+                            biome = "mesa";
+                            break;
+                        case 16:
+                            biome = "ice_flats";
+                            break;
+                    }
+                    if (plot.getBiome().equalsIgnoreCase(biome)) {
+                        player.sendMessage(ChatColor.RED + "Your plot is already set to this biome!");
+                        return;
+                    }
+                    if (plot.getRunning() > 0) {
+                        MainUtil.sendMessage(api.wrapPlayer(player), C.WAIT_FOR_TIMER);
+                        return;
+                    }
+                    plot.addRunning();
+                    String finalBiome = biome;
+                    plot.setBiome(biome.toUpperCase(), () -> {
+                        plot.removeRunning();
+                        player.sendMessage(ChatColor.GREEN + "Your plot's biome was set to " + ChatColor.YELLOW +
+                                finalBiome.toLowerCase());
+                        player.closeInventory();
+                    });
                     break;
                 }
             }

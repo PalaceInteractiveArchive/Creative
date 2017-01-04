@@ -54,6 +54,7 @@ public class Commandcreator extends CoreCommand {
             msg.send(player);
             return;
         }
+        //TODO Add achievements!
         switch (args.length) {
             case 1: {
                 switch (args[0].toLowerCase()) {
@@ -106,6 +107,7 @@ public class Commandcreator extends CoreCommand {
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
+                        names.sort(String.CASE_INSENSITIVE_ORDER);
                         if (names.isEmpty()) {
                             player.sendMessage(ChatColor.RED + "There is no one in The Creator Project!");
                         } else {

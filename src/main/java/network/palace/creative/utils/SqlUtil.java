@@ -62,9 +62,21 @@ public class SqlUtil {
             result.close();
             sql.close();
             return uuid;
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void setResourcePack(UUID uuid, String pack) {
+        try (Connection connection = Core.getSqlUtil().getConnection()) {
+            PreparedStatement sql = connection.prepareStatement("UPDATE creative SET resourcepack=? WHERE uuid=?");
+            sql.setString(1, pack);
+            sql.setString(2, uuid.toString());
+            sql.execute();
+            sql.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

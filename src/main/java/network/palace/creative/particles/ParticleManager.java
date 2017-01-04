@@ -33,7 +33,7 @@ public class ParticleManager {
         stop(player);
     }
 
-    public void stop(Player player) {
+    private void stop(Player player) {
         Integer taskID = taskIds.remove(player.getUniqueId());
         if (taskID != null) {
             Bukkit.getScheduler().cancelTask(taskID);

@@ -11,6 +11,7 @@ import network.palace.creative.handlers.RolePlay;
 import network.palace.creative.utils.TpaUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,6 +21,7 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 
 /**
@@ -34,6 +36,10 @@ public class PlayerJoinAndLeave implements Listener {
             return;
         }
         Creative.getInstance().login(event.getUniqueId());
+        if (!WorldListener.isAllLoaded()) {
+            event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_OTHER);
+            event.setKickMessage(ChatColor.RED + "We're still loading all of the worlds!");
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -48,22 +54,22 @@ public class PlayerJoinAndLeave implements Listener {
                 player.getTitle().show(ChatColor.YELLOW + "Read the rules!", ChatColor.GREEN +
                         "Type /rules for a Link", 5, 200, 5);
                 player.getBukkitPlayer().performCommand("spawn");
+                player.setGamemode(GameMode.ADVENTURE);
                 player.getInventory().setItem(8, star);
             } else {
                 if (!player.getInventory().contains(star)) {
                     player.getTitle().show(ChatColor.YELLOW + "You removed the Menu!", ChatColor.GREEN +
                             "To get the Creative Menu back, type " + ChatColor.AQUA + "/star", 5, 100, 5);
                 }
-                //TODO Achievements
-                /*
-                if (!player.hasAchievement(9) && !tp.getPlots("plotworld").isEmpty()) {
-                    player.giveAchievement(9);
-                }*/
+            }
+            if (player.getLocation().getWorld().getName().equalsIgnoreCase("spawn")) {
+                PlayerInventory inv = player.getInventory();
+                inv.remove(Material.ELYTRA);
+                if (inv.getChestplate().getType().equals(Material.ELYTRA)) {
+                    inv.setChestplate(new ItemStack(Material.AIR));
+                }
             }
         }, 20L);
-        if (player.getRank().getRankId() >= Rank.EMPEROR.getRankId()) {
-            Creative.getPlayerData(player.getUniqueId()).setCreator(false);
-        }
         for (PotionEffect e : player.getBukkitPlayer().getActivePotionEffects()) {
             player.getBukkitPlayer().removePotionEffect(e.getType());
         }

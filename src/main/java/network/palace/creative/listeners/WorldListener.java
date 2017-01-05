@@ -6,9 +6,11 @@ import network.palace.core.player.Rank;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -51,6 +53,16 @@ public class WorldListener implements Listener {
             inv.remove(Material.ELYTRA);
             if (inv.getChestplate().getType().equals(Material.ELYTRA)) {
                 inv.setChestplate(new ItemStack(Material.AIR));
+            }
+        }
+    }
+
+    @EventHandler
+    public void onChunkLoad(ChunkLoadEvent event) {
+        World world = event.getWorld();
+        for (Entity e : event.getChunk().getEntities()) {
+            if (!EntitySpawn.allowed.contains(e.getType())) {
+                e.remove();
             }
         }
     }

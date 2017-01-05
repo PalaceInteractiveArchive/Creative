@@ -45,6 +45,9 @@ public class PlayerJoinAndLeave implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(final PlayerJoinEvent event) {
         final CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
+        player.getHeaderFooter().setHeader(ChatColor.GOLD + "Palace Network - A Family of Servers");
+        player.getHeaderFooter().setFooter(ChatColor.LIGHT_PURPLE + "You're on the " + ChatColor.GREEN + "Creative " +
+                ChatColor.LIGHT_PURPLE + "server");
         Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () -> {
             PlotPlayer tp = BukkitUtil.getPlayer(player.getBukkitPlayer());
             if (player.getRank().getRankId() >= Rank.KNIGHT.getRankId()) {
@@ -65,7 +68,8 @@ public class PlayerJoinAndLeave implements Listener {
             if (player.getLocation().getWorld().getName().equalsIgnoreCase("spawn")) {
                 PlayerInventory inv = player.getInventory();
                 inv.remove(Material.ELYTRA);
-                if (inv.getChestplate().getType().equals(Material.ELYTRA)) {
+                if (inv.getChestplate() != null && inv.getChestplate().getType() != null &&
+                        inv.getChestplate().getType().equals(Material.ELYTRA)) {
                     inv.setChestplate(new ItemStack(Material.AIR));
                 }
             }

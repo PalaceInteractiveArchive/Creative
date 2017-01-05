@@ -555,14 +555,14 @@ public class ShowManager implements Listener {
                     }
                     case "Set Power": {
                         Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Set Power");
-                        inv.setItem(10, ItemUtil.create(Material.FIREWORK, 0, ChatColor.GREEN + "Power 0",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(12, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Power 1",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(14, ItemUtil.create(Material.FIREWORK, 2, ChatColor.GREEN + "Power 2",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(16, ItemUtil.create(Material.FIREWORK, 3, ChatColor.GREEN + "Power 3",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                        inv.setItem(10, ItemUtil.create(Material.FIREWORK, 1, (byte) 0,
+                                ChatColor.GREEN + "Power 0", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                        inv.setItem(12, ItemUtil.create(Material.FIREWORK, 1, (byte) 1,
+                                ChatColor.GREEN + "Power 1", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                        inv.setItem(14, ItemUtil.create(Material.FIREWORK, 1, (byte) 2,
+                                ChatColor.GREEN + "Power 2", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                        inv.setItem(16, ItemUtil.create(Material.FIREWORK, 1, (byte) 3,
+                                ChatColor.GREEN + "Power 3", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
                         inv.setItem(22, Creative.menuUtil.back);
                         player.openInventory(inv);
                         break;

@@ -239,6 +239,7 @@ public class Creative extends Plugin {
     public void registerListeners() {
         PluginManager pm = Bukkit.getServer().getPluginManager();
         pm.registerEvents(new BlockEdit(), this);
+        pm.registerEvents(new EntitySpawn(), this);
         pm.registerEvents(new InventoryClick(), this);
         pm.registerEvents(new PlayerDamage(), this);
         pm.registerEvents(new PlayerInteract(), this);

@@ -68,7 +68,7 @@ public class PlayParticle implements Runnable {
 
     private void particle(Player player, EnumWrappers.Particle effect, Location loc, float offsetX, float offsetY, float offsetZ, int speed, int count) {
         for (CPlayer tp : Core.getPlayerManager().getOnlinePlayers()) {
-            if (tp.getBukkitPlayer().canSee(player)) {
+            if (tp.canSee(player)) {
                 tp.getParticles().send(loc, effect, count, offsetX, offsetY, offsetZ, speed);
             }
         }

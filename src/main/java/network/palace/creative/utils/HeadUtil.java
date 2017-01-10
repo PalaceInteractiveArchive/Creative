@@ -12,8 +12,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.*;
 import java.net.URL;
@@ -23,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class HeadUtil {
+
     public String url = "https://spreadsheets.google.com/feeds/cells/1msHPnWju6nSYXcZUwq-F2tU71LoQHYyhJXbG0xiJ2AA/od6/public/basic?alt=json";
     private HashMap<String, List<ItemStack>> map = new HashMap<>();
 
@@ -35,40 +38,39 @@ public class HeadUtil {
         if (obj == null) {
             return;
         }
-        JSONArray array = obj.getJSONObject("feed").getJSONArray("entry");
+        JSONArray array = (JSONArray) ((JSONObject) obj.get("feed")).get("entry");
         map.clear();
         String lastCategory = "";
         String lastName = "";
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject ob = array.getJSONObject(i);
-            JSONObject code = ob.getJSONObject("content");
-            JSONObject name = ob.getJSONObject("title");
-            String column = name.getString("$t");
-            Integer row = Integer.parseInt(column.substring(1, 2));
-            //Column A
+        for (Object anArray : array) {
+            JSONObject ob = (JSONObject) anArray;
+            JSONObject code = (JSONObject) ob.get("content");
+            JSONObject name = (JSONObject) ob.get("title");
+            String column = (String) name.get("$t");
+            // Column A
             if (column.substring(0, 1).equalsIgnoreCase("a")) {
-                //Category
-                if (code.getString("$t").startsWith("-")) {
-                    String cat = code.getString("$t").replace("-", "");
+                // Category
+                if (((String) code.get("$t")).startsWith("-")) {
+                    String cat = ((String) code.get("$t")).replace("-", "");
                     map.put(cat, new ArrayList<>());
                     lastCategory = cat;
                     continue;
                 }
-                //Name
+                // Name
                 List<ItemStack> list = map.get(lastCategory);
-                String headName = code.getString("$t");
+                String headName = (String) code.get("$t");
                 list.add(ItemUtil.create(Material.APPLE, headName));
                 map.put(lastCategory, list);
                 lastName = headName;
                 continue;
             }
-            //Column B
+            // Column B
             List<ItemStack> list = map.get(lastCategory);
             int i2 = 0;
             for (ItemStack it : list) {
                 if (it.getItemMeta().getDisplayName().equals(lastName)) {
                     list.remove(i2);
-                    String hash = code.getString("$t");
+                    String hash = (String) code.get("$t");
                     list.add(network.palace.core.utils.HeadUtil.getPlayerHead(hash, ChatColor.GREEN + lastName));
                 }
                 i2++;
@@ -84,8 +86,9 @@ public class HeadUtil {
         try (InputStream is = new URL(url).openStream()) {
             BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
             String jsonText = readAll(rd);
-            return new JSONObject(jsonText);
-        } catch (IOException e) {
+            JSONParser parser = new JSONParser();
+            return (JSONObject) parser.parse(jsonText);
+        } catch (IOException | ParseException e) {
             e.printStackTrace();
             return null;
         }

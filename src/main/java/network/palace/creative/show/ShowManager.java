@@ -82,25 +82,32 @@ public class ShowManager implements Listener {
     public void onTick(TickEvent event) {
         for (Map.Entry<UUID, Show> entry : new HashSet<>(shows.entrySet())) {
             Show show = entry.getValue();
-            if (show.update()) {
-                CPlayer player = Core.getPlayerManager().getPlayer(Bukkit.getPlayer(show.getOwner()));
-                if (player != null) {
-                    if (!show.getAudioTrack().equals("none")) {
-                        for (AudioArea a : Audio.getInstance().getAudioAreas()) {
-                            if (a instanceof PlotArea) {
-                                PlotArea area = (PlotArea) a;
-                                if (area.getAreaName().equals(player.getName())) {
-                                    area.removeAllPlayers(true);
-                                    Audio.getInstance().removeArea(area);
-                                    break;
+            if (show == null || show.getOwner() == null) {
+                continue;
+            }
+            try {
+                if (show.update()) {
+                    CPlayer player = Core.getPlayerManager().getPlayer(Bukkit.getPlayer(show.getOwner()));
+                    if (player != null) {
+                        if (!show.getAudioTrack().equals("none")) {
+                            for (AudioArea a : Audio.getInstance().getAudioAreas()) {
+                                if (a instanceof PlotArea) {
+                                    PlotArea area = (PlotArea) a;
+                                    if (area.getAreaName().equals(player.getName())) {
+                                        area.removeAllPlayers(true);
+                                        Audio.getInstance().removeArea(area);
+                                        break;
+                                    }
                                 }
                             }
                         }
+                        messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() + ChatColor.GREEN +
+                                " has ended!");
                     }
-                    messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() + ChatColor.GREEN +
-                            " has ended!");
+                    shows.remove(entry.getKey());
                 }
-                shows.remove(entry.getKey());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

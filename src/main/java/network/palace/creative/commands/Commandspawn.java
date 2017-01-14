@@ -40,6 +40,9 @@ public class Commandspawn extends CoreCommand {
             return;
         }
         CPlayer player = Core.getPlayerManager().getPlayer((Player) sender);
+        if (player == null) {
+            return;
+        }
         if (player.getRank().getRankId() < Rank.KNIGHT.getRankId()) {
             player.teleport(Creative.getSpawn());
             return;

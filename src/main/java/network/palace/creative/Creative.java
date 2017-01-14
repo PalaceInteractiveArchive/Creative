@@ -28,7 +28,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.0.1")
 public class Creative extends Plugin {
     public static Creative inst;
     private static Location spawn;

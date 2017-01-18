@@ -19,7 +19,7 @@ public class RolePlayUtil {
     public HashMap<UUID, UUID> timerList = new HashMap<>();
 
     public RolePlay create(CPlayer player) {
-        PlayerData data = Creative.getPlayerData(player.getUniqueId());
+        PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
         List<UUID> members = new ArrayList<>();
         members.add(player.getUniqueId());
         RolePlay rp = new RolePlay(player.getUniqueId(), members, data.getRPLimit());

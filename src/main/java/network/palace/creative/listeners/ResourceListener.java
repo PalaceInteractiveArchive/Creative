@@ -19,19 +19,19 @@ public class ResourceListener implements Listener {
     public void onCurrentPackReceive(CurrentPackReceivedEvent event) {
         CPlayer player = event.getPlayer();
         String current = event.getPack();
-        PlayerData data = Creative.getPlayerData(player.getUniqueId());
+        PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
         String preferred = data.getResourcePack();
         if (!preferred.equals("NoPrefer")) {
             if (preferred.equals("none")) {
                 //Choose a pack
                 player.sendMessage(ChatColor.GREEN + "Please choose a Resource Pack option for Creative.");
                 Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () ->
-                        Creative.resourceUtil.openMenu(player), 20L);
+                        Creative.getInstance().getResourceUtil().openMenu(player), 20L);
             } else if (Core.getResourceManager().getPack(preferred) == null) {
                 player.sendMessage(ChatColor.RED + "Your chosen Resource Pack is not available, choose a new one!");
                 //Choose a pack
                 Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () ->
-                        Creative.resourceUtil.openMenu(player), 20L);
+                        Creative.getInstance().getResourceUtil().openMenu(player), 20L);
             } else if (preferred.equals("Blank") && !current.equals("none")) {
                 //Send blank
                 Core.getResourceManager().sendPack(player, "Blank");

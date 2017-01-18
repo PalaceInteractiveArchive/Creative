@@ -13,7 +13,7 @@ public class PlayerMove implements Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         if (event.getTo().getBlockY() <= 0) {
-            event.getPlayer().teleport(Creative.getSpawn());
+            event.getPlayer().teleport(Creative.getInstance().getSpawn());
         }
     }
 }

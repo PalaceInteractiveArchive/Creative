@@ -7,23 +7,21 @@ import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
-import network.palace.creative.handlers.CreativeInventoryType;
-import org.bukkit.ChatColor;
+import network.palace.creative.handlers.BannerInventoryType;
 
 /**
- * Created by Marc on 7/29/15
+ * Created by Marc on 6/12/15
  */
-@CommandMeta(description = "Open Creative Menu")
+@CommandMeta(description = "Open the Banner Creator")
 @CommandPermission(rank = Rank.SETTLER)
-public class Commandmenu extends CoreCommand {
+public class CommandBanner extends CoreCommand {
 
-    public Commandmenu() {
-        super("menu");
+    public CommandBanner() {
+        super("banner");
     }
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        player.sendMessage(ChatColor.GREEN + "Opening Creative Menu...");
-        Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer(), CreativeInventoryType.MAIN);
+        Creative.getInstance().getBannerUtil().openMenu(player.getBukkitPlayer(), BannerInventoryType.SELECT_BASE);
     }
 }

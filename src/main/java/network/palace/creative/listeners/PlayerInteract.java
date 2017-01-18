@@ -29,14 +29,14 @@ public class PlayerInteract implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        Creative.getPlayerData(player.getUniqueId()).resetAction();
+        Creative.getInstance().getPlayerData(player.getUniqueId()).resetAction();
         if (event.getAction().equals(Action.PHYSICAL)) {
             return;
         }
         if (player.getItemInHand().getType().equals(Material.NETHER_STAR) && player.getItemInHand().getItemMeta()
                 != null && player.getItemInHand().getItemMeta().getDisplayName() != null &&
                 player.getItemInHand().getItemMeta().getDisplayName().startsWith(ChatColor.AQUA + "Creative")) {
-            Creative.menuUtil.openMenu(player, CreativeInventoryType.MAIN);
+            Creative.getInstance().getMenuUtil().openMenu(player, CreativeInventoryType.MAIN);
             event.setCancelled(true);
             return;
         }
@@ -54,7 +54,7 @@ public class PlayerInteract implements Listener {
                 List<UUID> owners = new ArrayList<>(plot.getOwners());
                 Player owner = Bukkit.getPlayer(owners.get(0));
                 if (owner != null) {
-                    Creative.showManager.syncMusic(player, plot, owner);
+                    Creative.getInstance().getShowManager().syncMusic(player, plot, owner);
                 }
             }
             return;
@@ -74,7 +74,7 @@ public class PlayerInteract implements Listener {
                 return;
             }
         }
-        Creative.menuUtil.givePlot(player, true);
+        Creative.getInstance().getMenuUtil().givePlot(player, true);
     }
 
     @EventHandler
@@ -83,7 +83,7 @@ public class PlayerInteract implements Listener {
         if (player.getInventory().getHeldItemSlot() == 8) {
             event.setCancelled(true);
         }
-        Creative.getPlayerData(player.getUniqueId()).resetAction();
+        Creative.getInstance().getPlayerData(player.getUniqueId()).resetAction();
     }
 
     @EventHandler

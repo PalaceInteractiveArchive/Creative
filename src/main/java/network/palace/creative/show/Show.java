@@ -84,7 +84,7 @@ public class Show {
                 if (tokens[0].equals("Audio")) {
                     musicTime = System.currentTimeMillis();
                     AudioTrack track = null;
-                    for (Map.Entry<String, AudioTrack> entry : Creative.showManager.getAudioTracks().entrySet()) {
+                    for (Map.Entry<String, AudioTrack> entry : Creative.getInstance().getShowManager().getAudioTracks().entrySet()) {
                         AudioTrack t = entry.getValue();
                         if (entry.getKey().equalsIgnoreCase(tokens[1])) {
                             track = t;
@@ -118,7 +118,7 @@ public class Show {
                 }
                 if (tokens[1].startsWith("Firework")) {
                     // Location
-                    Location loc = Creative.showManager.strToLoc(world.getName() + "," + tokens[2]);
+                    Location loc = Creative.getInstance().getShowManager().strToLoc(world.getName() + "," + tokens[2]);
                     if (loc == null) {
                         invalidLines.put(strLine, "Invalid Location");
                         continue;
@@ -135,7 +135,7 @@ public class Show {
                         invalidLines.put(strLine, "Invalid Power");
                         continue;
                     }
-                    FireworkEffect.Type type = Creative.showManager.getType(tokens[4]);
+                    FireworkEffect.Type type = Creative.getInstance().getShowManager().getType(tokens[4]);
                     ShowColor color = ShowColor.fromString(tokens[5]);
                     ShowColor fade = ShowColor.fromString(tokens[6]);
                     boolean flicker = tokens[7].equalsIgnoreCase("true");
@@ -147,7 +147,7 @@ public class Show {
                 if (tokens[1].contains("Particle")) {
                     // 0 Particle type x,y,z oX oY oZ speed amount
                     EnumWrappers.Particle effect = EnumWrappers.Particle.getByName(tokens[2]);
-                    Location location = Creative.showManager.strToLoc(world.getName() + "," + tokens[3]);
+                    Location location = Creative.getInstance().getShowManager().strToLoc(world.getName() + "," + tokens[3]);
                     double offsetX = Float.parseFloat(tokens[4]);
                     double offsetY = Float.parseFloat(tokens[5]);
                     double offsetZ = Float.parseFloat(tokens[6]);
@@ -362,7 +362,7 @@ public class Show {
     }
 
     public void saveFile() {
-        BufferedWriter bw = null;
+        BufferedWriter bw;
         try {
             bw = new BufferedWriter(new FileWriter(new File("plugins/Creative/shows/" + getOwner().toString() +
                     ".show"), false));
@@ -370,7 +370,7 @@ public class Show {
             bw.newLine();
             if (!audioTrack.equals("none")) {
                 String s = "";
-                for (Map.Entry<String, AudioTrack> entry : Creative.showManager.getAudioTracks().entrySet()) {
+                for (Map.Entry<String, AudioTrack> entry : Creative.getInstance().getShowManager().getAudioTracks().entrySet()) {
                     if (entry.getValue().getAudioPath().equalsIgnoreCase(audioTrack)) {
                         s = entry.getKey();
                         break;

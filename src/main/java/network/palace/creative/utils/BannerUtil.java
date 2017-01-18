@@ -74,7 +74,7 @@ public class BannerUtil {
             public void onPacketReceiving(PacketEvent event) {
                 Player player = event.getPlayer();
                 cancel(player);
-                Creative.showManager.cancelEdit(player);
+                Creative.getInstance().getShowManager().cancelEdit(player);
             }
         });
     }

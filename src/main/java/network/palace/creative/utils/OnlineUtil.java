@@ -19,7 +19,7 @@ public class OnlineUtil {
     public OnlineUtil() {
         Bukkit.getScheduler().runTaskTimer(Creative.getInstance(), () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
-                PlayerData data = Creative.getPlayerData(p.getUniqueId());
+                PlayerData data = Creative.getInstance().getPlayerData(p.getUniqueId());
                 data.addLastAction(1);
                 if (data.getLastAction() >= 600 && !data.isAFK()) {
                     data.setAFK(true);
@@ -31,7 +31,7 @@ public class OnlineUtil {
         // $10 every 30 minutes
         Bukkit.getScheduler().runTaskTimer(Creative.getInstance(), () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
-                PlayerData data = Creative.getPlayerData(p.getUniqueId());
+                PlayerData data = Creative.getInstance().getPlayerData(p.getUniqueId());
                 if (data.isAFK()) {
                     continue;
                 }
@@ -49,7 +49,7 @@ public class OnlineUtil {
                 PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK, PacketType.Play.Client.LOOK) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                Creative.getPlayerData(event.getPlayer().getUniqueId()).resetAction();
+                Creative.getInstance().getPlayerData(event.getPlayer().getUniqueId()).resetAction();
             }
         });
     }

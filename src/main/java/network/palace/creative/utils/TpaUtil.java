@@ -100,7 +100,7 @@ public class TpaUtil {
         }
         map.remove(tp.getUniqueId());
         cancelTimer(tp.getUniqueId());
-        Creative.teleportUtil.log(tp.getBukkitPlayer(), tp.getLocation());
+        Creative.getInstance().getTeleportUtil().log(tp.getBukkitPlayer(), tp.getLocation());
         tp.teleport(player.getLocation());
         final String name = tp.getRank().getTagColor() + tp.getName();
         final String name2 = player.getRank().getTagColor() + player.getName();

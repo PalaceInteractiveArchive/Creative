@@ -120,13 +120,18 @@ public class MenuUtil implements Listener {
                 if (tp == null) {
                     continue;
                 }
-                tp.teleport(Creative.getSpawn());
+                tp.teleport(Creative.getInstance().getSpawn());
             }
         }, 0L, 20L);
     }
 
     public void openMenu(Player player, CreativeInventoryType type) {
-        PlayerData data = Creative.getPlayerData(player.getUniqueId());
+        if (player == null) return;
+        if (type == null) return;
+
+        PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
+
+        if (data == null) return;
         switch (type) {
             case MAIN: {
                 Inventory main = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Creative Menu");
@@ -221,7 +226,7 @@ public class MenuUtil implements Listener {
             }
             case HEADSHOP: {
                 Inventory hs = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Heads");
-                HashMap<String, List<ItemStack>> map = Creative.headUtil.getCategories();
+                HashMap<String, List<ItemStack>> map = Creative.getInstance().getHeadUtil().getCategories();
                 List<String> categories = new ArrayList<>(map.keySet());
                 int place = 10;
                 for (String s : categories) {
@@ -405,7 +410,7 @@ public class MenuUtil implements Listener {
                 case MAIN: {
                     switch (name.toLowerCase()) {
                         case "banner creator":
-                            Creative.bannerUtil.openMenu(player, BannerInventoryType.SELECT_BASE);
+                            Creative.getInstance().getBannerUtil().openMenu(player, BannerInventoryType.SELECT_BASE);
                             break;
                         case "my plots":
                             openMenu(player, CreativeInventoryType.MY_PLOTS);
@@ -430,7 +435,7 @@ public class MenuUtil implements Listener {
                             openMenu(player, CreativeInventoryType.HEADSHOP);
                             break;
                         case "show creator":
-                            Creative.showManager.editShow(player);
+                            Creative.getInstance().getShowManager().editShow(player);
                             break;
                     }
                     break;
@@ -583,7 +588,7 @@ public class MenuUtil implements Listener {
                         openMenu(player, CreativeInventoryType.MAIN);
                         return;
                     }
-                    Creative.headUtil.openCategory(player, name);
+                    Creative.getInstance().getHeadUtil().openCategory(player, name);
                     break;
                 }
                 case ADDED_PLAYERS: {
@@ -659,7 +664,7 @@ public class MenuUtil implements Listener {
                         openMenu(player, CreativeInventoryType.MAIN);
                         return;
                     }
-                    PlayerData data = Creative.getPlayerData(player.getUniqueId());
+                    PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
                     int limit = data.getRPLimit();
                     switch (name.toLowerCase()) {
                         case "role play expansion (10 player)": {
@@ -831,10 +836,10 @@ public class MenuUtil implements Listener {
                         return;
                     }
                     if (item.getType().equals(Material.STAINED_GLASS_PANE)) {
-                        Creative.particleManager.clearParticle(player);
+                        Creative.getInstance().getParticleManager().clearParticle(Core.getPlayerManager().getPlayer(player));
                         return;
                     }
-                    Creative.particleManager.setParticle(player, name.toLowerCase(), meta.getDisplayName());
+                    Creative.getInstance().getParticleManager().setParticle(Core.getPlayerManager().getPlayer(player), name.toLowerCase(), meta.getDisplayName());
                     break;
                 }
                 case PLOT_SETTINGS: {
@@ -1127,23 +1132,23 @@ public class MenuUtil implements Listener {
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        Creative.getPlayerData(player.getUniqueId()).resetAction();
+        Creative.getInstance().getPlayerData(player.getUniqueId()).resetAction();
         if (!trusting.containsKey(player.getUniqueId())) {
             if (!adding.containsKey(player.getUniqueId())) {
                 if (!denying.containsKey(player.getUniqueId())) {
                     event.setCancelled(true);
-                    if (Creative.showManager.isEditing(player.getUniqueId())) {
-                        Creative.showManager.handleChat(event, Core.getPlayerManager().getPlayer(player));
+                    if (Creative.getInstance().getShowManager().isEditing(player.getUniqueId())) {
+                        Creative.getInstance().getShowManager().handleChat(event, Core.getPlayerManager().getPlayer(player));
                         return;
                     }
-                    RolePlay rp = Creative.rolePlayUtil.getRolePlay(player.getUniqueId());
+                    RolePlay rp = Creative.getInstance().getRolePlayUtil().getRolePlay(player.getUniqueId());
                     if (rp != null) {
                         rp.chat(player, event.getMessage());
                         return;
                     }
                     CPlayer cplayer = Core.getPlayerManager().getPlayer(player);
                     Rank rank = cplayer.getRank();
-                    PlayerData data = Creative.getPlayerData(player.getUniqueId());
+                    PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
                     String msg;
                     if (rank.getRankId() > Rank.SQUIRE.getRankId()) {
                         msg = ChatColor.translateAlternateColorCodes('&', event.getMessage());
@@ -1153,7 +1158,7 @@ public class MenuUtil implements Listener {
                     String messageToSend = (data.hasCreatorTag() ? (ChatColor.WHITE + "[" + ChatColor.BLUE + "Creator"
                             + ChatColor.WHITE + "] ") : "") + rank.getNameWithBrackets() + " " + ChatColor.GRAY +
                             player.getName() + ": " + rank.getChatColor() + msg;
-                    Bukkit.getOnlinePlayers().stream().filter(tp -> Creative.rolePlayUtil
+                    Bukkit.getOnlinePlayers().stream().filter(tp -> Creative.getInstance().getRolePlayUtil()
                             .getRolePlay(tp.getUniqueId()) == null).forEach(tp -> tp.sendMessage(messageToSend));
                     return;
                 }

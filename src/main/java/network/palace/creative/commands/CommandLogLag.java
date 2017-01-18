@@ -7,23 +7,20 @@ import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
-import network.palace.creative.handlers.CreativeInventoryType;
-import org.bukkit.ChatColor;
 
 /**
- * Created by Marc on 7/29/15
+ * Created by Marc on 4/13/15
  */
-@CommandMeta(description = "Open Creative Menu")
-@CommandPermission(rank = Rank.SETTLER)
-public class Commandmenu extends CoreCommand {
+@CommandMeta(description = "View all redstone activity (spams your chat!)")
+@CommandPermission(rank = Rank.PALADIN)
+public class CommandLogLag extends CoreCommand {
 
-    public Commandmenu() {
-        super("menu");
+    public CommandLogLag() {
+        super("loglag");
     }
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        player.sendMessage(ChatColor.GREEN + "Opening Creative Menu...");
-        Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer(), CreativeInventoryType.MAIN);
+        Creative.getInstance().getRedstoneListener().toggleForPlayer(player);
     }
 }

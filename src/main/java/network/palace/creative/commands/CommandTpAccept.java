@@ -6,24 +6,21 @@ import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
-import network.palace.creative.Creative;
-import network.palace.creative.handlers.CreativeInventoryType;
-import org.bukkit.ChatColor;
+import network.palace.creative.utils.TpaUtil;
 
 /**
- * Created by Marc on 7/29/15
+ * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Open Creative Menu")
+@CommandMeta(description = "Accept a teleport request")
 @CommandPermission(rank = Rank.SETTLER)
-public class Commandmenu extends CoreCommand {
+public class CommandTpAccept extends CoreCommand {
 
-    public Commandmenu() {
-        super("menu");
+    public CommandTpAccept() {
+        super("tpaccept");
     }
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        player.sendMessage(ChatColor.GREEN + "Opening Creative Menu...");
-        Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer(), CreativeInventoryType.MAIN);
+        TpaUtil.acceptTeleport(player);
     }
 }

@@ -258,7 +258,7 @@ public class ShowManager implements Listener {
             place++;
         }
         if (page > 1) {
-            inv.setItem(48, Creative.menuUtil.last);
+            inv.setItem(48, Creative.getInstance().getMenuUtil().last);
         }
         int maxPage = 1;
         int n = show.getActions().size();
@@ -271,11 +271,11 @@ public class ShowManager implements Listener {
             }
         }
         if (show.getActions().size() > 45 && page < maxPage) {
-            inv.setItem(50, Creative.menuUtil.next);
+            inv.setItem(50, Creative.getInstance().getMenuUtil().next);
         }
         inv.setItem(53, ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 5, ChatColor.GREEN + "Add Action",
                 Arrays.asList(ChatColor.GREEN + "Click to add a new Action!")));
-        inv.setItem(49, Creative.menuUtil.back);
+        inv.setItem(49, Creative.getInstance().getMenuUtil().back);
         player.openInventory(inv);
     }
 
@@ -361,7 +361,7 @@ public class ShowManager implements Listener {
                 return;
             }
             if (isBack) {
-                Creative.menuUtil.openMenu(player, CreativeInventoryType.MAIN);
+                Creative.getInstance().getMenuUtil().openMenu(player, CreativeInventoryType.MAIN);
                 return;
             }
             switch (name) {
@@ -407,14 +407,14 @@ public class ShowManager implements Listener {
                         inv.setItem(11, setTime);
                         inv.setItem(15, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Set Text",
                                 Arrays.asList(ChatColor.YELLOW + "Supports Color Codes!")));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
                     case "Set Music": {
                         Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Set Music");
                         inv.setItem(13, ItemUtil.create(Material.RECORD_4, ChatColor.GREEN + "Select Track"));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -423,7 +423,7 @@ public class ShowManager implements Listener {
                         inv.setItem(11, setTime);
                         inv.setItem(15, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Set Particle",
                                 Arrays.asList(ChatColor.YELLOW + "Some Minecraft Particles are not allowed")));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -438,7 +438,7 @@ public class ShowManager implements Listener {
                                 Arrays.asList(ChatColor.YELLOW + "The color the Firework fades to")));
                         inv.setItem(15, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Set Power",
                                 Arrays.asList(ChatColor.YELLOW + "The power of the Firework")));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -480,7 +480,7 @@ public class ShowManager implements Listener {
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
                         inv.setItem(17, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 4, ChatColor.GREEN + "Creeper",
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -518,7 +518,7 @@ public class ShowManager implements Listener {
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
                         inv.setItem(16, ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -556,7 +556,7 @@ public class ShowManager implements Listener {
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
                         inv.setItem(16, ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -570,7 +570,7 @@ public class ShowManager implements Listener {
                                 ChatColor.GREEN + "Power 2", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
                         inv.setItem(16, ItemUtil.create(Material.FIREWORK, 1, (byte) 3,
                                 ChatColor.GREEN + "Power 3", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -715,7 +715,7 @@ public class ShowManager implements Listener {
                             inv.setItem(place, i);
                             place++;
                         }
-                        inv.setItem(31, Creative.menuUtil.back);
+                        inv.setItem(31, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -761,7 +761,7 @@ public class ShowManager implements Listener {
                         inv.setItem(16, ItemUtil.create(Material.LAVA_BUCKET, 1, c + "Lava", new ArrayList<>()));
                         inv.setItem(17, ItemUtil.create(Material.FIREWORK, 1, (byte) 0, c + "Fireworks Spark",
                                 new ArrayList<>()));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -883,7 +883,7 @@ public class ShowManager implements Listener {
                         inv.setItem(16, ItemUtil.create(Material.LAVA_BUCKET, 1, c + "Lava", new ArrayList<>()));
                         inv.setItem(17, ItemUtil.create(Material.FIREWORK, 1, (byte) 0, c + "Fireworks Spark",
                                 new ArrayList<>()));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -923,7 +923,7 @@ public class ShowManager implements Listener {
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
                         inv.setItem(17, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 4, ChatColor.GREEN + "Creeper",
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -961,7 +961,7 @@ public class ShowManager implements Listener {
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
                         inv.setItem(16, ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -999,7 +999,7 @@ public class ShowManager implements Listener {
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
                         inv.setItem(16, ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -1013,7 +1013,7 @@ public class ShowManager implements Listener {
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
                         inv.setItem(16, ItemUtil.create(Material.FIREWORK, 3, ChatColor.GREEN + "Power 3",
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(22, Creative.menuUtil.back);
+                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
                         break;
                     }
@@ -1073,7 +1073,7 @@ public class ShowManager implements Listener {
             inv.setItem(11, setTime);
             inv.setItem(15, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Set Text",
                     Arrays.asList(ChatColor.YELLOW + "Supports Color Codes!")));
-            inv.setItem(22, Creative.menuUtil.back);
+            inv.setItem(22, Creative.getInstance().getMenuUtil().back);
             player.removeMetadata("actionid", Creative.getInstance());
             player.setMetadata("actionid", new FixedMetadataValue(Creative.getInstance(), slot));
             player.openInventory(inv);
@@ -1082,7 +1082,7 @@ public class ShowManager implements Listener {
             inv.setItem(11, setTime);
             inv.setItem(15, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Set Particle",
                     Arrays.asList(ChatColor.YELLOW + "Some Minecraft Particles are not allowed")));
-            inv.setItem(22, Creative.menuUtil.back);
+            inv.setItem(22, Creative.getInstance().getMenuUtil().back);
             player.removeMetadata("actionid", Creative.getInstance());
             player.setMetadata("actionid", new FixedMetadataValue(Creative.getInstance(), slot));
             player.openInventory(inv);
@@ -1104,7 +1104,7 @@ public class ShowManager implements Listener {
             inv.setItem(16, ItemUtil.create(Material.FEATHER, 1, ChatColor.GREEN + "Trail",
                     Arrays.asList(a.isTrail() ? ChatColor.GREEN + "True" : ChatColor.RED + "False",
                             ChatColor.YELLOW + "Click to cycle options")));
-            inv.setItem(22, Creative.menuUtil.back);
+            inv.setItem(22, Creative.getInstance().getMenuUtil().back);
             player.removeMetadata("actionid", Creative.getInstance());
             player.setMetadata("actionid", new FixedMetadataValue(Creative.getInstance(), slot));
             player.openInventory(inv);
@@ -1121,7 +1121,7 @@ public class ShowManager implements Listener {
         inv.setItem(12, music);
         inv.setItem(14, particle);
         inv.setItem(16, fw);
-        inv.setItem(22, Creative.menuUtil.back);
+        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
         player.removeMetadata("actionid", Creative.getInstance());
         player.setMetadata("actionid", new FixedMetadataValue(Creative.getInstance(),
                 editSessions.get(player.getUniqueId()).getActions().size()));

@@ -7,23 +7,23 @@ import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
-import network.palace.creative.handlers.CreativeInventoryType;
 import org.bukkit.ChatColor;
 
 /**
- * Created by Marc on 7/29/15
+ * Created by Marc on 3/27/15
  */
-@CommandMeta(description = "Open Creative Menu")
-@CommandPermission(rank = Rank.SETTLER)
-public class Commandmenu extends CoreCommand {
+@CommandMeta(description = "Return to previous location")
+@CommandPermission(rank = Rank.SQUIRE)
+public class CommandBack extends CoreCommand {
 
-    public Commandmenu() {
-        super("menu");
+    public CommandBack() {
+        super("back");
     }
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        player.sendMessage(ChatColor.GREEN + "Opening Creative Menu...");
-        Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer(), CreativeInventoryType.MAIN);
+        if (!Creative.getInstance().getTeleportUtil().back(player)) {
+            player.sendMessage(ChatColor.GRAY + "No location to teleport back to!");
+        }
     }
 }

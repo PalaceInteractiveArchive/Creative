@@ -118,7 +118,7 @@ public class HeadUtil {
         boolean isBack = item.getType().equals(Material.ARROW);
         event.setCancelled(true);
         if (isBack) {
-            Creative.menuUtil.openMenu(player, CreativeInventoryType.HEADSHOP);
+            Creative.getInstance().getMenuUtil().openMenu(player, CreativeInventoryType.HEADSHOP);
             return;
         }
         player.getInventory().addItem(item);
@@ -138,7 +138,7 @@ public class HeadUtil {
             inv.setItem(place, head);
             place++;
         }
-        inv.setItem(s - 5, Creative.menuUtil.back);
+        inv.setItem(s - 5, Creative.getInstance().getMenuUtil().back);
         player.openInventory(inv);
     }
 }

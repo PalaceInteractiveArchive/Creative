@@ -42,8 +42,10 @@ public class PlayerJoinAndLeave implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerJoin(final PlayerJoinEvent event) {
-        final CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
+        if (player == null) return;
+
         player.getHeaderFooter().setHeader(ChatColor.GOLD + "Palace Network - A Family of Servers");
         player.getHeaderFooter().setFooter(ChatColor.LIGHT_PURPLE + "You're on the " + ChatColor.GREEN + "Creative " +
                 ChatColor.LIGHT_PURPLE + "server");
@@ -76,6 +78,7 @@ public class PlayerJoinAndLeave implements Listener {
         for (PotionEffect e : player.getBukkitPlayer().getActivePotionEffects()) {
             player.getBukkitPlayer().removePotionEffect(e.getType());
         }
+        Creative.getInstance().getParticleManager().join(player);
         player.sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.AQUA + "" + ChatColor.BOLD + "Palace Creative!");
     }
 

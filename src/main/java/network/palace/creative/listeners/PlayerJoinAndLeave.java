@@ -3,7 +3,6 @@ package network.palace.creative.listeners;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.plotsquared.bukkit.util.BukkitUtil;
 import network.palace.core.Core;
-import network.palace.core.events.CorePlayerJoinDelayedEvent;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.core.utils.ItemUtil;
@@ -18,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -42,10 +42,8 @@ public class PlayerJoinAndLeave implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerJoin(CorePlayerJoinDelayedEvent event) {
-        CPlayer player = event.getPlayer();
-        if (player == null) return;
-
+    public void onPlayerJoin(final PlayerJoinEvent event) {
+        final CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
         player.getHeaderFooter().setHeader(ChatColor.GOLD + "Palace Network - A Family of Servers");
         player.getHeaderFooter().setFooter(ChatColor.LIGHT_PURPLE + "You're on the " + ChatColor.GREEN + "Creative " +
                 ChatColor.LIGHT_PURPLE + "server");
@@ -78,7 +76,6 @@ public class PlayerJoinAndLeave implements Listener {
         for (PotionEffect e : player.getBukkitPlayer().getActivePotionEffects()) {
             player.getBukkitPlayer().removePotionEffect(e.getType());
         }
-        Creative.getInstance().getParticleManager().join(player);
         player.sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.AQUA + "" + ChatColor.BOLD + "Palace Creative!");
     }
 

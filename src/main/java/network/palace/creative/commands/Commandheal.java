@@ -16,9 +16,9 @@ import org.bukkit.potion.PotionEffect;
  */
 @CommandMeta(description = "Heal a player")
 @CommandPermission(rank = Rank.SQUIRE)
-public class CommandHeal extends CoreCommand {
+public class Commandheal extends CoreCommand {
 
-    public CommandHeal() {
+    public Commandheal() {
         super("heal");
     }
 

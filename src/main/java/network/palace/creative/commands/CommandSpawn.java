@@ -18,9 +18,9 @@ import org.bukkit.entity.Player;
  */
 @CommandMeta(description = "Return to Spawn")
 @CommandPermission(rank = Rank.SETTLER)
-public class CommandSpawn extends CoreCommand {
+public class Commandspawn extends CoreCommand {
 
-    public CommandSpawn() {
+    public Commandspawn() {
         super("spawn");
     }
 

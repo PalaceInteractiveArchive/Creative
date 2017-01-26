@@ -7,23 +7,21 @@ import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
-import org.bukkit.ChatColor;
+import network.palace.creative.handlers.BannerInventoryType;
 
 /**
- * Created by Marc on 3/27/15
+ * Created by Marc on 6/12/15
  */
-@CommandMeta(description = "Return to previous location")
-@CommandPermission(rank = Rank.SQUIRE)
-public class CommandBack extends CoreCommand {
+@CommandMeta(description = "Open the Banner Creator")
+@CommandPermission(rank = Rank.SETTLER)
+public class Commandbanner extends CoreCommand {
 
-    public CommandBack() {
-        super("back");
+    public Commandbanner() {
+        super("banner");
     }
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        if (!Creative.getInstance().getTeleportUtil().back(player)) {
-            player.sendMessage(ChatColor.GRAY + "No location to teleport back to!");
-        }
+        Creative.getInstance().getBannerUtil().openMenu(player.getBukkitPlayer(), BannerInventoryType.SELECT_BASE);
     }
 }

@@ -24,9 +24,9 @@ import java.util.stream.Collectors;
  */
 @CommandMeta(description = "Warp to a location")
 @CommandPermission(rank = Rank.SETTLER)
-public class CommandWarp extends CoreCommand {
+public class Commandwarp extends CoreCommand {
 
-    public CommandWarp() {
+    public Commandwarp() {
         super("warp");
     }
 

@@ -16,9 +16,9 @@ import org.bukkit.ChatColor;
  */
 @CommandMeta(description = "Manage another player's Plot")
 @CommandPermission(rank = Rank.WIZARD)
-public class CommandManage extends CoreCommand {
+public class Commandmanage extends CoreCommand {
 
-    public CommandManage() {
+    public Commandmanage() {
         super("manage");
     }
 

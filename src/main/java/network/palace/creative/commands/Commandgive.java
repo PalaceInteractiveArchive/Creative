@@ -14,9 +14,9 @@ import org.bukkit.inventory.ItemStack;
 
 @CommandMeta(description = "Give yourself an item", aliases = {"item", "i"})
 @CommandPermission(rank = Rank.KNIGHT)
-public class CommandGive extends CoreCommand {
+public class Commandgive extends CoreCommand {
 
-    public CommandGive() {
+    public Commandgive() {
         super("give");
     }
 

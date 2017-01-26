@@ -15,9 +15,9 @@ import org.bukkit.entity.Player;
  * Created by Marc on 1/3/17.
  */
 @CommandMeta(description = "Choose a Resource Pack")
-public class CommandPack extends CoreCommand {
+public class Commandpack extends CoreCommand {
 
-    public CommandPack() {
+    public Commandpack() {
         super("pack");
     }
 

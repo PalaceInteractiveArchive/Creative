@@ -15,9 +15,9 @@ import org.bukkit.entity.Player;
  */
 @CommandMeta(description = "Send a message", aliases = {"tell", "whisper"})
 @CommandPermission(rank = Rank.KNIGHT)
-public class CommandMsg extends CoreCommand {
+public class Commandmsg extends CoreCommand {
 
-    public CommandMsg() {
+    public Commandmsg() {
         super("msg");
     }
 

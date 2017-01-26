@@ -19,13 +19,13 @@ import java.io.IOException;
  */
 @CommandMeta(description = "Show Manager")
 @CommandPermission(rank = Rank.SETTLER)
-public class CommandShow extends CoreCommand {
+public class Commandshow extends CoreCommand {
     private FormattedMessage msg = new FormattedMessage("[Show] ").color(ChatColor.BLUE)
             .then("Purchase the Show Creator in the Creative Shop to use this! ").color(ChatColor.YELLOW)
             .then("Click here to open the Shop").color(ChatColor.AQUA).style(ChatColor.BOLD).tooltip(ChatColor.GREEN +
                     "Open the Creative Shop").command("/shop");
 
-    public CommandShow() {
+    public Commandshow() {
         super("show");
     }
 

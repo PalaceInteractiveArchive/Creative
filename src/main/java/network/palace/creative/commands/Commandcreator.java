@@ -36,13 +36,13 @@ import java.util.UUID;
 @SuppressWarnings("deprecation")
 @CommandMeta(description = "Creator Project")
 @CommandPermission(rank = Rank.SETTLER)
-public class CommandCreator extends CoreCommand {
+public class Commandcreator extends CoreCommand {
     private static FormattedMessage msg = new FormattedMessage("Learn how to join The Creator Project: ")
             .color(ChatColor.YELLOW).style(ChatColor.BOLD).then("https://palace.network/cc").color(ChatColor.AQUA)
             .link("https://palace.network/cc").tooltip(ChatColor.GREEN + "Click to visit https://palace.network/cc");
     private static PlotAPI api = new PlotAPI(Creative.getInstance());
 
-    public CommandCreator() {
+    public Commandcreator() {
         super("creator");
     }
 

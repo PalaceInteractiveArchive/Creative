@@ -17,9 +17,9 @@ import org.bukkit.entity.Player;
  */
 @CommandMeta(description = "Teleport command")
 @CommandPermission(rank = Rank.SQUIRE)
-public class CommandTP extends CoreCommand {
+public class Commandtp extends CoreCommand {
 
-    public CommandTP() {
+    public Commandtp() {
         super("tp");
     }
 

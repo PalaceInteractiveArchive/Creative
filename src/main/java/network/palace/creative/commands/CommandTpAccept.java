@@ -13,9 +13,9 @@ import network.palace.creative.utils.TpaUtil;
  */
 @CommandMeta(description = "Accept a teleport request")
 @CommandPermission(rank = Rank.SETTLER)
-public class CommandTpAccept extends CoreCommand {
+public class Commandtpaccept extends CoreCommand {
 
-    public CommandTpAccept() {
+    public Commandtpaccept() {
         super("tpaccept");
     }
 

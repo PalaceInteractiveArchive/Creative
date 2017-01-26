@@ -31,10 +31,10 @@ import java.util.UUID;
  */
 @PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.1.0")
 public class Creative extends Plugin {
-    @Getter private Location spawn;
+    private Location spawn;
     @Getter private YamlConfiguration config;
     @Getter private TeleportUtil teleportUtil = new TeleportUtil();
-    @Getter private List<Warp> warps = new ArrayList<>();
+    private List<Warp> warps = new ArrayList<>();
     @Getter private RedstoneListener redstoneListener;
     @Getter private BannerUtil bannerUtil;
     @Getter private MenuUtil menuUtil;
@@ -169,39 +169,39 @@ public class Creative extends Plugin {
     }
 
     private void registerCommands() {
-        registerCommand(new CommandBack());
-        registerCommand(new CommandBanner());
-        registerCommand(new CommandBC());
-        registerCommand(new CommandCreator());
-        registerCommand(new CommandDelWarp());
-        registerCommand(new CommandDownload());
-        registerCommand(new CommandGive());
-        registerCommand(new CommandHead());
-        registerCommand(new CommandHeal());
-        registerCommand(new CommandInvSee());
-        registerCommand(new CommandLogLag());
-        registerCommand(new CommandManage());
+        registerCommand(new Commandback());
+        registerCommand(new Commandbanner());
+        registerCommand(new Commandbc());
+        registerCommand(new Commandcreator());
+        registerCommand(new Commanddelwarp());
+        registerCommand(new Commanddownload());
+        registerCommand(new Commandgive());
+        registerCommand(new Commandhead());
+        registerCommand(new Commandheal());
+        registerCommand(new Commandinvsee());
+        registerCommand(new Commandloglag());
+        registerCommand(new Commandmanage());
         registerCommand(new Commandmenu());
-        registerCommand(new CommandMore());
-        registerCommand(new CommandMsg());
-        registerCommand(new CommandNv());
-        registerCommand(new CommandPack());
-        registerCommand(new CommandPT());
-        registerCommand(new CommandPTime());
-        registerCommand(new CommandPWeather());
-        registerCommand(new CommandRole());
-        registerCommand(new CommandRules());
-        registerCommand(new CommandSetSpawn());
-        registerCommand(new CommandSetWarp());
-        registerCommand(new CommandShop());
-        registerCommand(new CommandShow());
-        registerCommand(new CommandSpawn());
-        registerCommand(new CommandStar());
-        registerCommand(new CommandTP());
-        registerCommand(new CommandTPA());
-        registerCommand(new CommandTpAccept());
-        registerCommand(new CommandTpDeny());
-        registerCommand(new CommandWarp());
+        registerCommand(new Commandmore());
+        registerCommand(new Commandmsg());
+        registerCommand(new Commandnv());
+        registerCommand(new Commandpack());
+        registerCommand(new Commandpt());
+        registerCommand(new Commandptime());
+        registerCommand(new Commandpweather());
+        registerCommand(new Commandrole());
+        registerCommand(new Commandrules());
+        registerCommand(new Commandsetspawn());
+        registerCommand(new Commandsetwarp());
+        registerCommand(new Commandshop());
+        registerCommand(new Commandshow());
+        registerCommand(new Commandspawn());
+        registerCommand(new Commandstar());
+        registerCommand(new Commandtp());
+        registerCommand(new Commandtpa());
+        registerCommand(new Commandtpaccept());
+        registerCommand(new Commandtpdeny());
+        registerCommand(new Commandwarp());
     }
 
     private void registerListeners() {

@@ -25,9 +25,9 @@ import java.util.UUID;
  */
 @CommandMeta(description = "Role Play commands", aliases = "roleplay")
 @CommandPermission(rank = Rank.SETTLER)
-public class CommandRole extends CoreCommand {
+public class Commandrole extends CoreCommand {
 
-    public CommandRole() {
+    public Commandrole() {
         super("role");
     }
 

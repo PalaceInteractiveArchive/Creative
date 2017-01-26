@@ -17,9 +17,9 @@ import java.util.Collection;
  */
 @CommandMeta(description = "Enable Night Vision")
 @CommandPermission(rank = Rank.DWELLER)
-public class CommandNv extends CoreCommand {
+public class Commandnv extends CoreCommand {
 
-    public CommandNv() {
+    public Commandnv() {
         super("nv");
     }
 

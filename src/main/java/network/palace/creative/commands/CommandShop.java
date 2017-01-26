@@ -14,9 +14,9 @@ import network.palace.creative.handlers.CreativeInventoryType;
  */
 @CommandMeta(description = "Open Creative Shop")
 @CommandPermission(rank = Rank.SETTLER)
-public class CommandShop extends CoreCommand {
+public class Commandshop extends CoreCommand {
 
-    public CommandShop() {
+    public Commandshop() {
         super("shop");
     }
 

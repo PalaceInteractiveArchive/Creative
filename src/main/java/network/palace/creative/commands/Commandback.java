@@ -7,20 +7,23 @@ import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
+import org.bukkit.ChatColor;
 
 /**
- * Created by Marc on 4/13/15
+ * Created by Marc on 3/27/15
  */
-@CommandMeta(description = "View all redstone activity (spams your chat!)")
-@CommandPermission(rank = Rank.PALADIN)
-public class CommandLogLag extends CoreCommand {
+@CommandMeta(description = "Return to previous location")
+@CommandPermission(rank = Rank.SQUIRE)
+public class Commandback extends CoreCommand {
 
-    public CommandLogLag() {
-        super("loglag");
+    public Commandback() {
+        super("back");
     }
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        Creative.getInstance().getRedstoneListener().toggleForPlayer(player);
+        if (!Creative.getInstance().getTeleportUtil().back(player)) {
+            player.sendMessage(ChatColor.GRAY + "No location to teleport back to!");
+        }
     }
 }

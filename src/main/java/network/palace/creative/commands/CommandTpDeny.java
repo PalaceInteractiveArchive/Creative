@@ -13,9 +13,9 @@ import network.palace.creative.utils.TpaUtil;
  */
 @CommandMeta(description = "Deny a teleport request")
 @CommandPermission(rank = Rank.SETTLER)
-public class CommandTpDeny extends CoreCommand {
+public class Commandtpdeny extends CoreCommand {
 
-    public CommandTpDeny() {
+    public Commandtpdeny() {
         super("tpdeny");
     }
 

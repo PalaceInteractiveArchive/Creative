@@ -13,9 +13,9 @@ import org.bukkit.inventory.PlayerInventory;
 
 @CommandMeta(description = "Get a full stack of the item in your hand")
 @CommandPermission(rank = Rank.SQUIRE)
-public class CommandMore extends CoreCommand {
+public class Commandmore extends CoreCommand {
 
-    public CommandMore() {
+    public Commandmore() {
         super("more");
     }
 

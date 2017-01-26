@@ -7,21 +7,20 @@ import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
-import network.palace.creative.handlers.BannerInventoryType;
 
 /**
- * Created by Marc on 6/12/15
+ * Created by Marc on 4/13/15
  */
-@CommandMeta(description = "Open the Banner Creator")
-@CommandPermission(rank = Rank.SETTLER)
-public class CommandBanner extends CoreCommand {
+@CommandMeta(description = "View all redstone activity (spams your chat!)")
+@CommandPermission(rank = Rank.PALADIN)
+public class Commandloglag extends CoreCommand {
 
-    public CommandBanner() {
-        super("banner");
+    public Commandloglag() {
+        super("loglag");
     }
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        Creative.getInstance().getBannerUtil().openMenu(player.getBukkitPlayer(), BannerInventoryType.SELECT_BASE);
+        Creative.getInstance().getRedstoneListener().toggleForPlayer(player);
     }
 }

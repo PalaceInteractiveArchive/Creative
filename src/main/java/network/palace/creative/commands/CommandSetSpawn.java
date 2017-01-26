@@ -14,9 +14,9 @@ import org.bukkit.ChatColor;
  */
 @CommandMeta(description = "Set the spawn location")
 @CommandPermission(rank = Rank.WIZARD)
-public class CommandSetSpawn extends CoreCommand {
+public class Commandsetspawn extends CoreCommand {
 
-    public CommandSetSpawn() {
+    public Commandsetspawn() {
         super("setspawn");
     }
 

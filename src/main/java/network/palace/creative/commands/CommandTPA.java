@@ -16,9 +16,9 @@ import org.bukkit.ChatColor;
  */
 @CommandMeta(description = "Send a teleport request")
 @CommandPermission(rank = Rank.SETTLER)
-public class CommandTPA extends CoreCommand {
+public class Commandtpa extends CoreCommand {
 
-    public CommandTPA() {
+    public Commandtpa() {
         super("tpa");
     }
 

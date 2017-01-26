@@ -16,9 +16,9 @@ import org.bukkit.entity.Player;
  */
 @CommandMeta(description = "Set player weather")
 @CommandPermission(rank = Rank.KNIGHT)
-public class CommandPWeather extends CoreCommand {
+public class Commandpweather extends CoreCommand {
 
-    public CommandPWeather() {
+    public Commandpweather() {
         super("pweather");
     }
 

@@ -16,9 +16,9 @@ import org.bukkit.inventory.PlayerInventory;
  */
 @CommandMeta(description = "Replace the Creative Star")
 @CommandPermission(rank = Rank.SETTLER)
-public class CommandStar extends CoreCommand {
+public class Commandstar extends CoreCommand {
 
-    public CommandStar() {
+    public Commandstar() {
         super("star");
     }
 

@@ -14,9 +14,9 @@ import org.bukkit.command.CommandSender;
  */
 @CommandMeta(description = "Broadcast to the whole server")
 @CommandPermission(rank = Rank.KNIGHT)
-public class CommandBC extends CoreCommand {
+public class Commandbc extends CoreCommand {
 
-    public CommandBC() {
+    public Commandbc() {
         super("bc");
     }
 

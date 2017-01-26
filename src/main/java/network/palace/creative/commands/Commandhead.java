@@ -14,9 +14,9 @@ import org.bukkit.command.CommandSender;
  */
 @CommandMeta(description = "Reload head database")
 @CommandPermission(rank = Rank.KNIGHT)
-public class CommandHead extends CoreCommand {
+public class Commandhead extends CoreCommand {
 
-    public CommandHead() {
+    public Commandhead() {
         super("head");
     }
 

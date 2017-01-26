@@ -33,9 +33,9 @@ import java.util.zip.GZIPOutputStream;
  */
 @CommandMeta(description = "Download your Plot")
 @CommandPermission(rank = Rank.WIZARD)
-public class CommandDownload extends CoreCommand {
+public class Commanddownload extends CoreCommand {
 
-    public CommandDownload() {
+    public Commanddownload() {
         super("download");
     }
 

@@ -14,9 +14,9 @@ import network.palace.creative.handlers.CreativeInventoryType;
  */
 @CommandMeta(description = "Open Particle Menu")
 @CommandPermission(rank = Rank.SETTLER)
-public class CommandPT extends CoreCommand {
+public class Commandpt extends CoreCommand {
 
-    public CommandPT() {
+    public Commandpt() {
         super("pt");
     }
 

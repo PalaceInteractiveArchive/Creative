@@ -90,12 +90,12 @@ public class ShowManager implements Listener {
                     CPlayer player = Core.getPlayerManager().getPlayer(Bukkit.getPlayer(show.getOwner()));
                     if (player != null) {
                         if (!show.getAudioTrack().equals("none")) {
-                            for (AudioArea a : Audio.getInstance().getAudioAreas()) {
+                            for (AudioArea a : Audio.getPlugin(Audio.class).getAudioAreas()) {
                                 if (a instanceof PlotArea) {
                                     PlotArea area = (PlotArea) a;
                                     if (area.getAreaName().equals(player.getName())) {
                                         area.removeAllPlayers(true);
-                                        Audio.getInstance().removeArea(area);
+                                        Audio.getPlugin(Audio.class).removeArea(area);
                                         break;
                                     }
                                 }
@@ -175,7 +175,7 @@ public class ShowManager implements Listener {
         }
         if (!show.getAudioTrack().equals("none")) {
             PlotArea area = new PlotArea(plot.getId(), player.getBukkitPlayer(), show.getAudioTrack(), player.getLocation().getWorld());
-            Audio.getInstance().addArea(area);
+            Audio.getPlugin(Audio.class).addArea(area);
             for (Player p : Bukkit.getOnlinePlayers()) {
                 Plot pl = api.getPlot(p);
                 if (pl == null) {
@@ -197,7 +197,7 @@ public class ShowManager implements Listener {
         }
         if (!show.getAudioTrack().equals("none")) {
             PlotArea area = null;
-            for (AudioArea a : Audio.getInstance().getAudioAreas()) {
+            for (AudioArea a : Audio.getPlugin(Audio.class).getAudioAreas()) {
                 if (a.getAreaName().equals(player.getName())) {
                     area = (PlotArea) a;
                 }
@@ -205,7 +205,7 @@ public class ShowManager implements Listener {
             if (area != null) {
                 area.removeAllPlayers(true);
             }
-            Audio.getInstance().removeArea(area);
+            Audio.getPlugin(Audio.class).removeArea(area);
         }
         return show != null;
     }

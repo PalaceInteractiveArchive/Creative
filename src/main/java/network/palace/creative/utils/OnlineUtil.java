@@ -49,7 +49,10 @@ public class OnlineUtil {
                 PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK, PacketType.Play.Client.LOOK) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                Creative.getInstance().getPlayerData(event.getPlayer().getUniqueId()).resetAction();
+                PlayerData data = Creative.getInstance().getPlayerData(event.getPlayer().getUniqueId());
+                if (data != null) {
+                    data.resetAction();
+                }
             }
         });
     }

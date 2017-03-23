@@ -1,6 +1,5 @@
 package network.palace.creative.show;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotPlayer;
@@ -22,6 +21,7 @@ import network.palace.creative.show.handlers.AudioTrack;
 import network.palace.creative.show.handlers.PlotArea;
 import network.palace.creative.show.ticker.TickEvent;
 import network.palace.creative.show.ticker.Ticker;
+import network.palace.creative.utils.ParticleUtil;
 import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -776,8 +776,7 @@ public class ShowManager implements Listener {
                 }
                 Show show = editSessions.get(player.getUniqueId());
                 CPlayer p = Core.getPlayerManager().getPlayer(player);
-                EnumWrappers.Particle effect = EnumWrappers.Particle.getByName(ChatColor.stripColor(item.getItemMeta()
-                        .getDisplayName().replace(" ", "").toLowerCase()));
+                Particle effect = ParticleUtil.getParticle(ChatColor.stripColor(item.getItemMeta().getDisplayName().replace(" ", "").toLowerCase()));
                 if (show.getActions().size() <= id) {
                     show.actions.add(new ParticleAction(id, show, null, effect, player.getLocation(),
                             .75f, .5f, .75f, 0, 20));

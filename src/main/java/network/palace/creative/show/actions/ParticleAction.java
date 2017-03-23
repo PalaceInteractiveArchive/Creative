@@ -1,13 +1,14 @@
 package network.palace.creative.show.actions;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.show.Show;
+import network.palace.creative.utils.ParticleUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.inventory.ItemStack;
 
 import java.math.RoundingMode;
@@ -17,7 +18,7 @@ import java.text.DecimalFormat;
  * Created by Marc on 1/10/15
  */
 public class ParticleAction extends ShowAction {
-    public EnumWrappers.Particle particle;
+    public Particle particle;
     public Location loc;
     public double offsetX;
     public double offsetY;
@@ -25,7 +26,7 @@ public class ParticleAction extends ShowAction {
     public float speed;
     public int amount;
 
-    public ParticleAction(Integer id, Show show, Long time, EnumWrappers.Particle particle, Location loc, double offsetX,
+    public ParticleAction(Integer id, Show show, Long time, Particle particle, Location loc, double offsetX,
                           double offsetY, double offsetZ, float speed, int amount) {
         super(id, show, time == null ? 0 : time);
         DecimalFormat df = new DecimalFormat("#.##");
@@ -56,17 +57,17 @@ public class ParticleAction extends ShowAction {
 
     @Override
     public String toString() {
-        return time / 1000 + " Particle " + (particle == null ? "null" : particle.getName()) + " " + loc.getX() + "," +
+        return time / 1000 + " Particle " + (particle == null ? "null" : ParticleUtil.getName(particle)) + " " + loc.getX() + "," +
                 loc.getY() + "," + loc.getZ() + " " + offsetX + " " + offsetY + " " + offsetZ + " " + speed + " " + amount;
     }
 
     @Override
     public String getDescription() {
         return ChatColor.GREEN + "Time: " + (time / 1000) + " Particle: " + caps(particle == null ? "none" :
-                particle.getName()) + " Loc: " + strLoc(loc);
+                ParticleUtil.getName(particle)) + " Loc: " + strLoc(loc);
     }
 
-    public void setParticle(EnumWrappers.Particle particle) {
+    public void setParticle(Particle particle) {
         this.particle = particle;
     }
 }

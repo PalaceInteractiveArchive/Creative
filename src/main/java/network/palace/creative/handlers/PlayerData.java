@@ -1,6 +1,6 @@
 package network.palace.creative.handlers;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
+import org.bukkit.Particle;
 
 import java.util.UUID;
 
@@ -9,7 +9,7 @@ import java.util.UUID;
  */
 public class PlayerData {
     private UUID uuid;
-    private EnumWrappers.Particle particle;
+    private Particle particle;
     private boolean rptag = false;
     private boolean showCreator = false;
     private int rplimit;
@@ -20,7 +20,7 @@ public class PlayerData {
     private boolean isAFK = false;
     private String resourcePack = "";
 
-    public PlayerData(UUID uuid, EnumWrappers.Particle particle, boolean rptag, boolean showCreator, int rplimit,
+    public PlayerData(UUID uuid, Particle particle, boolean rptag, boolean showCreator, int rplimit,
                       boolean creator, boolean creatorTag, String resourcePack) {
         this.uuid = uuid;
         this.particle = particle;
@@ -36,7 +36,7 @@ public class PlayerData {
         return uuid;
     }
 
-    public EnumWrappers.Particle getParticle() {
+    public Particle getParticle() {
         return particle;
     }
 
@@ -64,7 +64,7 @@ public class PlayerData {
         return rplimit;
     }
 
-    public void setParticle(EnumWrappers.Particle particle) {
+    public void setParticle(Particle particle) {
         this.particle = particle;
     }
 

@@ -1,6 +1,5 @@
 package network.palace.creative.utils;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import network.palace.core.Core;
 import network.palace.creative.handlers.PlayerData;
 
@@ -25,7 +24,7 @@ public class SqlUtil {
                 sql.close();
                 return createData(uuid);
             }
-            PlayerData data = new PlayerData(uuid, EnumWrappers.Particle.getByName(result.getString("particle")),
+            PlayerData data = new PlayerData(uuid, ParticleUtil.getParticle(result.getString("particle")),
                     result.getInt("rptag") == 1, result.getInt("showcreator") == 1,
                     result.getInt("rplimit"), result.getInt("creator") == 1,
                     result.getInt("creatortag") == 1, result.getString("resourcepack"));

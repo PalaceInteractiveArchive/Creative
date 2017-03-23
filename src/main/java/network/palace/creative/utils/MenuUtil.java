@@ -1,6 +1,5 @@
 package network.palace.creative.utils;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.config.C;
@@ -1398,7 +1397,8 @@ public class MenuUtil implements Listener {
     }
 
     private void purchaseParticle(Player player) {
-        Core.getPlayerManager().getPlayer(player).getParticles().send(player.getLocation(), EnumWrappers.Particle.FIREWORKS_SPARK, 30, 0, 0, 0, 0.25f);
+        Core.getPlayerManager().getPlayer(player).getParticles().send(player.getLocation(), Particle.FIREWORKS_SPARK,
+                30, 0, 0, 0, 0.25f);
     }
 
     public enum PlotWeather {

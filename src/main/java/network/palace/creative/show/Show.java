@@ -1,6 +1,5 @@
 package network.palace.creative.show;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotId;
@@ -15,6 +14,7 @@ import network.palace.creative.show.actions.ParticleAction;
 import network.palace.creative.show.actions.ShowAction;
 import network.palace.creative.show.actions.TextAction;
 import network.palace.creative.show.handlers.AudioTrack;
+import network.palace.creative.utils.ParticleUtil;
 import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
 import org.bukkit.entity.Player;
@@ -70,15 +70,15 @@ public class Show {
                 }
                 String[] tokens = strLine.split(" ");
                 if (tokens[0].equals("Name")) {
-                    String name = "";
+                    StringBuilder name = new StringBuilder();
                     for (int i = 1; i < tokens.length; i++) {
                         String part = tokens[i];
-                        name += part;
+                        name.append(part);
                         if ((i - 2) < (tokens.length)) {
-                            name += " ";
+                            name.append(" ");
                         }
                     }
-                    this.name = name;
+                    this.name = name.toString();
                     continue;
                 }
                 if (tokens[0].equals("Audio")) {
@@ -106,14 +106,14 @@ public class Show {
                 Integer id = actions.size() + 1;
                 // Text
                 if (tokens[1].contains("Text")) {
-                    String text = "";
+                    StringBuilder text = new StringBuilder();
                     for (int i = 2; i < tokens.length; i++) {
-                        text += tokens[i] + " ";
+                        text.append(tokens[i]).append(" ");
                     }
                     if (text.length() > 1) {
-                        text = text.substring(0, text.length() - 1);
+                        text = new StringBuilder(text.substring(0, text.length() - 1));
                     }
-                    actions.add(new TextAction(id, this, time, text));
+                    actions.add(new TextAction(id, this, time, text.toString()));
                     continue;
                 }
                 if (tokens[1].startsWith("Firework")) {
@@ -146,7 +146,7 @@ public class Show {
                 }
                 if (tokens[1].contains("Particle")) {
                     // 0 Particle type x,y,z oX oY oZ speed amount
-                    EnumWrappers.Particle effect = EnumWrappers.Particle.getByName(tokens[2]);
+                    Particle effect = ParticleUtil.getParticle(tokens[2]);
                     Location location = Creative.getInstance().getShowManager().strToLoc(world.getName() + "," + tokens[3]);
                     double offsetX = Float.parseFloat(tokens[4]);
                     double offsetY = Float.parseFloat(tokens[5]);

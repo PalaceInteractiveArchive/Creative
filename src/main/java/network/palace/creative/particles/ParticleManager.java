@@ -1,12 +1,13 @@
 package network.palace.creative.particles;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.PlayerData;
+import network.palace.creative.utils.ParticleUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 
 import java.sql.Connection;
@@ -53,34 +54,34 @@ public class ParticleManager {
     public void setParticle(final CPlayer player, String particle, String displayName) {
         stop(player);
         PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
-        final EnumWrappers.Particle effect;
+        final Particle effect;
         switch (particle) {
             case "notes":
-                effect = EnumWrappers.Particle.NOTE;
+                effect = Particle.NOTE;
                 break;
             case "firework spark":
-                effect = EnumWrappers.Particle.FIREWORKS_SPARK;
+                effect = Particle.FIREWORKS_SPARK;
                 break;
             case "mickey head":
-                effect = EnumWrappers.Particle.VILLAGER_ANGRY;
+                effect = Particle.VILLAGER_ANGRY;
                 break;
             case "enchantment":
-                effect = EnumWrappers.Particle.ENCHANTMENT_TABLE;
+                effect = Particle.ENCHANTMENT_TABLE;
                 break;
             case "flame":
-                effect = EnumWrappers.Particle.FLAME;
+                effect = Particle.FLAME;
                 break;
             case "hearts":
-                effect = EnumWrappers.Particle.HEART;
+                effect = Particle.HEART;
                 break;
             case "portal":
-                effect = EnumWrappers.Particle.PORTAL;
+                effect = Particle.PORTAL;
                 break;
             case "lava":
-                effect = EnumWrappers.Particle.LAVA;
+                effect = Particle.LAVA;
                 break;
             case "witch magic":
-                effect = EnumWrappers.Particle.SPELL_WITCH;
+                effect = Particle.SPELL_WITCH;
                 break;
             default:
                 return;
@@ -99,7 +100,7 @@ public class ParticleManager {
         Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
             try (Connection connection = Core.getSqlUtil().getConnection()) {
                 PreparedStatement sql = connection.prepareStatement("UPDATE creative SET particle=? WHERE uuid=?");
-                sql.setString(1, effect.getName());
+                sql.setString(1, ParticleUtil.getName(effect));
                 sql.setString(2, player.getUniqueId().toString());
                 sql.execute();
                 sql.close();

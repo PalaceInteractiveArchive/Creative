@@ -2,6 +2,8 @@ package network.palace.creative.listeners;
 
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
+import network.palace.creative.Creative;
+import network.palace.creative.handlers.CreativeInventoryType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -13,8 +15,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import network.palace.creative.Creative;
-import network.palace.creative.handlers.CreativeInventoryType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,10 +40,12 @@ public class PlayerInteract implements Listener {
             event.setCancelled(true);
             return;
         }
-        if (!event.getAction().name().toLowerCase().contains("block")) {
+        if (!event.getAction().equals(Action.LEFT_CLICK_BLOCK) && !event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
             return;
         }
-        if (!event.getClickedBlock().getType().name().toLowerCase().contains("sign")) {
+        if (!event.getClickedBlock().getType().equals(Material.SIGN) &&
+                !event.getClickedBlock().getType().equals(Material.SIGN_POST) &&
+                !event.getClickedBlock().getType().equals(Material.WALL_SIGN)) {
             return;
         }
         Sign s = (Sign) event.getClickedBlock().getState();

@@ -1,5 +1,7 @@
 package network.palace.creative.utils;
 
+import network.palace.core.inventory.impl.InventoryButton;
+import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.CreativeInventoryType;
@@ -9,7 +11,6 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.json.simple.JSONArray;
@@ -23,10 +24,11 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HeadUtil {
-
     public String url = "https://spreadsheets.google.com/feeds/cells/1msHPnWju6nSYXcZUwq-F2tU71LoQHYyhJXbG0xiJ2AA/od6/public/basic?alt=json";
+    private HashMap<String, network.palace.core.inventory.impl.Inventory> inventories = new HashMap<>();
     private HashMap<String, List<ItemStack>> map = new HashMap<>();
 
     public HeadUtil() {
@@ -75,6 +77,28 @@ public class HeadUtil {
                 }
                 i2++;
             }
+        }
+        inventories.clear();
+        for (Map.Entry<String, List<ItemStack>> entry : map.entrySet()) {
+            String name = entry.getKey();
+            List<ItemStack> heads = map.get(name);
+            int size = heads.size();
+            int s = size > 18 ? (size > 27 ? (size > 36 ? 54 : 45) : 36) : 27;
+            network.palace.core.inventory.impl.Inventory inv = new network.palace.core.inventory.impl.Inventory(size, ChatColor.BLUE + "Heads - " + name);
+            int place = 0;
+            for (ItemStack head : heads) {
+                if (place > s - 10) {
+                    break;
+                }
+                inv.addButton(new InventoryButton(head, (cPlayer, clickAction) -> {
+                    cPlayer.getInventory().addItem(head);
+                    cPlayer.playSound(cPlayer.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1, 1);
+                }), place);
+                place++;
+            }
+            inv.addButton(new InventoryButton(Creative.getInstance().getMenuUtil().back,
+                    (cPlayer, clickAction) -> Creative.getInstance().getMenuUtil().openMenu(cPlayer, CreativeInventoryType.HEADSHOP)), s - 5);
+            inventories.put(name, inv);
         }
     }
 
@@ -125,20 +149,7 @@ public class HeadUtil {
         player.playSound(player.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1, 1);
     }
 
-    public void openCategory(Player player, String name) {
-        List<ItemStack> heads = map.get(name);
-        int size = heads.size();
-        int s = size > 18 ? (size > 27 ? (size > 36 ? 54 : 45) : 36) : 27;
-        Inventory inv = Bukkit.createInventory(player, s, ChatColor.BLUE + "Heads - " + name);
-        int place = 0;
-        for (ItemStack head : heads) {
-            if (place > s - 10) {
-                break;
-            }
-            inv.setItem(place, head);
-            place++;
-        }
-        inv.setItem(s - 5, Creative.getInstance().getMenuUtil().back);
-        player.openInventory(inv);
+    public void openCategory(CPlayer player, String name) {
+        inventories.get(name).open(player);
     }
 }

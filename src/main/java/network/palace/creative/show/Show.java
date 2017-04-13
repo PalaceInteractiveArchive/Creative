@@ -427,7 +427,7 @@ public class Show {
         });
     }
 
-    public void syncAudioForPlayer(final Player tp) {
+    public void syncAudioForPlayer(final CPlayer tp) {
         final AudioArea area = Audio.getPlugin(Audio.class).getByName(Bukkit.getPlayer(owner).getName());
         if (area == null) {
             return;

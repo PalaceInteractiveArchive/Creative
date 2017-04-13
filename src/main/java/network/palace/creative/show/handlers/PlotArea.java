@@ -4,8 +4,9 @@ import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotId;
 import network.palace.audio.handlers.AudioArea;
+import network.palace.core.Core;
+import network.palace.core.player.CPlayer;
 import network.palace.creative.Creative;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -24,8 +25,8 @@ public class PlotArea extends AudioArea {
         this.plotId = plotId;
         this.owner = owner;
         PlotAPI api = new PlotAPI(Creative.getInstance());
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            Plot pl = api.getPlot(p);
+        for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
+            Plot pl = api.getPlot(p.getBukkitPlayer());
             if (pl == null) {
                 continue;
             }

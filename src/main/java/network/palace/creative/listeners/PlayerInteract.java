@@ -2,6 +2,10 @@ package network.palace.creative.listeners;
 
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
+import network.palace.core.Core;
+import network.palace.core.player.CPlayer;
+import network.palace.creative.Creative;
+import network.palace.creative.handlers.CreativeInventoryType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -13,8 +17,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import network.palace.creative.Creative;
-import network.palace.creative.handlers.CreativeInventoryType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,15 +30,15 @@ public class PlayerInteract implements Listener {
     @SuppressWarnings("deprecation")
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
+        CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
         Creative.getInstance().getPlayerData(player.getUniqueId()).resetAction();
         if (event.getAction().equals(Action.PHYSICAL)) {
             return;
         }
-        if (player.getItemInHand().getType().equals(Material.NETHER_STAR) && player.getItemInHand().getItemMeta()
-                != null && player.getItemInHand().getItemMeta().getDisplayName() != null &&
-                player.getItemInHand().getItemMeta().getDisplayName().startsWith(ChatColor.AQUA + "Creative")) {
-            Creative.getInstance().getMenuUtil().openMenu(player, CreativeInventoryType.MAIN);
+        if (player.getItemInMainHand().getType().equals(Material.NETHER_STAR) && player.getItemInMainHand().getItemMeta()
+                != null && player.getItemInMainHand().getItemMeta().getDisplayName() != null &&
+                player.getItemInMainHand().getItemMeta().getDisplayName().startsWith(ChatColor.AQUA + "Creative")) {
+            Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer(), CreativeInventoryType.MAIN);
             event.setCancelled(true);
             return;
         }
@@ -66,7 +68,7 @@ public class PlayerInteract implements Listener {
         if (!player.getWorld().getName().equals("spawn")) {
             return;
         }
-        List<Plot> plots = new ArrayList<>(new PlotAPI(Creative.getInstance()).getPlayerPlots(player));
+        List<Plot> plots = new ArrayList<>(new PlotAPI(Creative.getInstance()).getPlayerPlots(player.getBukkitPlayer()));
         for (Plot p : plots) {
             if (p.getArea().worldname.equalsIgnoreCase("plotworld")) {
                 player.sendMessage(ChatColor.RED +
@@ -74,7 +76,7 @@ public class PlayerInteract implements Listener {
                 return;
             }
         }
-        Creative.getInstance().getMenuUtil().givePlot(player, true);
+        Creative.getInstance().getMenuUtil().givePlot(player.getBukkitPlayer(), true);
     }
 
     @EventHandler

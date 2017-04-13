@@ -177,8 +177,8 @@ public class ShowManager implements Listener {
         if (!show.getAudioTrack().equals("none")) {
             PlotArea area = new PlotArea(plot.getId(), player.getBukkitPlayer(), show.getAudioTrack(), player.getLocation().getWorld());
             Audio.getPlugin(Audio.class).addArea(area);
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                Plot pl = api.getPlot(p);
+            for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
+                Plot pl = api.getPlot(p.getBukkitPlayer());
                 if (pl == null) {
                     continue;
                 }
@@ -1202,7 +1202,7 @@ public class ShowManager implements Listener {
         }
     }
 
-    public void syncMusic(Player player, Plot plot, Player owner) {
+    public void syncMusic(CPlayer player, Plot plot, Player owner) {
         for (Show s : shows.values()) {
             if (s.getOwner().equals(owner.getUniqueId())) {
                 s.syncAudioForPlayer(player);

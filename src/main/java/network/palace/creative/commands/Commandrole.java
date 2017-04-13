@@ -63,14 +63,14 @@ public class Commandrole extends CoreCommand {
                         }
                     }
                     Collections.sort(names);
-                    String msg = rp.getTag() + ChatColor.YELLOW + " Role Play Members: ";
+                    StringBuilder msg = new StringBuilder(rp.getTag() + ChatColor.YELLOW + " Role Play Members: ");
                     for (int i = 0; i < names.size(); i++) {
-                        msg += names.get(i);
+                        msg.append(names.get(i));
                         if (i < (names.size() - 1)) {
-                            msg += ", ";
+                            msg.append(", ");
                         }
                     }
-                    player.sendMessage(msg);
+                    player.sendMessage(msg.toString());
                     return;
                 }
                 case "shop": {
@@ -189,20 +189,20 @@ public class Commandrole extends CoreCommand {
                 player.sendMessage(ChatColor.RED + "You can only change your Role Play Tag every 10 seconds!");
                 return;
             }
-            String tag = "";
+            StringBuilder tag = new StringBuilder();
             for (int i = 1; i < args.length; i++) {
-                tag += args[i];
+                tag.append(args[i]);
                 if (i < (args.length - 1)) {
-                    tag += " ";
+                    tag.append(" ");
                 }
             }
             if (tag.length() > 16) {
                 player.sendMessage(ChatColor.RED + "Role Play Tags cannot be longer than 16 characters!");
                 return;
             }
-            tag = ChatColor.WHITE + "[" + ChatColor.BLUE + ChatColor.translateAlternateColorCodes('&', tag) +
-                    ChatColor.WHITE + "]";
-            rp.setTag(tag);
+            tag = new StringBuilder(ChatColor.WHITE + "[" + ChatColor.BLUE + ChatColor.translateAlternateColorCodes('&', tag.toString()) +
+                    ChatColor.WHITE + "]");
+            rp.setTag(tag.toString());
             rp.sendMessage("The RP Tag was changed to " + tag + ChatColor.YELLOW + " by " +
                     player.getRank().getTagColor() + player.getName());
             return;

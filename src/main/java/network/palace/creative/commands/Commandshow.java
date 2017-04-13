@@ -66,16 +66,16 @@ public class Commandshow extends CoreCommand {
                     helpMenu(player);
                     return;
                 }
-                String name = "";
+                StringBuilder name = new StringBuilder();
                 for (int i = 1; i < args.length; i++) {
-                    name += args[i];
+                    name.append(args[i]);
                     if (i < (args.length - 1)) {
-                        name += " ";
+                        name.append(" ");
                     }
                 }
-                Creative.getInstance().getShowManager().setShowName(player, name);
+                Creative.getInstance().getShowManager().setShowName(player, name.toString());
                 Creative.getInstance().getShowManager().messagePlayer(player, "Your Show's name has been set to " +
-                        ChatColor.translateAlternateColorCodes('&', name));
+                        ChatColor.translateAlternateColorCodes('&', name.toString()));
                 return;
             }
             case "edit": {

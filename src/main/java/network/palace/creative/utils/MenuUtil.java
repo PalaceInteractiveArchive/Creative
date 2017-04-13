@@ -2,7 +2,6 @@ package network.palace.creative.utils;
 
 import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.config.C;
 import com.intellectualcrafters.plot.flag.Flag;
 import com.intellectualcrafters.plot.flag.FlagManager;
 import com.intellectualcrafters.plot.object.Plot;
@@ -11,6 +10,7 @@ import com.intellectualcrafters.plot.object.PlotId;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.intellectualcrafters.plot.util.EventUtil;
 import com.intellectualcrafters.plot.util.MainUtil;
+import com.intellectualcrafters.plot.util.PlotWeather;
 import com.plotsquared.bukkit.util.BukkitUtil;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
@@ -338,13 +338,13 @@ public class MenuUtil implements Listener {
             case PLOT_SETTINGS: {
                 Plot plot = api.getPlot(player);
                 HashMap<Flag<?>, Object> flags = plot.getFlags();
-                long time = 1000;
+                long time = 3000;
                 PlotWeather weather = PlotWeather.CLEAR;
                 for (Map.Entry<Flag<?>, Object> entry : flags.entrySet()) {
-                    if (entry.getKey().toString().equalsIgnoreCase("time")) {
+                    if (entry.getKey().getName().equalsIgnoreCase("time")) {
                         time = (long) entry.getValue();
-                    } else if (entry.getKey().toString().equalsIgnoreCase("weather")) {
-                        weather = PlotWeather.fromString((String) entry.getValue());
+                    } else if (entry.getKey().getName().equalsIgnoreCase("weather")) {
+                        weather = (PlotWeather) entry.getValue();
                     }
                 }
                 Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Plot Settings");
@@ -843,7 +843,7 @@ public class MenuUtil implements Listener {
                         //Weather
                         PlotWeather weather = getWeather(ChatColor.stripColor(item.getItemMeta().getDisplayName()));
                         final Flag flag = FlagManager.getFlag("weather");//new Flag(FlagManager.getFlag("weather", true), weather.getType().toLowerCase());
-                        Object parsed = flag.parseValue(weather.getType().toLowerCase());
+                        Object parsed = flag.parseValue(weather.name());
                         final boolean result = plot.setFlag(flag, parsed);
                         if (result) {
                             player.sendMessage(ChatColor.GREEN + "Set Plot Weather to " + item.getItemMeta().getDisplayName() + "!");
@@ -900,16 +900,17 @@ public class MenuUtil implements Listener {
                         return;
                     }
                     if (plot.getRunning() > 0) {
-                        MainUtil.sendMessage(api.wrapPlayer(player), C.WAIT_FOR_TIMER);
+                        player.sendMessage(ChatColor.RED + "Your plot is currently executing a task, try again in a few minutes.");
                         return;
                     }
+                    player.sendMessage(ChatColor.GREEN + "Changing your plot's biome...");
+                    player.closeInventory();
                     plot.addRunning();
                     String finalBiome = biome;
                     plot.setBiome(biome.toUpperCase(), () -> {
                         plot.removeRunning();
                         player.sendMessage(ChatColor.GREEN + "Your plot's biome was set to " + ChatColor.YELLOW +
                                 finalBiome.toLowerCase());
-                        player.closeInventory();
                     });
                     break;
                 }
@@ -926,7 +927,7 @@ public class MenuUtil implements Listener {
             case "rain":
                 return PlotWeather.RAIN;
         }
-        return PlotWeather.CLEAR;
+        return PlotWeather.RESET;
     }
 
     private long getTime(String s) {
@@ -1391,29 +1392,5 @@ public class MenuUtil implements Listener {
     private void purchaseParticle(Player player) {
         Core.getPlayerManager().getPlayer(player).getParticles().send(player.getLocation(), Particle.FIREWORKS_SPARK,
                 30, 0, 0, 0, 0.25f);
-    }
-
-    public enum PlotWeather {
-        CLEAR("clear"), RAIN("rain");
-
-        private String type;
-
-        PlotWeather(String type) {
-            this.type = type;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public static PlotWeather fromString(String s) {
-            switch (s.toLowerCase()) {
-                case "clear":
-                    return CLEAR;
-                case "rain":
-                    return RAIN;
-            }
-            return CLEAR;
-        }
     }
 }

@@ -1,5 +1,8 @@
 package network.palace.creative.listeners;
 
+import network.palace.core.Core;
+import network.palace.core.player.CPlayer;
+import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.BannerInventoryType;
 import network.palace.creative.handlers.CreativeInventoryType;
@@ -8,6 +11,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.IOException;
 
@@ -18,6 +23,7 @@ public class InventoryClick implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
+        long t = System.currentTimeMillis();
         Inventory inv = event.getClickedInventory();
 
         if (inv == null || inv.getTitle() == null) {
@@ -101,6 +107,24 @@ public class InventoryClick implements Listener {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+        }
+        ItemStack item = event.getCurrentItem();
+        String name = "";
+        if (item != null) {
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null && meta.getDisplayName() != null) {
+                name = ChatColor.stripColor(meta.getDisplayName());
+            }
+        }
+        long t2 = System.currentTimeMillis();
+        long diff = t2 - t;
+        if (diff >= 500) {
+            for (CPlayer cp : Core.getPlayerManager().getOnlinePlayers()) {
+                if (cp.getRank().getRankId() >= Rank.WIZARD.getRankId()) {
+                    cp.sendMessage(ChatColor.RED + "Click event took " + diff + "ms! " + ChatColor.GREEN +
+                            event.getWhoClicked().getName() + " " + title + " ");
+                }
+            }
         }
     }
 }

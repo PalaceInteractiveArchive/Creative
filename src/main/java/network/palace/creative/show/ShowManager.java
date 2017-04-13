@@ -87,7 +87,7 @@ public class ShowManager implements Listener {
             }
             try {
                 if (show.update()) {
-                    CPlayer player = Core.getPlayerManager().getPlayer(Bukkit.getPlayer(show.getOwner()));
+                    CPlayer player = Core.getPlayerManager().getPlayer(show.getOwner());
                     if (player != null) {
                         if (!show.getAudioTrack().equals("none")) {
                             for (AudioArea a : Audio.getPlugin(Audio.class).getAudioAreas()) {
@@ -148,10 +148,6 @@ public class ShowManager implements Listener {
             messagePlayer(player, ChatColor.RED + "Your Show is already running!");
             return null;
         }
-        File showFile = new File("plugins/Creative/shows/" + player.getUniqueId().toString() + ".show");
-        if (!showFile.exists()) {
-            return null;
-        }
         PlotAPI api = new PlotAPI(Creative.getInstance());
         Plot plot = api.getPlot(player.getBukkitPlayer());
         boolean owns = false;
@@ -167,6 +163,11 @@ public class ShowManager implements Listener {
         }
         if (!owns) {
             messagePlayer(player, ChatColor.RED + "You must start shows on your own Plot!");
+            return null;
+        }
+        messagePlayer(player, ChatColor.GREEN + "Loading show file...");
+        File showFile = new File("plugins/Creative/shows/" + player.getUniqueId().toString() + ".show");
+        if (!showFile.exists()) {
             return null;
         }
         Show show = new Show(showFile, player, plot);
@@ -562,13 +563,13 @@ public class ShowManager implements Listener {
                     }
                     case "Set Power": {
                         Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Set Power");
-                        inv.setItem(10, ItemUtil.create(Material.FIREWORK, 1, (byte) 0,
+                        inv.setItem(10, ItemUtil.create(Material.FIREWORK, 1,
                                 ChatColor.GREEN + "Power 0", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(12, ItemUtil.create(Material.FIREWORK, 1, (byte) 1,
+                        inv.setItem(12, ItemUtil.create(Material.FIREWORK, 1,
                                 ChatColor.GREEN + "Power 1", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(14, ItemUtil.create(Material.FIREWORK, 1, (byte) 2,
+                        inv.setItem(14, ItemUtil.create(Material.FIREWORK, 2,
                                 ChatColor.GREEN + "Power 2", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(16, ItemUtil.create(Material.FIREWORK, 1, (byte) 3,
+                        inv.setItem(16, ItemUtil.create(Material.FIREWORK, 3,
                                 ChatColor.GREEN + "Power 3", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
                         inv.setItem(22, Creative.getInstance().getMenuUtil().back);
                         player.openInventory(inv);
@@ -1004,7 +1005,7 @@ public class ShowManager implements Listener {
                     }
                     case "Set Power": {
                         Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Set Power");
-                        inv.setItem(10, ItemUtil.create(Material.FIREWORK, 0, ChatColor.GREEN + "Power 0",
+                        inv.setItem(10, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Power 0",
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));
                         inv.setItem(12, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Power 1",
                                 Arrays.asList(ChatColor.GRAY + "Click to Select!")));

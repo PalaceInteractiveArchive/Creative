@@ -3,9 +3,13 @@ package network.palace.creative.show;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotId;
+import lombok.Getter;
+import lombok.Setter;
 import network.palace.audio.Audio;
 import network.palace.audio.handlers.AudioArea;
+import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
+import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.ShowColor;
 import network.palace.creative.handlers.ShowFireworkData;
@@ -34,6 +38,7 @@ public class Show {
     private List<UUID> nearbyPlayers = new ArrayList<>();
     private String audioTrack = "none";
     public long musicTime = 0;
+    @Getter @Setter private boolean saving = false;
 
     @SuppressWarnings("deprecation")
     public Show(File file, CPlayer player, Plot plot) {
@@ -195,6 +200,9 @@ public class Show {
     }
 
     public boolean update() {
+        if (isSaving()) {
+            return false;
+        }
         if (!invalidLines.isEmpty()) {
             return true;
         }
@@ -362,33 +370,61 @@ public class Show {
     }
 
     public void saveFile() {
-        BufferedWriter bw;
-        try {
-            bw = new BufferedWriter(new FileWriter(new File("plugins/Creative/shows/" + getOwner().toString() +
-                    ".show"), false));
-            bw.write("Name " + name);
-            bw.newLine();
-            if (!audioTrack.equals("none")) {
-                String s = "";
-                for (Map.Entry<String, AudioTrack> entry : Creative.getInstance().getShowManager().getAudioTracks().entrySet()) {
-                    if (entry.getValue().getAudioPath().equalsIgnoreCase(audioTrack)) {
-                        s = entry.getKey();
-                        break;
+        if (isSaving()) {
+            Core.getPlayerManager().getPlayer(owner).sendMessage(ChatColor.RED + "Could not save show file, already saving!");
+            return;
+        }
+        setSaving(true);
+        long t = System.currentTimeMillis();
+        CPlayer cp = Core.getPlayerManager().getPlayer(owner);
+        cp.getActionBar().show(ChatColor.GREEN + "Saving show file...");
+        Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    BufferedWriter bw = new BufferedWriter(new FileWriter(new File("plugins/Creative/shows/" + getOwner().toString() +
+                            ".show"), false));
+                    bw.write("Name " + name);
+                    bw.newLine();
+                    if (!audioTrack.equals("none")) {
+                        String s = "";
+                        for (Map.Entry<String, AudioTrack> entry : Creative.getInstance().getShowManager().getAudioTracks().entrySet()) {
+                            if (entry.getValue().getAudioPath().equalsIgnoreCase(audioTrack)) {
+                                s = entry.getKey();
+                                break;
+                            }
+                        }
+                        if (!s.equals("")) {
+                            bw.write("Audio " + s);
+                        }
+                    }
+                    bw.newLine();
+                    for (ShowAction act : getActions()) {
+                        bw.write(act.toString());
+                        bw.newLine();
+                    }
+                    bw.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                setSaving(false);
+                long t2 = System.currentTimeMillis();
+                long diff = t2 - t;
+                System.out.println("Finished saving (" + diff + "ms) show file " + cp.getName());
+                if (diff >= 500) {
+                    Bukkit.getLogger().warning("Took more than 500ms to save " + cp.getName() + "'s show file " +
+                            diff + "ms");
+                    for (CPlayer cp : Core.getPlayerManager().getOnlinePlayers()) {
+                        if (cp.getRank().getRankId() < Rank.WIZARD.getRankId()) {
+                            continue;
+                        }
+                        cp.sendMessage(ChatColor.RED + "Took more than 500ms to save " + cp.getName() +
+                                "'s show file " + diff + "ms");
                     }
                 }
-                if (!s.equals("")) {
-                    bw.write("Audio " + s);
-                }
+                cp.getActionBar().show(ChatColor.GREEN + "Show file saved (took " + diff + "ms)");
             }
-            bw.newLine();
-            for (ShowAction act : getActions()) {
-                bw.write(act.toString());
-                bw.newLine();
-            }
-            bw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     public void syncAudioForPlayer(final Player tp) {

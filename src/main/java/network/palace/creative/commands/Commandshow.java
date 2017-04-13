@@ -10,6 +10,7 @@ import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.show.Show;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 import java.io.IOException;
@@ -43,13 +44,18 @@ public class Commandshow extends CoreCommand {
         String action = args[0];
         switch (action.toLowerCase()) {
             case "start": {
-                Show show = Creative.getInstance().getShowManager().startShow(player);
-                if (show != null && show.getNameColored() != null) {
-                    Creative.getInstance().getShowManager().messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() +
-                            ChatColor.GREEN + " has started!");
-                } else {
-                    Creative.getInstance().getShowManager().messagePlayer(player, "Error starting your show! (Did you create one yet?)");
-                }
+                Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), new Runnable() {
+                    @Override
+                    public void run() {
+                        Show show = Creative.getInstance().getShowManager().startShow(player);
+                        if (show != null && show.getNameColored() != null) {
+                            Creative.getInstance().getShowManager().messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() +
+                                    ChatColor.GREEN + " has started!");
+                        } else {
+                            Creative.getInstance().getShowManager().messagePlayer(player, "Error starting your show! (Did you create one yet?)");
+                        }
+                    }
+                });
                 return;
             }
             case "stop": {

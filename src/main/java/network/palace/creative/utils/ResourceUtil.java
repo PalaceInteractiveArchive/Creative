@@ -83,10 +83,12 @@ public class ResourceUtil {
         event.setCancelled(true);
         PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
         if (name.equalsIgnoreCase("No Resource Pack")) {
-            Creative.getInstance().getSqlUtil().setResourcePack(player.getUniqueId(), "NoPrefer");
-            data.setResourcePack("NoPrefer");
-            player.sendMessage(ChatColor.GREEN + "You will not be sent a Resource Pack when you join Creative!");
-            player.closeInventory();
+            Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
+                Creative.getInstance().getSqlUtil().setResourcePack(player.getUniqueId(), "NoPrefer");
+                data.setResourcePack("NoPrefer");
+                player.sendMessage(ChatColor.GREEN + "You will not be sent a Resource Pack when you join Creative!");
+                player.closeInventory();
+            });
             return;
         }
         ResourcePack pack = Core.getResourceManager().getPack(name);

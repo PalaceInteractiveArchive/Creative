@@ -65,6 +65,8 @@ public class MenuUtil implements Listener {
     public ItemStack next = ItemUtil.create(Material.ARROW, ChatColor.GREEN + "Next Page");
     public ItemStack back = ItemUtil.create(Material.ARROW, ChatColor.GREEN + "Back");
     public ItemStack last = ItemUtil.create(Material.ARROW, ChatColor.GREEN + "Last Page");
+    private ItemStack loading = ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 9,
+            ChatColor.AQUA + "Loading...", new ArrayList<>());
     private ItemStack more = ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 4, ChatColor.RED + "Too many!",
             Arrays.asList(ChatColor.RED + "We can only list up to", ChatColor.RED +
                             "45 Plots here. You're added", ChatColor.RED + "to more than 45 Plots. To",
@@ -188,39 +190,48 @@ public class MenuUtil implements Listener {
             }
             case BUILDING_PLOTS: {
                 Inventory building = Bukkit.createInventory(player, 54, ChatColor.BLUE + "Building Plots");
-                final List<Plot> plotList = new ArrayList<>(api.getAllPlots());
-                int i = 0;
-                for (Plot p : plotList) {
-                    if (!p.getHome().getWorld().equalsIgnoreCase("plotworld")) {
-                        continue;
-                    }
-                    if (i >= 45) {
-                        building.setItem(45, more);
-                        building.setItem(46, more);
-                        building.setItem(47, more);
-                        building.setItem(48, more);
-                        building.setItem(49, back);
-                        building.setItem(50, more);
-                        building.setItem(51, more);
-                        building.setItem(52, more);
-                        building.setItem(53, more);
-                        break;
-                    }
-                    if (p.getMembers().contains(player.getUniqueId())) {
-                        building.addItem(ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(p) + "'s Plot " +
-                                p.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
-                                ChatColor.YELLOW + "Member")));
-                        i++;
-                    }
-                    if (p.getTrusted().contains(player.getUniqueId())) {
-                        building.addItem(ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(p) + "'s Plot " +
-                                p.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
-                                ChatColor.GOLD + "" + ChatColor.ITALIC + "Trusted")));
-                        i++;
-                    }
-                }
-                building.setItem(49, back);
+                building.setItem(22, loading);
                 player.openInventory(building);
+                Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), new Runnable() {
+                    @Override
+                    public void run() {
+                        final List<Plot> plotList = new ArrayList<>(PS.get().getPlots("plotworld"));
+                        int i = 0;
+                        for (Plot p : plotList) {
+                            if (building.getViewers().isEmpty()) {
+                                return;
+                            }
+                            if (i >= 45) {
+                                building.setItem(45, more);
+                                building.setItem(46, more);
+                                building.setItem(47, more);
+                                building.setItem(48, more);
+                                building.setItem(49, back);
+                                building.setItem(50, more);
+                                building.setItem(51, more);
+                                building.setItem(52, more);
+                                building.setItem(53, more);
+                                break;
+                            }
+                            if (p.getMembers().contains(player.getUniqueId())) {
+                                building.addItem(ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(p) + "'s Plot " +
+                                        p.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
+                                        ChatColor.YELLOW + "Member")));
+                                i++;
+                            }
+                            if (p.getTrusted().contains(player.getUniqueId())) {
+                                building.addItem(ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(p) + "'s Plot " +
+                                        p.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
+                                        ChatColor.GOLD + "" + ChatColor.ITALIC + "Trusted")));
+                                i++;
+                            }
+                        }
+                        if (building.getItem(22).getType().equals(Material.STAINED_CLAY)) {
+                            building.setItem(22, new ItemStack(Material.AIR));
+                        }
+                        building.setItem(49, back);
+                    }
+                });
                 break;
             }
             case HEADSHOP: {
@@ -471,12 +482,8 @@ public class MenuUtil implements Listener {
                     }
                     if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.KNIGHT.getRankId()) {
                         if (plot == null) {
-                            for (Plot p : new ArrayList<>(api.getAllPlots())) {
-                                if (p.getId().toString().equals(event.getInventory().getName().replace(ChatColor.BLUE +
-                                        "Manage Plot ", ""))) {
-                                    plot = p;
-                                }
-                            }
+                            plot = MainUtil.getPlotFromString(tp, event.getInventory().getName().replace(ChatColor.BLUE +
+                                    "Manage Plot ", ""), false);
                         }
                     }
                     if (plot == null) {
@@ -526,12 +533,8 @@ public class MenuUtil implements Listener {
                     }
                     if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.KNIGHT.getRankId()) {
                         if (plawrt == null) {
-                            for (Plot p : new ArrayList<>(api.getAllPlots())) {
-                                if (p.getId().toString().equals(event.getInventory().getName().replace(ChatColor.BLUE +
-                                        "Add Player to Plot ", ""))) {
-                                    plawrt = p;
-                                }
-                            }
+                            plawrt = MainUtil.getPlotFromString(tp, event.getInventory().getName().replace(ChatColor.BLUE +
+                                    "Add Player to Plot ", ""), false);
                         }
                     }
                     if (plawrt == null) {
@@ -560,18 +563,11 @@ public class MenuUtil implements Listener {
                         openMenu(player, CreativeInventoryType.MAIN);
                         return;
                     }
-                    String id = name.split(" ")[2];
-                    Plot plort = null;
-                    String world = "plotworld";
-                    for (Plot p : api.getAllPlots()) {
-                        if (!p.getHome().getWorld().equalsIgnoreCase(world)) {
-                            continue;
-                        }
-                        if (p.getId().toString().equals(id)) {
-                            plort = p;
-                            break;
-                        }
+                    if (!name.contains(" ")) {
+                        return;
                     }
+                    String id = name.split(" ")[2];
+                    Plot plort = MainUtil.getPlotFromString(tp, id, false);
                     if (plort == null) {
                         player.sendMessage(ChatColor.RED + "There was a problem performing this action! (Error Code 110)");
                         player.closeInventory();
@@ -600,12 +596,8 @@ public class MenuUtil implements Listener {
                     }
                     if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.KNIGHT.getRankId()) {
                         if (plert == null) {
-                            for (Plot p : api.getAllPlots()) {
-                                if (p.getId().toString().equals(event.getInventory().getName().replace(ChatColor.BLUE +
-                                        "Added Players ", ""))) {
-                                    plert = p;
-                                }
-                            }
+                            plert = MainUtil.getPlotFromString(tp, event.getInventory().getName().replace(ChatColor.BLUE +
+                                    "Added Players ", ""), false);
                         }
                     }
                     if (plert == null) {
@@ -807,12 +799,8 @@ public class MenuUtil implements Listener {
                     }
                     if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.KNIGHT.getRankId()) {
                         if (plawt == null) {
-                            for (Plot p : api.getAllPlots()) {
-                                if (p.getId().toString().equals(event.getInventory().getName().replace(ChatColor.BLUE +
-                                        "Denied Players ", ""))) {
-                                    plawt = p;
-                                }
-                            }
+                            plawt = MainUtil.getPlotFromString(tp, event.getInventory().getName().replace(ChatColor.BLUE +
+                                    "Denied Players ", ""), false);
                         }
                     }
                     if (plawt == null) {
@@ -964,15 +952,20 @@ public class MenuUtil implements Listener {
     }
 
     private void setValue(UUID uuid, String name, Object o) {
-        try (Connection connection = Core.getSqlUtil().getConnection()) {
-            PreparedStatement sql = connection.prepareStatement("UPDATE creative SET " + name + "=? WHERE uuid=?");
-            sql.setObject(1, o);
-            sql.setString(2, uuid.toString());
-            sql.execute();
-            sql.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), new Runnable() {
+            @Override
+            public void run() {
+                try (Connection connection = Core.getSqlUtil().getConnection()) {
+                    PreparedStatement sql = connection.prepareStatement("UPDATE creative SET " + name + "=? WHERE uuid=?");
+                    sql.setObject(1, o);
+                    sql.setString(2, uuid.toString());
+                    sql.execute();
+                    sql.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private void playRecord(Player player, String name) {
@@ -1035,7 +1028,7 @@ public class MenuUtil implements Listener {
         Inventory manage = Bukkit.createInventory(tp, 27, ChatColor.BLUE + "Manage Plot " +
                 plot.getId().toString());
         manage.setItem(9, network.palace.core.utils.HeadUtil.getPlayerHead(Core.getPlayerManager().getPlayer(tp)
-                .getTextureHash(), ChatColor.GREEN + "Add a Player"));
+                .getTextureValue(), ChatColor.GREEN + "Add a Player"));
         manage.setItem(11, deny);
         manage.setItem(13, teleport);
         manage.setItem(15, members);
@@ -1085,8 +1078,7 @@ public class MenuUtil implements Listener {
         }
         player.sendMessage(ChatColor.GREEN + "Here's your Plot! Get to it with /menu. " + ChatColor.DARK_AQUA +
                 "(Took " + (System.currentTimeMillis() - time) + "ms)");
-        //TODO Achievements!
-        //MCMagicCore.getUser(player.getUniqueId()).giveAchievement(9);
+        Core.getPlayerManager().getPlayer(player.getUniqueId()).giveAchievement(9);
     }
 
     public static PlotId getNextPlotId(PlotId id, int step) {
@@ -1339,7 +1331,7 @@ public class MenuUtil implements Listener {
                     ItemMeta meta = item.getItemMeta();
                     item.setItemMeta(meta);
                 } else {
-                    item = network.palace.core.utils.HeadUtil.getPlayerHead(cplayer.getTextureHash(), cplayer.getRank().getTagColor() + cplayer.getName());
+                    item = network.palace.core.utils.HeadUtil.getPlayerHead(cplayer.getTextureValue(), cplayer.getRank().getTagColor() + cplayer.getName());
                     ItemMeta meta = item.getItemMeta();
                     item.setItemMeta(meta);
                 }
@@ -1383,7 +1375,7 @@ public class MenuUtil implements Listener {
                     item = ItemUtil.create(Material.SKULL_ITEM, ChatColor.GRAY + Bukkit.getOfflinePlayer(uuid).getName(),
                             Collections.singletonList(ChatColor.RED + "Click to Un-Deny this Player!"));
                 } else {
-                    item = network.palace.core.utils.HeadUtil.getPlayerHead(cplayer.getTextureHash(), cplayer.getRank().getTagColor() + cplayer.getName());
+                    item = network.palace.core.utils.HeadUtil.getPlayerHead(cplayer.getTextureValue(), cplayer.getRank().getTagColor() + cplayer.getName());
                     ItemMeta meta = item.getItemMeta();
                     meta.setLore(Collections.singletonList(ChatColor.RED + "Click to Un-Deny this Player!"));
                     item.setItemMeta(meta);

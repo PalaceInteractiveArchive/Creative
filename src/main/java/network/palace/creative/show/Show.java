@@ -415,6 +415,8 @@ public class Show {
                     Bukkit.getLogger().warning("Took more than 500ms to save " + cp.getName() + "'s show file " +
                             diff + "ms");
                     for (CPlayer cp : Core.getPlayerManager().getOnlinePlayers()) {
+                        if (cp == null)
+                            continue;
                         if (cp.getRank().getRankId() < Rank.WIZARD.getRankId()) {
                             continue;
                         }

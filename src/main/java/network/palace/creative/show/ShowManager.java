@@ -178,10 +178,11 @@ public class ShowManager implements Listener {
             PlotArea area = new PlotArea(plot.getId(), player.getBukkitPlayer(), show.getAudioTrack(), player.getLocation().getWorld());
             Audio.getPlugin(Audio.class).addArea(area);
             for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
-                Plot pl = api.getPlot(p.getBukkitPlayer());
-                if (pl == null) {
+                if (p == null || p.getBukkitPlayer() == null)
                     continue;
-                }
+                Plot pl = api.getPlot(p.getBukkitPlayer());
+                if (pl == null)
+                    continue;
                 if (pl.getId().equals(plot.getId())) {
                     area.triggerPlayer(p);
                 }
@@ -1133,6 +1134,8 @@ public class ShowManager implements Listener {
     }
 
     public void handleChat(AsyncPlayerChatEvent event, CPlayer player) {
+        if (player == null)
+            return;
         AddAction action = actions.remove(player.getUniqueId());
         if (action == null) {
             return;

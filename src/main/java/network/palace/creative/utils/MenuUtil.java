@@ -1148,7 +1148,7 @@ public class MenuUtil implements Listener {
                         msg = event.getMessage();
                     }
                     String messageToSend = (data.hasCreatorTag() ? (ChatColor.WHITE + "[" + ChatColor.BLUE + "Creator"
-                            + ChatColor.WHITE + "] ") : "") + rank.getNameWithBrackets() + " " + ChatColor.GRAY +
+                            + ChatColor.WHITE + "] ") : "") + rank.getFormattedName() + " " + ChatColor.GRAY +
                             player.getName() + ": " + rank.getChatColor() + msg;
                     Bukkit.getOnlinePlayers().stream().filter(tp -> Creative.getInstance().getRolePlayUtil()
                             .getRolePlay(tp.getUniqueId()) == null).forEach(tp -> tp.sendMessage(messageToSend));

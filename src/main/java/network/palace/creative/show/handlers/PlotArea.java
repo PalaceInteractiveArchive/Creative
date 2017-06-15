@@ -26,6 +26,8 @@ public class PlotArea extends AudioArea {
         this.owner = owner;
         PlotAPI api = new PlotAPI(Creative.getInstance());
         for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
+            if (p == null || p.getBukkitPlayer() == null)
+                continue;
             Plot pl = api.getPlot(p.getBukkitPlayer());
             if (pl == null) {
                 continue;

@@ -120,6 +120,8 @@ public class InventoryClick implements Listener {
         long diff = t2 - t;
         if (diff >= 500) {
             for (CPlayer cp : Core.getPlayerManager().getOnlinePlayers()) {
+                if (cp == null)
+                    continue;
                 if (cp.getRank().getRankId() >= Rank.WIZARD.getRankId()) {
                     cp.sendMessage(ChatColor.RED + "Click event took " + diff + "ms! " + ChatColor.GREEN +
                             event.getWhoClicked().getName() + " " + title + " ");

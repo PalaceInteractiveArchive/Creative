@@ -43,7 +43,7 @@ public class RolePlay {
 
     public String chat(CPlayer player, String m) {
         Rank rank = player.getRank();
-        String msg = tag + " " + rank.getNameWithBrackets() + ChatColor.GRAY + " " + player.getName() + ": " +
+        String msg = tag + " " + rank.getFormattedName() + ChatColor.GRAY + " " + player.getName() + ": " +
                 rank.getChatColor() + m;
         String staffmsg = "[RP] " + player.getName() + ": " + m;
         List<UUID> members = getMembers();
@@ -54,6 +54,8 @@ public class RolePlay {
             }
         }
         for (CPlayer tp : Core.getPlayerManager().getOnlinePlayers()) {
+            if (tp == null)
+                continue;
             if (members.contains(tp.getUniqueId())) {
                 continue;
             }
@@ -66,6 +68,8 @@ public class RolePlay {
     }
 
     public void join(CPlayer player) {
+        if (player == null)
+            return;
         members.remove(player.getUniqueId());
         members.add(player.getUniqueId());
         sendMessage(player.getRank().getTagColor() + player.getName() + ChatColor.YELLOW +
@@ -73,6 +77,8 @@ public class RolePlay {
     }
 
     public void leave(CPlayer player) {
+        if (player == null)
+            return;
         members.remove(player.getUniqueId());
         sendMessage(player.getRank().getTagColor() + player.getName() + ChatColor.RED +
                 " has left the Role Play!");

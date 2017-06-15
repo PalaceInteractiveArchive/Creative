@@ -45,6 +45,8 @@ public class ParticleAction extends ShowAction {
     public void play() {
         if (particle != null) {
             for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
+                if (p == null)
+                    continue;
                 p.getParticles().send(loc, particle, amount, (float) offsetX, (float) offsetY, (float) offsetZ, speed);
             }
         }

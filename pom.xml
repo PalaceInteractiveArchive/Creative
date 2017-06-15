@@ -34,8 +34,8 @@
         </dependency>
         <dependency>
             <groupId>network.palace</groupId>
-            <artifactId>core</artifactId>
-            <version>1.7.3</version>
+            <artifactId>Core</artifactId>
+            <version>1.8.2</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -50,8 +50,8 @@
         </dependency>
         <dependency>
             <groupId>network.palace</groupId>
-            <artifactId>audio</artifactId>
-            <version>1.0.5</version>
+            <artifactId>Audio</artifactId>
+            <version>1.0.9</version>
         </dependency>
         <dependency>
             <groupId>com.intellectualcrafters</groupId>

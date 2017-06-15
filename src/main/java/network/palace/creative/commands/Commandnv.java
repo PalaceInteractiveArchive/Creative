@@ -26,7 +26,7 @@ public class Commandnv extends CoreCommand {
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
         if (player.getRank().getRankId() < Rank.DVCMEMBER.getRankId()) {
-            player.sendMessage(ChatColor.RED + "You must be the " + Rank.DVCMEMBER.getNameWithBrackets()
+            player.sendMessage(ChatColor.RED + "You must be the " + Rank.DVCMEMBER.getFormattedName()
                     + ChatColor.RED + " rank or above to use this!");
             return;
         }

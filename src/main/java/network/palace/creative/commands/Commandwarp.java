@@ -54,6 +54,8 @@ public class Commandwarp extends CoreCommand {
             return;
         }
         CPlayer player = Core.getPlayerManager().getPlayer((Player) sender);
+        if (player == null)
+            return;
         if (player.getRank().getRankId() < Rank.KNIGHT.getRankId()) {
             if (args.length == 0) {
                 listWarps(player, 1);
@@ -70,21 +72,21 @@ public class Commandwarp extends CoreCommand {
             }
             if (warp.getName().toLowerCase().startsWith("dvc")) {
                 if (player.getRank().getRankId() < Rank.DWELLER.getRankId()) {
-                    player.sendMessage(ChatColor.RED + "You must be a " + Rank.DWELLER.getNameWithBrackets() +
+                    player.sendMessage(ChatColor.RED + "You must be a " + Rank.DWELLER.getFormattedName() +
                             ChatColor.RED + " or higher to go here!");
                     return;
                 }
             }
             if (warp.getName().toLowerCase().startsWith("share")) {
                 if (player.getRank().getRankId() < Rank.HONORABLE.getRankId()) {
-                    player.sendMessage(ChatColor.RED + "You must be a " + Rank.HONORABLE.getNameWithBrackets() +
+                    player.sendMessage(ChatColor.RED + "You must be a " + Rank.HONORABLE.getFormattedName() +
                             ChatColor.RED + " or higher to go here!");
                     return;
                 }
             }
             if (warp.getName().toLowerCase().startsWith("staff")) {
                 if (player.getRank().getRankId() < Rank.SQUIRE.getRankId()) {
-                    player.sendMessage(ChatColor.RED + "You must be an " + Rank.SQUIRE.getNameWithBrackets() +
+                    player.sendMessage(ChatColor.RED + "You must be an " + Rank.SQUIRE.getFormattedName() +
                             ChatColor.RED + " or higher to go here!");
                     return;
                 }

@@ -16,14 +16,14 @@
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
-        <repository>
+        <!--<repository>
             <id>dmulloy2-releases</id>
             <url>http://repo.dmulloy2.net/content/repositories/releases/</url>
         </repository>
         <repository>
             <id>dmulloy2-snapshots</id>
             <url>http://repo.dmulloy2.net/content/repositories/snapshots/</url>
-        </repository>
+        </repository>-->
     </repositories>
 
     <dependencies>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>network.palace</groupId>
             <artifactId>Core</artifactId>
-            <version>1.8.2</version>
+            <version>1.8.7</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

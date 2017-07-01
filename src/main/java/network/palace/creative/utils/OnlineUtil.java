@@ -42,15 +42,15 @@ public class OnlineUtil {
                     continue;
                 }
                 if (data.getOnlineTime() >= 1800) {
-                    Core.getEconomy().addBalance(p.getUniqueId(), 5, "Creative Online Time");
-                    p.sendMessage(ChatColor.GREEN + "You received " + ChatColor.AQUA + "$5 and 2 Honor " + ChatColor.GREEN +
+                    Core.getEconomy().addBalance(p.getUniqueId(), 10, "Creative Online Time");
+                    p.sendMessage(ChatColor.GREEN + "You received " + ChatColor.AQUA + "$10 " + ChatColor.GREEN +
                             "for playing on Creative for 30 minutes!");
                     data.setOnlineTime(0);
                     CPlayer cp = Core.getPlayerManager().getPlayer(p);
                     if (cp == null) {
                         Bukkit.getLogger().severe("Player is null: " + p.getName() + " " + p.getUniqueId());
                     } else {
-                        Core.runTaskAsynchronously(() -> cp.giveHonor(2));
+//                        Core.runTaskAsynchronously(() -> cp.giveHonor(2));
                     }
                 } else {
                     data.addOnlineTime(10);

@@ -89,21 +89,10 @@ public class ShowManager implements Listener {
                 if (show.update()) {
                     CPlayer player = Core.getPlayerManager().getPlayer(show.getOwner());
                     if (player != null) {
-                        if (!show.getAudioTrack().equals("none")) {
-                            for (AudioArea a : Audio.getPlugin(Audio.class).getAudioAreas()) {
-                                if (a instanceof PlotArea) {
-                                    PlotArea area = (PlotArea) a;
-                                    if (area.getAreaName().equals(player.getName())) {
-                                        area.removeAllPlayers(true);
-                                        Audio.getPlugin(Audio.class).removeArea(area);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
                         messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() + ChatColor.GREEN +
                                 " has ended!");
                     }
+                    stopAudio(show);
                     shows.remove(entry.getKey());
                 }
             } catch (Exception e) {
@@ -175,8 +164,8 @@ public class ShowManager implements Listener {
             return null;
         }
         if (!show.getAudioTrack().equals("none")) {
-            PlotArea area = new PlotArea(plot.getId(), player.getBukkitPlayer(), show.getAudioTrack(), player.getLocation().getWorld());
-            Audio.getPlugin(Audio.class).addArea(area);
+            PlotArea area = new PlotArea(plot.getId(), player, show.getAudioTrack(), player.getWorld());
+            Audio.getInstance().addArea(area);
             for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
                 if (p == null || p.getBukkitPlayer() == null)
                     continue;
@@ -192,24 +181,32 @@ public class ShowManager implements Listener {
         return show;
     }
 
-    public boolean stopShow(Player player) {
+    public boolean stopShow(CPlayer player) {
         Show show = shows.remove(player.getUniqueId());
         if (show == null) {
             return true;
         }
+        stopAudio(show);
+        return show != null;
+    }
+
+    public void stopAllShows() {
+        shows.clear();
+    }
+
+    private void stopAudio(Show show) {
         if (!show.getAudioTrack().equals("none")) {
-            PlotArea area = null;
-            for (AudioArea a : Audio.getPlugin(Audio.class).getAudioAreas()) {
-                if (a.getAreaName().equals(player.getName())) {
-                    area = (PlotArea) a;
+            for (AudioArea a : Audio.getInstance().getAudioAreas()) {
+                if (a instanceof PlotArea) {
+                    PlotArea area = (PlotArea) a;
+                    if (area.getAreaName().equals(show.getOwner().toString())) {
+                        area.removeAllPlayers(true);
+                        Audio.getInstance().removeArea(area);
+                        break;
+                    }
                 }
             }
-            if (area != null) {
-                area.removeAllPlayers(true);
-            }
-            Audio.getPlugin(Audio.class).removeArea(area);
         }
-        return show != null;
     }
 
     public void editShow(Player player) throws IOException {
@@ -1198,7 +1195,7 @@ public class ShowManager implements Listener {
         return new HashMap<>(audioTracks);
     }
 
-    public void logout(Player player) {
+    public void logout(CPlayer player) {
         Show show = shows.get(player.getUniqueId());
         if (show != null) {
             stopShow(player);

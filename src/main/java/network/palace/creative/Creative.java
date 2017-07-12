@@ -10,7 +10,6 @@ import network.palace.creative.handlers.Warp;
 import network.palace.creative.listeners.*;
 import network.palace.creative.particles.ParticleManager;
 import network.palace.creative.particles.PlayParticle;
-import network.palace.creative.show.Show;
 import network.palace.creative.show.ShowManager;
 import network.palace.creative.utils.*;
 import org.bukkit.Bukkit;
@@ -29,7 +28,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.1.7")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.1.8")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -74,9 +73,7 @@ public class Creative extends Plugin {
 
     @Override
     public void onPluginDisable() {
-        for (Show show : showManager.shows.values()) {
-            showManager.stopShow(Bukkit.getPlayer(show.getOwner()));
-        }
+        showManager.stopAllShows();
     }
 
     public Location getSpawn() {

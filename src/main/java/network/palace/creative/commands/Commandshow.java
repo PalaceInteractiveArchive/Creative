@@ -32,7 +32,8 @@ public class Commandshow extends CoreCommand {
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
+        Creative creative = Creative.getInstance();
+        PlayerData data = creative.getPlayerData(player.getUniqueId());
         if (!data.hasShowCreator()) {
             msg.send(player);
             return;
@@ -44,25 +45,25 @@ public class Commandshow extends CoreCommand {
         String action = args[0];
         switch (action.toLowerCase()) {
             case "start": {
-                Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), new Runnable() {
+                Bukkit.getScheduler().runTaskAsynchronously(creative, new Runnable() {
                     @Override
                     public void run() {
-                        Show show = Creative.getInstance().getShowManager().startShow(player);
+                        Show show = creative.getShowManager().startShow(player);
                         if (show != null && show.getNameColored() != null) {
-                            Creative.getInstance().getShowManager().messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() +
+                            creative.getShowManager().messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() +
                                     ChatColor.GREEN + " has started!");
                         } else {
-                            Creative.getInstance().getShowManager().messagePlayer(player, "Error starting your show! (Did you create one yet?)");
+                            creative.getShowManager().messagePlayer(player, "Error starting your show! (Did you create one yet?)");
                         }
                     }
                 });
                 return;
             }
             case "stop": {
-                if (Creative.getInstance().getShowManager().stopShow(player.getBukkitPlayer())) {
-                    Creative.getInstance().getShowManager().messagePlayer(player, "Your show has stopped!");
+                if (creative.getShowManager().stopShow(player)) {
+                    creative.getShowManager().messagePlayer(player, "Your show has stopped!");
                 } else {
-                    Creative.getInstance().getShowManager().messagePlayer(player, ChatColor.RED +
+                    creative.getShowManager().messagePlayer(player, ChatColor.RED +
                             "There was an error stopping your show! (Maybe it wasn't running?)");
                 }
                 return;
@@ -79,14 +80,14 @@ public class Commandshow extends CoreCommand {
                         name.append(" ");
                     }
                 }
-                Creative.getInstance().getShowManager().setShowName(player, name.toString());
-                Creative.getInstance().getShowManager().messagePlayer(player, "Your Show's name has been set to " +
+                creative.getShowManager().setShowName(player, name.toString());
+                creative.getShowManager().messagePlayer(player, "Your Show's name has been set to " +
                         ChatColor.translateAlternateColorCodes('&', name.toString()));
                 return;
             }
             case "edit": {
                 try {
-                    Creative.getInstance().getShowManager().editShow(player);
+                    creative.getShowManager().editShow(player);
                 } catch (IOException e) {
                     e.printStackTrace();
                     player.sendMessage(ChatColor.RED + "There was an error editing your current Show! Please contact a Cast Member. (Error Code 111)");
@@ -98,7 +99,7 @@ public class Commandshow extends CoreCommand {
                     helpMenu(player);
                     return;
                 }
-                Creative.getInstance().getShowManager().loadTracks();
+                creative.getShowManager().loadTracks();
                 player.sendMessage(ChatColor.GREEN + "Audio tracks reloaded!");
                 return;
             }

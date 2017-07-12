@@ -85,20 +85,20 @@ public class PlayerJoinAndLeave implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
-
-        RolePlay rp = Creative.getInstance().getRolePlayUtil().getRolePlay(player.getUniqueId());
+        Creative creative = Creative.getInstance();
+        RolePlay rp = creative.getRolePlayUtil().getRolePlay(player.getUniqueId());
         if (rp != null) {
             if (rp.getOwner().equals(player.getUniqueId())) {
-                Creative.getInstance().getRolePlayUtil().close(rp);
+                creative.getRolePlayUtil().close(rp);
             } else {
                 rp.leave(Core.getPlayerManager().getPlayer(player.getBukkitPlayer()));
             }
         }
-        Creative.getInstance().getParticleManager().stop(player);
+        creative.getParticleManager().stop(player);
         TpaUtil.logout(player.getBukkitPlayer());
-        Creative.getInstance().getTeleportUtil().logout(player.getBukkitPlayer());
-        Creative.getInstance().getBannerUtil().cancel(player.getBukkitPlayer());
-        Creative.getInstance().logout(player.getBukkitPlayer());
-        Creative.getInstance().getShowManager().logout(player.getBukkitPlayer());
+        creative.getTeleportUtil().logout(player.getBukkitPlayer());
+        creative.getBannerUtil().cancel(player.getBukkitPlayer());
+        creative.logout(player.getBukkitPlayer());
+        creative.getShowManager().logout(player);
     }
 }

@@ -3,25 +3,25 @@ package network.palace.creative.show.handlers;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotId;
+import lombok.Getter;
 import network.palace.audio.handlers.AudioArea;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.creative.Creative;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
 /**
  * Created by Marc on 6/16/16
  */
+@Getter
 public class PlotArea extends AudioArea {
     private PlotId plotId;
-    private Player owner;
-
+    private CPlayer owner;
 
     @SuppressWarnings("deprecation")
-    public PlotArea(PlotId plotId, Player owner, String soundname, World world) {
-        super(owner.getName(), soundname, 750, 1.0, null, true, false, world);
+    public PlotArea(PlotId plotId, CPlayer owner, String soundname, World world) {
+        super(owner.getUniqueId().toString(), soundname, 750, 1.0, null, true, false, world);
         this.plotId = plotId;
         this.owner = owner;
         PlotAPI api = new PlotAPI(Creative.getInstance());
@@ -38,8 +38,9 @@ public class PlotArea extends AudioArea {
         }
     }
 
-    public Player getOwner() {
-        return owner;
+    @Override
+    public String getRegionName() {
+        return "Plot ID " + plotId.toString();
     }
 
     @SuppressWarnings("deprecation")

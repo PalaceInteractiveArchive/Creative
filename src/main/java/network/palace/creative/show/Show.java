@@ -63,6 +63,7 @@ public class Show {
     }
 
     private void loadActions(File file) {
+        List<ShowAction> actions = new ArrayList<>();
         String strLine = "";
         try {
             FileInputStream fstream = new FileInputStream(file);
@@ -163,6 +164,7 @@ public class Show {
                 }
             }
             in.close();
+            this.actions = actions;
         } catch (Exception e) {
             System.out.println("Error on Line [" + strLine + "]");
             e.printStackTrace();

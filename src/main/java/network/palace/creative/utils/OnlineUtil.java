@@ -26,6 +26,7 @@ public class OnlineUtil {
         Bukkit.getScheduler().runTaskTimer(Creative.getInstance(), () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 PlayerData data = Creative.getInstance().getPlayerData(p.getUniqueId());
+                if (data == null) continue;
                 data.addLastAction(1);
                 if (data.getLastAction() >= 600 && !data.isAFK()) {
                     data.setAFK(true);

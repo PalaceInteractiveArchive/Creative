@@ -51,7 +51,7 @@ public class WorldListener implements Listener {
             player.setGamemode(GameMode.ADVENTURE);
             PlayerInventory inv = player.getInventory();
             inv.remove(Material.ELYTRA);
-            if (inv.getChestplate().getType().equals(Material.ELYTRA)) {
+            if (inv.getChestplate() != null && inv.getChestplate().getType().equals(Material.ELYTRA)) {
                 inv.setChestplate(new ItemStack(Material.AIR));
             }
         }

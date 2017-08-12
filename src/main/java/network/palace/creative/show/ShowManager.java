@@ -164,8 +164,15 @@ public class ShowManager implements Listener {
             return null;
         }
         if (!show.getAudioTrack().equals("none")) {
-            PlotArea area = new PlotArea(plot.getId(), player, show.getAudioTrack(), player.getWorld());
-            Audio.getInstance().addArea(area);
+            PlotArea area;
+            AudioArea temp = Audio.getInstance().getByName(player.getUniqueId().toString());
+            if (temp != null && temp instanceof AudioArea) {
+                area = (PlotArea) temp;
+            } else {
+                Audio.getInstance().removeArea(temp);
+                area = new PlotArea(plot.getId(), player, show.getAudioTrack(), player.getWorld());
+            }
+            if (Audio.getInstance().getByName(area.getAreaName()) == null) Audio.getInstance().addArea(area);
             for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
                 if (p == null || p.getBukkitPlayer() == null)
                     continue;

@@ -567,13 +567,17 @@ public class MenuUtil implements Listener {
                         return;
                     }
                     String id = name.split(" ")[2];
-                    Plot plort = MainUtil.getPlotFromString(tp, id, false);
-                    if (plort == null) {
+                    Plot plot = null;
+                    for (PlotArea a : api.getPlotAreas(Bukkit.getWorld("plotworld"))) {
+                        plot = a.getPlot(PlotId.fromString(id));
+                        if (plot != null) break;
+                    }
+                    if (plot == null) {
                         player.sendMessage(ChatColor.RED + "There was a problem performing this action! (Error Code 110)");
                         player.closeInventory();
                         return;
                     }
-                    Location loc = getHome(plort);
+                    Location loc = getHome(plot);
                     player.teleport(loc);
                     player.sendMessage(ChatColor.GREEN + "Teleported to " + name);
                     break;

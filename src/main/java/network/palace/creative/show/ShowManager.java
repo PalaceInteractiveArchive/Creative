@@ -102,7 +102,8 @@ public class ShowManager implements Listener {
     }
 
     public void messagePlayer(CPlayer tp, String msg) {
-        tp.sendMessage(ChatColor.WHITE + "[" + ChatColor.BLUE + "Show" + ChatColor.WHITE + "] " + ChatColor.GREEN + msg);
+        if (tp != null)
+            tp.sendMessage(ChatColor.WHITE + "[" + ChatColor.BLUE + "Show" + ChatColor.WHITE + "] " + ChatColor.GREEN + msg);
     }
 
     public Location strToLoc(String string) {
@@ -198,20 +199,19 @@ public class ShowManager implements Listener {
     }
 
     public void stopAllShows() {
+        for (Show show : new ArrayList<>(shows.values())) {
+            stopAudio(show);
+        }
         shows.clear();
     }
 
     private void stopAudio(Show show) {
-        if (!show.getAudioTrack().equals("none")) {
-            for (AudioArea a : Audio.getInstance().getAudioAreas()) {
-                if (a instanceof PlotArea) {
-                    PlotArea area = (PlotArea) a;
-                    if (area.getAreaName().equals(show.getOwner().toString())) {
-                        area.removeAllPlayers(true);
-                        Audio.getInstance().removeArea(area);
-                        break;
-                    }
-                }
+        for (AudioArea area : Audio.getInstance().getAudioAreas()) {
+            if (area == null) continue;
+            if (area.getAreaName().equals(show.getOwner().toString())) {
+                area.removeAllPlayers(true);
+                Audio.getInstance().removeArea(area);
+                break;
             }
         }
     }

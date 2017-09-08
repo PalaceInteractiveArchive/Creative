@@ -1,6 +1,8 @@
 package network.palace.creative;
 
 import lombok.Getter;
+import network.palace.audio.Audio;
+import network.palace.audio.handlers.AudioArea;
 import network.palace.core.Core;
 import network.palace.core.plugin.Plugin;
 import network.palace.core.plugin.PluginInfo;
@@ -28,7 +30,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.2.0")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.2.1")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -69,6 +71,14 @@ public class Creative extends Plugin {
 
         registerListeners();
         registerCommands();
+
+        for (AudioArea area : Audio.getInstance().getAudioAreas()) {
+            try {
+                UUID.fromString(area.getAreaName());
+                Audio.getInstance().removeArea(area);
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     @Override

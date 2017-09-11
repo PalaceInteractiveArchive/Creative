@@ -1,5 +1,7 @@
 package network.palace.creative.handlers;
 
+import lombok.Getter;
+import lombok.Setter;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -17,10 +19,10 @@ import java.util.UUID;
 public class RolePlay {
     private UUID uniqueRPId = UUID.randomUUID();
     private List<UUID> members;
-    private UUID owner;
-    private int limit;
-    private String tag;
-    private long lastTagSet = 0;
+    @Getter private UUID owner;
+    @Getter @Setter private int limit;
+    @Getter private String tag;
+    @Getter private long lastTagSet = 0;
 
     public RolePlay(UUID owner, List<UUID> members) {
         this(owner, members, 5);
@@ -45,7 +47,7 @@ public class RolePlay {
         Rank rank = player.getRank();
         String msg = tag + " " + rank.getFormattedName() + ChatColor.GRAY + " " + player.getName() + ": " +
                 rank.getChatColor() + m;
-        String staffmsg = "[RP] " + player.getName() + ": " + m;
+        String staffmsg = ChatColor.AQUA + "[RP] " + player.getName() + ": " + m;
         List<UUID> members = getMembers();
         for (UUID uuid : members) {
             Player tp = Bukkit.getPlayer(uuid);
@@ -97,33 +99,13 @@ public class RolePlay {
         return uniqueRPId;
     }
 
-    public UUID getOwner() {
-        return owner;
-    }
-
     public List<UUID> getMembers() {
         return new ArrayList<>(members);
-    }
-
-    public int getLimit() {
-        return limit;
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    public void setLimit(int limit) {
-        this.limit = limit;
     }
 
     public void setTag(String tag) {
         this.tag = tag;
         this.lastTagSet = System.currentTimeMillis() + (10000);
-    }
-
-    public long getLastTagSet() {
-        return lastTagSet;
     }
 
     public void addMember(CPlayer player) {

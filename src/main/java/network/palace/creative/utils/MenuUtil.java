@@ -235,12 +235,17 @@ public class MenuUtil implements Listener {
                 break;
             }
             case HEADSHOP: {
-                Inventory hs = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Heads");
                 HashMap<String, List<ItemStack>> map = Creative.getInstance().getHeadUtil().getCategories();
                 List<String> categories = new ArrayList<>(map.keySet());
+                int size = categories.size();
+                int invSize = size <= 7 ? 27 : (size <= 14 ? 36 : (size <= 21 ? 45 : 54));
+                Inventory hs = Bukkit.createInventory(player, invSize, ChatColor.BLUE + "Heads");
                 int place = 10;
                 for (String s : categories) {
-                    if (place >= 17) {
+                    if (place % 9 == 8) {
+                        place += 2;
+                    }
+                    if (place >= invSize) {
                         break;
                     }
                     ItemStack item = map.get(s).get(0).clone();
@@ -250,7 +255,7 @@ public class MenuUtil implements Listener {
                     hs.setItem(place, item);
                     place++;
                 }
-                hs.setItem(22, back);
+                hs.setItem(invSize - 5, back);
                 player.openInventory(hs);
                 break;
             }

@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
  * Created by Marc on 3/27/15
  */
 @CommandMeta(description = "View another player's inventory")
-@CommandPermission(rank = Rank.SQUIRE)
+@CommandPermission(rank = Rank.TRAINEE)
 public class Commandinvsee extends CoreCommand {
 
     public Commandinvsee() {

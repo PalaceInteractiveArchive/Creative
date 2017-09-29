@@ -43,7 +43,7 @@ public class Commandspawn extends CoreCommand {
         if (player == null) {
             return;
         }
-        if (player.getRank().getRankId() < Rank.KNIGHT.getRankId()) {
+        if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
             player.teleport(Creative.getInstance().getSpawn());
             return;
         }

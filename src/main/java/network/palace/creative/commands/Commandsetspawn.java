@@ -13,7 +13,7 @@ import org.bukkit.ChatColor;
  * Created by Marc on 2/8/15
  */
 @CommandMeta(description = "Set the spawn location")
-@CommandPermission(rank = Rank.WIZARD)
+@CommandPermission(rank = Rank.DEVELOPER)
 public class Commandsetspawn extends CoreCommand {
 
     public Commandsetspawn() {

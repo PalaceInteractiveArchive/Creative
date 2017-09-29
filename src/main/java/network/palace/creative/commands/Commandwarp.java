@@ -56,7 +56,7 @@ public class Commandwarp extends CoreCommand {
         CPlayer player = Core.getPlayerManager().getPlayer((Player) sender);
         if (player == null)
             return;
-        if (player.getRank().getRankId() < Rank.KNIGHT.getRankId()) {
+        if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
             if (args.length == 0) {
                 listWarps(player, 1);
                 return;
@@ -85,8 +85,8 @@ public class Commandwarp extends CoreCommand {
                 }
             }
             if (warp.getName().toLowerCase().startsWith("staff")) {
-                if (player.getRank().getRankId() < Rank.SQUIRE.getRankId()) {
-                    player.sendMessage(ChatColor.RED + "You must be an " + Rank.SQUIRE.getFormattedName() +
+                if (player.getRank().getRankId() < Rank.TRAINEE.getRankId()) {
+                    player.sendMessage(ChatColor.RED + "You must be an " + Rank.TRAINEE.getFormattedName() +
                             ChatColor.RED + " or higher to go here!");
                     return;
                 }

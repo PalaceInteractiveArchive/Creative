@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
  * Created by Marc on 2/8/15
  */
 @CommandMeta(description = "Set player time")
-@CommandPermission(rank = Rank.KNIGHT)
+@CommandPermission(rank = Rank.MOD)
 public class Commandptime extends CoreCommand {
 
     public Commandptime() {

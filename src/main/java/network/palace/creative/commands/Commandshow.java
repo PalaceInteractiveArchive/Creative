@@ -95,7 +95,7 @@ public class Commandshow extends CoreCommand {
                 return;
             }
             case "reload": {
-                if (player.getRank().getRankId() < Rank.KNIGHT.getRankId()) {
+                if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
                     helpMenu(player);
                     return;
                 }
@@ -114,7 +114,7 @@ public class Commandshow extends CoreCommand {
         player.sendMessage(ChatColor.GREEN + "/show stop " + ChatColor.AQUA + "- Stop your coded Show");
         player.sendMessage(ChatColor.GREEN + "/show name [Name] " + ChatColor.AQUA + "- Name your coded Show");
         player.sendMessage(ChatColor.GREEN + "/show edit " + ChatColor.AQUA + "- Edit your Show");
-        if (player.getRank().getRankId() >= Rank.KNIGHT.getRankId()) {
+        if (player.getRank().getRankId() >= Rank.MOD.getRankId()) {
             player.sendMessage(ChatColor.GREEN + "/show reload " + ChatColor.AQUA + "- Reload track list");
         }
     }

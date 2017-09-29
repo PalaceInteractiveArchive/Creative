@@ -13,7 +13,7 @@ import org.bukkit.ChatColor;
  * Created by Marc on 3/27/15
  */
 @CommandMeta(description = "Return to previous location")
-@CommandPermission(rank = Rank.SQUIRE)
+@CommandPermission(rank = Rank.TRAINEE)
 public class Commandback extends CoreCommand {
 
     public Commandback() {

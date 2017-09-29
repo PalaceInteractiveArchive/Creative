@@ -50,7 +50,7 @@ public class Commandcreator extends CoreCommand {
     protected void handleCommand(CPlayer p, String[] args) throws CommandException {
         Player player = p.getBukkitPlayer();
         PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
-        if (!data.isCreator() && p.getRank().getRankId() < Rank.PALADIN.getRankId()) {
+        if (!data.isCreator() && p.getRank().getRankId() < Rank.SRMOD.getRankId()) {
             msg.send(player);
             return;
         }
@@ -70,7 +70,7 @@ public class Commandcreator extends CoreCommand {
                         return;
                     }
                     case "list": {
-                        if (p.getRank().getRankId() < Rank.PALADIN.getRankId()) {
+                        if (p.getRank().getRankId() < Rank.SRMOD.getRankId()) {
                             helpMenu(player, p.getRank());
                             return;
                         }
@@ -88,13 +88,13 @@ public class Commandcreator extends CoreCommand {
                                 player.sendMessage(ChatColor.RED + "There is no one in The Creator Project!");
                                 return;
                             }
-                            String query = "SELECT username FROM player_data WHERE uuid=? ";
+                            StringBuilder query = new StringBuilder("SELECT username FROM player_data WHERE uuid=? ");
                             if (members.size() > 1) {
                                 for (UUID uuid : members.subList(1, members.size())) {
-                                    query += "or uuid=? ";
+                                    query.append("or uuid=? ");
                                 }
                             }
-                            PreparedStatement name = connection.prepareStatement(query.trim());
+                            PreparedStatement name = connection.prepareStatement(query.toString().trim());
                             int i = 1;
                             for (UUID uuid : members) {
                                 name.setString(i, uuid.toString());
@@ -111,16 +111,16 @@ public class Commandcreator extends CoreCommand {
                         if (names.isEmpty()) {
                             player.sendMessage(ChatColor.RED + "There is no one in The Creator Project!");
                         } else {
-                            String s = ChatColor.GREEN + "The Creator Project Members:\n";
+                            StringBuilder s = new StringBuilder(ChatColor.GREEN + "The Creator Project Members:\n");
                             for (int i = 0; i < names.size(); i++) {
                                 String name = names.get(i);
                                 if (i == (names.size() - 1)) {
-                                    s += name;
+                                    s.append(name);
                                     continue;
                                 }
-                                s += name + ", ";
+                                s.append(name).append(", ");
                             }
-                            player.sendMessage(s);
+                            player.sendMessage(s.toString());
                         }
                         return;
                     }
@@ -131,7 +131,7 @@ public class Commandcreator extends CoreCommand {
             case 3: {
                 switch (args[0].toLowerCase()) {
                     case "set": {
-                        if (p.getRank().getRankId() < Rank.PALADIN.getRankId()) {
+                        if (p.getRank().getRankId() < Rank.SRMOD.getRankId()) {
                             helpMenu(player, p.getRank());
                             return;
                         }
@@ -172,7 +172,7 @@ public class Commandcreator extends CoreCommand {
                         return;
                     }
                     case "settag": {
-                        if (p.getRank().getRankId() < Rank.PALADIN.getRankId()) {
+                        if (p.getRank().getRankId() < Rank.SRMOD.getRankId()) {
                             helpMenu(player, p.getRank());
                             return;
                         }
@@ -289,7 +289,7 @@ public class Commandcreator extends CoreCommand {
     private void helpMenu(Player player, Rank rank) {
         player.sendMessage(ChatColor.GREEN + "The Creator Project Commands:");
         player.sendMessage(ChatColor.GREEN + "/creator plot " + ChatColor.AQUA + "- Bring you to your Creator Plot");
-        if (rank.getRankId() >= Rank.EMPEROR.getRankId()) {
+        if (rank.getRankId() >= Rank.ADMIN.getRankId()) {
             player.sendMessage(ChatColor.GREEN + "/creator settag [Username] [true/false] " + ChatColor.AQUA +
                     "- Add or remove The Creator Tag from a Guest");
             player.sendMessage(ChatColor.GREEN + "/creator set [Username] [true/false] " + ChatColor.AQUA +

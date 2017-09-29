@@ -32,7 +32,7 @@ import java.util.zip.GZIPOutputStream;
  * Created by Marc on 12/27/16.
  */
 @CommandMeta(description = "Download your Plot")
-@CommandPermission(rank = Rank.WIZARD)
+@CommandPermission(rank = Rank.DEVELOPER)
 public class Commanddownload extends CoreCommand {
 
     public Commanddownload() {

@@ -33,8 +33,8 @@ public class Commandtpa extends CoreCommand {
             player.sendMessage(ChatColor.RED + "Player not found!");
             return;
         }
-        if (player.getRank().getRankId() < Rank.SQUIRE.getRankId()) {
-            if (tp.getRank().getRankId() > Rank.SQUIRE.getRankId()) {
+        if (player.getRank().getRankId() < Rank.TRAINEE.getRankId()) {
+            if (tp.getRank().getRankId() > Rank.TRAINEE.getRankId()) {
                 player.sendMessage(ChatColor.RED + "You can't send this player a TPA Request!");
                 return;
             }

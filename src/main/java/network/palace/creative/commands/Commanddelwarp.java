@@ -13,7 +13,7 @@ import org.bukkit.ChatColor;
  * Created by Marc on 2/8/15
  */
 @CommandMeta(description = "Delete a warp")
-@CommandPermission(rank = Rank.KNIGHT)
+@CommandPermission(rank = Rank.MOD)
 public class Commanddelwarp extends CoreCommand {
 
     public Commanddelwarp() {

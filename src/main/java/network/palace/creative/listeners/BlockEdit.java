@@ -56,7 +56,7 @@ public class BlockEdit implements Listener {
             player.sendMessage(ChatColor.RED + "You cannot place blocks right now! (Error Code 107)");
             return;
         }
-        if (player.getRank().getRankId() < Rank.KNIGHT.getRankId()) {
+        if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
             Block block = event.getBlock();
             if (blockBlackList.contains(block.getType()) || block.getType().name().toLowerCase().contains("lava")) {
                 event.setCancelled(true);
@@ -89,7 +89,7 @@ public class BlockEdit implements Listener {
             player.sendMessage(ChatColor.RED + "You cannot place blocks right now! (Error Code 107)");
             return;
         }
-        if (player.getRank().getRankId() < Rank.KNIGHT.getRankId()) {
+        if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
             if (event.getBlock().getType().equals(Material.BEDROCK)) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You cannot place or break Bedrock!");
@@ -105,7 +105,7 @@ public class BlockEdit implements Listener {
             player.sendMessage(ChatColor.RED + "You cannot place blocks right now! (Error Code 107)");
             return;
         }
-        if (player.getRank().getRankId() < Rank.KNIGHT.getRankId()) {
+        if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
             if (itemBlackList.contains(player.getBukkitPlayer().getInventory().getItemInMainHand().getType())) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You are not permitted to interact with " + ChatColor.GREEN +

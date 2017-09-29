@@ -61,7 +61,7 @@ public class RolePlay {
             if (members.contains(tp.getUniqueId())) {
                 continue;
             }
-            if (tp.getRank().getRankId() < Rank.SQUIRE.getRankId()) {
+            if (tp.getRank().getRankId() < Rank.TRAINEE.getRankId()) {
                 continue;
             }
             tp.sendMessage(staffmsg);

@@ -485,7 +485,7 @@ public class MenuUtil implements Listener {
                             plot = p;
                         }
                     }
-                    if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.KNIGHT.getRankId()) {
+                    if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.MOD.getRankId()) {
                         if (plot == null) {
                             plot = MainUtil.getPlotFromString(tp, event.getInventory().getName().replace(ChatColor.BLUE +
                                     "Manage Plot ", ""), false);
@@ -536,7 +536,7 @@ public class MenuUtil implements Listener {
                         openManagePlot(player, plawrt);
                         return;
                     }
-                    if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.KNIGHT.getRankId()) {
+                    if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.MOD.getRankId()) {
                         if (plawrt == null) {
                             plawrt = MainUtil.getPlotFromString(tp, event.getInventory().getName().replace(ChatColor.BLUE +
                                     "Add Player to Plot ", ""), false);
@@ -603,7 +603,7 @@ public class MenuUtil implements Listener {
                             plert = p;
                         }
                     }
-                    if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.KNIGHT.getRankId()) {
+                    if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.MOD.getRankId()) {
                         if (plert == null) {
                             plert = MainUtil.getPlotFromString(tp, event.getInventory().getName().replace(ChatColor.BLUE +
                                     "Added Players ", ""), false);
@@ -806,7 +806,7 @@ public class MenuUtil implements Listener {
                             plawt = p;
                         }
                     }
-                    if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.KNIGHT.getRankId()) {
+                    if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.MOD.getRankId()) {
                         if (plawt == null) {
                             plawt = MainUtil.getPlotFromString(tp, event.getInventory().getName().replace(ChatColor.BLUE +
                                     "Denied Players ", ""), false);
@@ -1151,7 +1151,7 @@ public class MenuUtil implements Listener {
                     Rank rank = cplayer.getRank();
                     PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
                     String msg;
-                    if (rank.getRankId() > Rank.SQUIRE.getRankId()) {
+                    if (rank.getRankId() > Rank.TRAINEE.getRankId()) {
                         msg = ChatColor.translateAlternateColorCodes('&', event.getMessage());
                     } else {
                         msg = event.getMessage();
@@ -1307,7 +1307,7 @@ public class MenuUtil implements Listener {
     //@EventHandler
     public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
-        if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.KNIGHT.getRankId()) {
+        if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.MOD.getRankId()) {
             return;
         }
         String msg = event.getMessage();

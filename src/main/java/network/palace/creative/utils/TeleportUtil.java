@@ -16,7 +16,7 @@ public class TeleportUtil {
     private HashMap<UUID, Location> locations = new HashMap<>();
 
     public void log(Player player, Location location) {
-        if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() < Rank.KNIGHT.getRankId()) {
+        if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() < Rank.MOD.getRankId()) {
             return;
         }
         if (locations.containsKey(player.getUniqueId())) {

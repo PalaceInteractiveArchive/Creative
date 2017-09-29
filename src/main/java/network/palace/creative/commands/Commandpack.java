@@ -24,7 +24,7 @@ public class Commandpack extends CoreCommand {
     @Override
     protected void handleCommandUnspecific(CommandSender sender, String[] args) throws CommandException {
         CPlayer cp = sender instanceof Player ? Core.getPlayerManager().getPlayer((Player) sender) : null;
-        if (cp == null || (args.length > 0 && args[0].equalsIgnoreCase("reload") && cp.getRank().getRankId() >= Rank.WIZARD.getRankId())) {
+        if (cp == null || (args.length > 0 && args[0].equalsIgnoreCase("reload") && cp.getRank().getRankId() >= Rank.DEVELOPER.getRankId())) {
             sender.sendMessage(ChatColor.BLUE + "Reloading Resource Packs...");
             Creative.getInstance().getResourceUtil().loadPacks();
             sender.sendMessage(ChatColor.BLUE + "Resource Packs Reloaded!");

@@ -419,7 +419,7 @@ public class Show {
                     for (CPlayer cp : Core.getPlayerManager().getOnlinePlayers()) {
                         if (cp == null)
                             continue;
-                        if (cp.getRank().getRankId() < Rank.WIZARD.getRankId()) {
+                        if (cp.getRank().getRankId() < Rank.DEVELOPER.getRankId()) {
                             continue;
                         }
                         cp.sendMessage(ChatColor.RED + "Took more than 500ms to save " + cp.getName() +

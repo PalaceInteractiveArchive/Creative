@@ -51,7 +51,7 @@ public class PlayerJoinAndLeave implements Listener {
                 ChatColor.LIGHT_PURPLE + "server");
         Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () -> {
             PlotPlayer tp = BukkitUtil.getPlayer(player.getBukkitPlayer());
-            if (player.getRank().getRankId() >= Rank.KNIGHT.getRankId()) {
+            if (player.getRank().getRankId() >= Rank.MOD.getRankId()) {
                 tp.setAttribute("worldedit");
             }
             if (!player.getBukkitPlayer().hasPlayedBefore()) {

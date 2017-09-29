@@ -38,7 +38,7 @@ public class InventoryClick implements Listener {
         CPlayer player = Core.getPlayerManager().getPlayer((Player) event.getWhoClicked());
         if (player == null)
             return;
-        if (player.getRank().getRankId() >= Rank.SQUIRE.getRankId())
+        if (player.getRank().getRankId() >= Rank.TRAINEE.getRankId())
             return;
         ItemStack cursor = event.getCursor();
         if (cursor == null)
@@ -159,7 +159,7 @@ public class InventoryClick implements Listener {
             for (CPlayer cp : Core.getPlayerManager().getOnlinePlayers()) {
                 if (cp == null)
                     continue;
-                if (cp.getRank().getRankId() >= Rank.WIZARD.getRankId()) {
+                if (cp.getRank().getRankId() >= Rank.DEVELOPER.getRankId()) {
                     cp.sendMessage(ChatColor.RED + "Click event took " + diff + "ms! " + ChatColor.GREEN +
                             event.getWhoClicked().getName() + " " + title + " ");
                 }

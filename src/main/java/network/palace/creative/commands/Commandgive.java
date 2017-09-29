@@ -13,7 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 @CommandMeta(description = "Give yourself an item", aliases = {"item", "i"})
-@CommandPermission(rank = Rank.KNIGHT)
+@CommandPermission(rank = Rank.MOD)
 public class Commandgive extends CoreCommand {
 
     public Commandgive() {

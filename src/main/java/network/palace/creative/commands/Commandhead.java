@@ -13,7 +13,7 @@ import org.bukkit.command.CommandSender;
  * Created by Marc on 12/14/14
  */
 @CommandMeta(description = "Reload head database")
-@CommandPermission(rank = Rank.KNIGHT)
+@CommandPermission(rank = Rank.MOD)
 public class Commandhead extends CoreCommand {
 
     public Commandhead() {

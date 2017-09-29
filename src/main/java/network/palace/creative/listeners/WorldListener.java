@@ -47,7 +47,7 @@ public class WorldListener implements Listener {
         CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
         if (current.equalsIgnoreCase("spawn")) {
             player.setGamemode(GameMode.CREATIVE);
-        } else if (target.equalsIgnoreCase("spawn") && player.getRank().getRankId() < Rank.SQUIRE.getRankId()) {
+        } else if (target.equalsIgnoreCase("spawn") && player.getRank().getRankId() < Rank.TRAINEE.getRankId()) {
             player.setGamemode(GameMode.ADVENTURE);
             PlayerInventory inv = player.getInventory();
             inv.remove(Material.ELYTRA);

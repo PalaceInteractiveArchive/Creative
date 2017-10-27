@@ -25,51 +25,58 @@ public class PlayParticle implements Runnable {
     @Override
     public void run() {
         particles.forEach((uuid, particle) -> {
-            CPlayer player = Core.getPlayerManager().getPlayer(uuid);
-            Location loc = player.getLocation();
-
-            if (i >= 10) {
-                i = 0;
-                return;
-            }
-            double radialsPerStep = Math.PI / 5;
-            if (particle.equals(Particle.ENCHANTMENT_TABLE) || particle.equals(Particle.PORTAL)) {
-                loc.add(0, 1, 0);
-                particle(player, particle, loc, 0.4f, 0.3f, 0.4f, 1, 8);
-            } else if (particle.equals(Particle.FLAME)) {
-                if (i == 0) {
-                    loc.add(0, 1, 0);
-                    particle(player, particle, loc, 0.4f, 0.3f, 0.4f, 0, 25);
-                } else if (i == 5) {
-                    loc.add(0, 1, 0);
-                    particle(player, particle, player.getLocation(), 0.4f, 0.3f, 0.4f, 0, 25);
+            try {
+                CPlayer player = Core.getPlayerManager().getPlayer(uuid);
+                if (player == null) {
+                    particles.remove(uuid);
+                    return;
                 }
-            } else if (particle.equals(Particle.LAVA)) {
-                if (i == 0) {
-                    loc.add(0, 1, 0);
-                    particle(player, particle, loc, 0.0f, 0.0f, 0.0f, 0, 8);
-                } else if (i == 5) {
-                    loc.add(0, 1, 0);
-                    particle(player, particle, player.getLocation(), 0.0f, 0.0f, 0.0f, 0, 8);
+                Location loc = player.getLocation();
+
+                if (i >= 10) {
+                    i = 0;
+                    return;
                 }
-            } else if (particle.equals(Particle.NOTE)) {
-                loc.add(0.0D, 2, 0.0D);
-                loc.add((Math.cos(radialsPerStep * step) / 2), 0.0D, (Math.sin(radialsPerStep * step) / 2));
-                particle(player, particle, loc, 0.0F, 0.0F, 0.0F, 1, 1);
+                double radialsPerStep = Math.PI / 5;
+                if (particle.equals(Particle.ENCHANTMENT_TABLE) || particle.equals(Particle.PORTAL)) {
+                    loc.add(0, 1, 0);
+                    particle(player, particle, loc, 0.4f, 0.3f, 0.4f, 1, 8);
+                } else if (particle.equals(Particle.FLAME)) {
+                    if (i == 0) {
+                        loc.add(0, 1, 0);
+                        particle(player, particle, loc, 0.4f, 0.3f, 0.4f, 0, 25);
+                    } else if (i == 5) {
+                        loc.add(0, 1, 0);
+                        particle(player, particle, player.getLocation(), 0.4f, 0.3f, 0.4f, 0, 25);
+                    }
+                } else if (particle.equals(Particle.LAVA)) {
+                    if (i == 0) {
+                        loc.add(0, 1, 0);
+                        particle(player, particle, loc, 0.0f, 0.0f, 0.0f, 0, 8);
+                    } else if (i == 5) {
+                        loc.add(0, 1, 0);
+                        particle(player, particle, player.getLocation(), 0.0f, 0.0f, 0.0f, 0, 8);
+                    }
+                } else if (particle.equals(Particle.NOTE)) {
+                    loc.add(0.0D, 2, 0.0D);
+                    loc.add((Math.cos(radialsPerStep * step) / 2), 0.0D, (Math.sin(radialsPerStep * step) / 2));
+                    particle(player, particle, loc, 0.0F, 0.0F, 0.0F, 1, 1);
 
-                this.step += 1.0F;
-            } else if (particle.equals(Particle.REDSTONE)) {
-                loc.add(0.0D, 2, 0.0D);
-                loc.add((Math.cos(radialsPerStep * step) / 2), 0.0D, (Math.sin(radialsPerStep * step) / 2));
-                particle(player, particle, loc, 0.1F, 0.1F, 0.1F, 1, 3);
+                    this.step += 1.0F;
+                } else if (particle.equals(Particle.REDSTONE)) {
+                    loc.add(0.0D, 2, 0.0D);
+                    loc.add((Math.cos(radialsPerStep * step) / 2), 0.0D, (Math.sin(radialsPerStep * step) / 2));
+                    particle(player, particle, loc, 0.1F, 0.1F, 0.1F, 1, 3);
 
-                this.step += 1.0F;
-            } else {
-                loc.add(0.0D, 2, 0.0D);
-                loc.add((Math.cos(radialsPerStep * step) / 2), 0.0D, (Math.sin(radialsPerStep * step) / 2));
-                particle(player, particle, loc, 0.0F, 0.0F, 0.0F, 0, 1);
+                    this.step += 1.0F;
+                } else {
+                    loc.add(0.0D, 2, 0.0D);
+                    loc.add((Math.cos(radialsPerStep * step) / 2), 0.0D, (Math.sin(radialsPerStep * step) / 2));
+                    particle(player, particle, loc, 0.0F, 0.0F, 0.0F, 0, 1);
 
-                this.step += 1.0F;
+                    this.step += 1.0F;
+                }
+            } catch (Exception ignored) {
             }
             i++;
         });

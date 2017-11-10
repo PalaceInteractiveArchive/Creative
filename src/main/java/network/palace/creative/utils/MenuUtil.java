@@ -12,6 +12,8 @@ import com.intellectualcrafters.plot.util.EventUtil;
 import com.intellectualcrafters.plot.util.MainUtil;
 import com.intellectualcrafters.plot.util.PlotWeather;
 import com.plotsquared.bukkit.util.BukkitUtil;
+import lombok.Getter;
+import lombok.Setter;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -101,6 +103,7 @@ public class MenuUtil implements Listener {
             new ArrayList<>());
     private PlotAPI api;
     private List<UUID> denyTask = new ArrayList<>();
+    @Getter @Setter private boolean chatMuted = false;
 
     public MenuUtil() {
         api = new PlotAPI(Creative.getInstance());
@@ -1149,6 +1152,9 @@ public class MenuUtil implements Listener {
                     }
                     CPlayer cplayer = Core.getPlayerManager().getPlayer(player);
                     Rank rank = cplayer.getRank();
+                    if (isChatMuted() && rank.getRankId() < Rank.TRAINEE.getRankId()) {
+                        return;
+                    }
                     PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
                     String msg;
                     if (rank.getRankId() > Rank.TRAINEE.getRankId()) {

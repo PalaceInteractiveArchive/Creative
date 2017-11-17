@@ -1153,6 +1153,7 @@ public class MenuUtil implements Listener {
                     CPlayer cplayer = Core.getPlayerManager().getPlayer(player);
                     Rank rank = cplayer.getRank();
                     if (isChatMuted() && rank.getRankId() < Rank.TRAINEE.getRankId()) {
+                        cplayer.sendMessage(ChatColor.RED + "Chat is muted right now! (You can still add/remove players and use Show Creator)");
                         return;
                     }
                     PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());

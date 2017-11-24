@@ -11,7 +11,6 @@ import network.palace.core.player.CPlayer;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.PlayerData;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -42,17 +41,17 @@ public class OnlineUtil {
                 if (data.isAFK()) {
                     continue;
                 }
+                CPlayer cp = Core.getPlayerManager().getPlayer(p);
+                if (cp == null) {
+                    Bukkit.getLogger().severe("Player is null: " + p.getName() + " " + p.getUniqueId());
+                    return;
+                }
                 if (data.getOnlineTime() >= 1800) {
                     Core.getEconomy().addBalance(p.getUniqueId(), 10, "Creative Online Time");
-                    p.sendMessage(ChatColor.GREEN + "You received " + ChatColor.AQUA + "$10 " + ChatColor.GREEN +
-                            "for playing on Creative for 30 minutes!");
+                    cp.giveHonor(5);
+//                    p.sendMessage(ChatColor.GREEN + "You received " + ChatColor.AQUA + "$10 " + ChatColor.GREEN +
+//                            "for playing on Creative for 30 minutes!");
                     data.setOnlineTime(0);
-                    CPlayer cp = Core.getPlayerManager().getPlayer(p);
-                    if (cp == null) {
-                        Bukkit.getLogger().severe("Player is null: " + p.getName() + " " + p.getUniqueId());
-                    } else {
-//                        Core.runTaskAsynchronously(() -> cp.giveHonor(2));
-                    }
                 } else {
                     data.addOnlineTime(10);
                 }

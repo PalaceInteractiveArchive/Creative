@@ -30,7 +30,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.2.7")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.2.8")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;

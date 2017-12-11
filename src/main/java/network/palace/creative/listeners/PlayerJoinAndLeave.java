@@ -9,7 +9,6 @@ import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.RolePlay;
 import network.palace.creative.utils.TpaUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -49,7 +48,7 @@ public class PlayerJoinAndLeave implements Listener {
         player.getHeaderFooter().setHeader(ChatColor.GOLD + "Palace Network - A Family of Servers");
         player.getHeaderFooter().setFooter(ChatColor.LIGHT_PURPLE + "You're on the " + ChatColor.GREEN + "Creative " +
                 ChatColor.LIGHT_PURPLE + "server");
-        Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () -> {
+        Core.runTaskLater(() -> {
             PlotPlayer tp = BukkitUtil.getPlayer(player.getBukkitPlayer());
             if (player.getRank().getRankId() >= Rank.MOD.getRankId()) {
                 tp.setAttribute("worldedit");
@@ -74,6 +73,7 @@ public class PlayerJoinAndLeave implements Listener {
                     inv.setChestplate(new ItemStack(Material.AIR));
                 }
             }
+            if (tp.getPlots() != null && !tp.getPlots().isEmpty()) player.giveAchievement(9);
         }, 20L);
         for (PotionEffect e : player.getBukkitPlayer().getActivePotionEffects()) {
             player.getBukkitPlayer().removePotionEffect(e.getType());

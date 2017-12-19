@@ -73,29 +73,29 @@ public class BannerUtil {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 Player player = event.getPlayer();
-                cancel(player);
+                cancel(player.getUniqueId());
                 Creative.getInstance().getShowManager().cancelEdit(player);
             }
         });
     }
 
     private String getName(String name) {
-        String done = "";
+        StringBuilder done = new StringBuilder();
         String[] list = name.split("_");
         for (String s : list) {
-            String st = "";
+            StringBuilder st = new StringBuilder();
             boolean first = true;
             for (char c : s.toCharArray()) {
                 if (first) {
-                    st += Character.toUpperCase(c);
+                    st.append(Character.toUpperCase(c));
                     first = false;
                 } else {
-                    st += c;
+                    st.append(c);
                 }
             }
-            done += st + " ";
+            done.append(st).append(" ");
         }
-        return ChatColor.RESET + done;
+        return ChatColor.RESET + done.toString();
     }
 
     public void openMenu(Player player, BannerInventoryType type) {
@@ -142,7 +142,7 @@ public class BannerUtil {
         if (event.getSlot() == 4) {
             player.getInventory().addItem(banner);
             player.closeInventory();
-            cancel(player);
+            cancel(player.getUniqueId());
             return;
         }
         switch (type) {
@@ -267,7 +267,7 @@ public class BannerUtil {
         return DyeColor.BLACK;
     }
 
-    public void cancel(Player player) {
-        userBanners.remove(player.getUniqueId());
+    public void cancel(UUID uuid) {
+        userBanners.remove(uuid);
     }
 }

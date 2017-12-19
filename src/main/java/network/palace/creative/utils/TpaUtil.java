@@ -19,7 +19,7 @@ public class TpaUtil {
     private static HashMap<UUID, Integer> map2 = new HashMap<>();
     private static HashMap<UUID, Integer> map3 = new HashMap<>();
 
-    public static void logout(Player player) {
+    public static void logout(CPlayer player) {
         if (map.containsKey(player.getUniqueId())) {
             UUID tuuid = map.remove(player.getUniqueId());
             Bukkit.getPlayer(tuuid).sendMessage(ChatColor.RED + player.getName() +

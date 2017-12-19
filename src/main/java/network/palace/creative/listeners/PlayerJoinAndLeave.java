@@ -22,6 +22,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 
+import java.util.UUID;
+
 /**
  * Created by Marc on 12/14/14
  */
@@ -84,21 +86,22 @@ public class PlayerJoinAndLeave implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        UUID uuid = event.getPlayer().getUniqueId();
         CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
         Creative creative = Creative.getInstance();
-        RolePlay rp = creative.getRolePlayUtil().getRolePlay(player.getUniqueId());
+        RolePlay rp = creative.getRolePlayUtil().getRolePlay(uuid);
         if (rp != null) {
-            if (rp.getOwner().equals(player.getUniqueId())) {
+            if (rp.getOwner().equals(uuid)) {
                 creative.getRolePlayUtil().close(rp);
             } else {
-                rp.leave(Core.getPlayerManager().getPlayer(player.getBukkitPlayer()));
+                rp.leave(player);
             }
         }
-        creative.getParticleManager().stop(player);
-        TpaUtil.logout(player.getBukkitPlayer());
-        creative.getTeleportUtil().logout(player.getBukkitPlayer());
-        creative.getBannerUtil().cancel(player.getBukkitPlayer());
-        creative.logout(player.getBukkitPlayer());
-        creative.getShowManager().logout(player);
+        TpaUtil.logout(player);
+        creative.getParticleManager().stop(uuid);
+        creative.getTeleportUtil().logout(uuid);
+        creative.getBannerUtil().cancel(uuid);
+        creative.getShowManager().logout(uuid);
+        creative.logout(uuid);
     }
 }

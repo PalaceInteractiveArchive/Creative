@@ -38,7 +38,7 @@ public class OnlineUtil {
         Bukkit.getScheduler().runTaskTimer(Creative.getInstance(), () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 PlayerData data = Creative.getInstance().getPlayerData(p.getUniqueId());
-                if (data.isAFK()) {
+                if (data == null || data.isAFK()) {
                     continue;
                 }
                 CPlayer cp = Core.getPlayerManager().getPlayer(p);

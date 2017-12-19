@@ -13,6 +13,7 @@ import org.bukkit.Sound;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.UUID;
 
 /**
  * Created by Marc on 9/6/15
@@ -28,14 +29,14 @@ public class ParticleManager {
         }
     }
 
-    public void stop(CPlayer player) {
-        Creative.getInstance().getPlayParticle().getParticles().remove(player.getUuid());
+    public void stop(UUID uuid) {
+        Creative.getInstance().getPlayParticle().getParticles().remove(uuid);
     }
 
     public void clearParticle(final CPlayer player) {
         PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
         data.setParticle(null);
-        stop(player);
+        stop(player.getUniqueId());
         player.sendMessage(ChatColor.GREEN + "Cleared your particle effects!");
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 100, 2);
         Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
@@ -52,7 +53,7 @@ public class ParticleManager {
     }
 
     public void setParticle(final CPlayer player, String particle, String displayName) {
-        stop(player);
+        stop(player.getUniqueId());
         PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
         final Particle effect;
         switch (particle) {

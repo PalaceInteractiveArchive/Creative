@@ -189,11 +189,9 @@ public class ShowManager implements Listener {
         return show;
     }
 
-    public boolean stopShow(CPlayer player) {
-        Show show = shows.remove(player.getUniqueId());
-        if (show == null) {
-            return true;
-        }
+    public boolean stopShow(UUID uuid) {
+        Show show = shows.remove(uuid);
+        if (show == null) return true;
         stopAudio(show);
         return show != null;
     }
@@ -1202,10 +1200,10 @@ public class ShowManager implements Listener {
         return new HashMap<>(audioTracks);
     }
 
-    public void logout(CPlayer player) {
-        Show show = shows.get(player.getUniqueId());
+    public void logout(UUID uuid) {
+        Show show = shows.get(uuid);
         if (show != null) {
-            stopShow(player);
+            stopShow(uuid);
         }
     }
 

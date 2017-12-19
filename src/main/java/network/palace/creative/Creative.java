@@ -18,7 +18,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +29,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.2.8")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.2.9")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -239,8 +238,8 @@ public class Creative extends Plugin {
         return data;
     }
 
-    public void logout(Player player) {
-        playerData.remove(player.getUniqueId());
+    public void logout(UUID uuid) {
+        playerData.remove(uuid);
     }
 
     public PlayerData getPlayerData(UUID uuid) {

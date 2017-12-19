@@ -60,7 +60,7 @@ public class Commandshow extends CoreCommand {
                 return;
             }
             case "stop": {
-                if (creative.getShowManager().stopShow(player)) {
+                if (creative.getShowManager().stopShow(player.getUniqueId())) {
                     creative.getShowManager().messagePlayer(player, "Your show has stopped!");
                 } else {
                     creative.getShowManager().messagePlayer(player, ChatColor.RED +

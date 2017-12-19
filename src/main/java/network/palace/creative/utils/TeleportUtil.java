@@ -25,8 +25,8 @@ public class TeleportUtil {
         locations.put(player.getUniqueId(), location);
     }
 
-    public void logout(Player player) {
-        locations.remove(player.getUniqueId());
+    public void logout(UUID uuid) {
+        locations.remove(uuid);
     }
 
     public boolean back(CPlayer player) {

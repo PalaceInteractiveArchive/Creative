@@ -98,6 +98,7 @@ public class PlayerJoinAndLeave implements Listener {
             }
         }
         TpaUtil.logout(player);
+        creative.getIgnoreUtil().logout(uuid);
         creative.getParticleManager().stop(uuid);
         creative.getTeleportUtil().logout(uuid);
         creative.getBannerUtil().cancel(uuid);

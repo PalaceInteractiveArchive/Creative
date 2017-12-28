@@ -195,45 +195,42 @@ public class MenuUtil implements Listener {
                 Inventory building = Bukkit.createInventory(player, 54, ChatColor.BLUE + "Building Plots");
                 building.setItem(22, loading);
                 player.openInventory(building);
-                Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), new Runnable() {
-                    @Override
-                    public void run() {
-                        final List<Plot> plotList = new ArrayList<>(PS.get().getPlots("plotworld"));
-                        int i = 0;
-                        for (Plot p : plotList) {
-                            if (building.getViewers().isEmpty()) {
-                                return;
-                            }
-                            if (i >= 45) {
-                                building.setItem(45, more);
-                                building.setItem(46, more);
-                                building.setItem(47, more);
-                                building.setItem(48, more);
-                                building.setItem(49, back);
-                                building.setItem(50, more);
-                                building.setItem(51, more);
-                                building.setItem(52, more);
-                                building.setItem(53, more);
-                                break;
-                            }
-                            if (p.getMembers().contains(player.getUniqueId())) {
-                                building.addItem(ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(p) + "'s Plot " +
-                                        p.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
-                                        ChatColor.YELLOW + "Member")));
-                                i++;
-                            }
-                            if (p.getTrusted().contains(player.getUniqueId())) {
-                                building.addItem(ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(p) + "'s Plot " +
-                                        p.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
-                                        ChatColor.GOLD + "" + ChatColor.ITALIC + "Trusted")));
-                                i++;
-                            }
+                Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
+                    final List<Plot> plotList = new ArrayList<>(PS.get().getPlots("plotworld"));
+                    int i = 0;
+                    for (Plot p : plotList) {
+                        if (building.getViewers().isEmpty()) {
+                            return;
                         }
-                        if (building.getItem(22).getType().equals(Material.STAINED_CLAY)) {
-                            building.setItem(22, new ItemStack(Material.AIR));
+                        if (i >= 45) {
+                            building.setItem(45, more);
+                            building.setItem(46, more);
+                            building.setItem(47, more);
+                            building.setItem(48, more);
+                            building.setItem(49, back);
+                            building.setItem(50, more);
+                            building.setItem(51, more);
+                            building.setItem(52, more);
+                            building.setItem(53, more);
+                            break;
                         }
-                        building.setItem(49, back);
+                        if (p.getMembers().contains(player.getUniqueId())) {
+                            building.addItem(ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(p) + "'s Plot " +
+                                    p.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
+                                    ChatColor.YELLOW + "Member")));
+                            i++;
+                        }
+                        if (p.getTrusted().contains(player.getUniqueId())) {
+                            building.addItem(ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(p) + "'s Plot " +
+                                    p.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
+                                    ChatColor.GOLD + "" + ChatColor.ITALIC + "Trusted")));
+                            i++;
+                        }
                     }
+                    if (building.getItem(22).getType().equals(Material.STAINED_CLAY)) {
+                        building.setItem(22, new ItemStack(Material.AIR));
+                    }
+                    building.setItem(49, back);
                 });
                 break;
             }
@@ -965,18 +962,15 @@ public class MenuUtil implements Listener {
     }
 
     private void setValue(UUID uuid, String name, Object o) {
-        Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), new Runnable() {
-            @Override
-            public void run() {
-                try (Connection connection = Core.getSqlUtil().getConnection()) {
-                    PreparedStatement sql = connection.prepareStatement("UPDATE creative SET " + name + "=? WHERE uuid=?");
-                    sql.setObject(1, o);
-                    sql.setString(2, uuid.toString());
-                    sql.execute();
-                    sql.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+        Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
+            try (Connection connection = Core.getSqlUtil().getConnection()) {
+                PreparedStatement sql = connection.prepareStatement("UPDATE creative SET " + name + "=? WHERE uuid=?");
+                sql.setObject(1, o);
+                sql.setString(2, uuid.toString());
+                sql.execute();
+                sql.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         });
     }
@@ -1158,7 +1152,7 @@ public class MenuUtil implements Listener {
                     }
                     PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
                     String msg;
-                    if (rank.getRankId() > Rank.TRAINEE.getRankId()) {
+                    if (rank.getRankId() >= Rank.TRAINEE.getRankId()) {
                         msg = ChatColor.translateAlternateColorCodes('&', event.getMessage());
                     } else {
                         msg = event.getMessage();
@@ -1166,8 +1160,14 @@ public class MenuUtil implements Listener {
                     String messageToSend = (data.hasCreatorTag() ? (ChatColor.WHITE + "[" + ChatColor.BLUE + "Creator"
                             + ChatColor.WHITE + "] ") : "") + rank.getFormattedName() + " " + ChatColor.GRAY +
                             player.getName() + ": " + rank.getChatColor() + msg;
-                    Bukkit.getOnlinePlayers().stream().filter(tp -> Creative.getInstance().getRolePlayUtil()
-                            .getRolePlay(tp.getUniqueId()) == null).forEach(tp -> tp.sendMessage(messageToSend));
+                    RolePlayUtil rolePlayUtil = Creative.getInstance().getRolePlayUtil();
+                    IgnoreUtil ignoreUtil = Creative.getInstance().getIgnoreUtil();
+                    for (CPlayer tp : Core.getPlayerManager().getOnlinePlayers()) {
+                        if (rolePlayUtil.getRolePlay(tp.getUniqueId()) != null ||
+                                ignoreUtil.isIgnored(tp.getUniqueId(), player.getUniqueId()))
+                            continue;
+                        tp.sendMessage(messageToSend);
+                    }
                     return;
                 }
                 event.setCancelled(true);
@@ -1191,7 +1191,7 @@ public class MenuUtil implements Listener {
                     player.sendMessage(ChatColor.RED + "You cannot deny more than 18 people on your Plot!");
                     return;
                 }
-                if (plot.getDenied().contains(tp.getUniqueId().toString())) {
+                if (plot.getDenied().contains(tp.getUniqueId())) {
                     player.sendMessage(ChatColor.RED + "This player is already denied on this Plot!");
                     return;
                 }

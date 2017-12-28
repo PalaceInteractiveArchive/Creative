@@ -29,7 +29,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.2.9")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.3.0")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -45,6 +45,7 @@ public class Creative extends Plugin {
     @Getter private OnlineUtil onlineUtil;
     @Getter private HeadUtil headUtil;
     @Getter private ResourceUtil resourceUtil;
+    @Getter private IgnoreUtil ignoreUtil;
     @Getter private HashMap<UUID, PlayerData> playerData = new HashMap<>();
 
     @Getter private PlayParticle playParticle;
@@ -63,6 +64,7 @@ public class Creative extends Plugin {
         onlineUtil = new OnlineUtil();
         headUtil = new HeadUtil();
         resourceUtil = new ResourceUtil();
+        ignoreUtil = new IgnoreUtil();
 
         playParticle = new PlayParticle();
 
@@ -175,39 +177,39 @@ public class Creative extends Plugin {
     }
 
     private void registerCommands() {
-        registerCommand(new Commandback());
-        registerCommand(new Commandbanner());
-        registerCommand(new Commandbc());
-        registerCommand(new Commandcreator());
-        registerCommand(new Commanddelwarp());
-        registerCommand(new Commanddownload());
-        registerCommand(new Commandgive());
-        registerCommand(new Commandhead());
-        registerCommand(new Commandheal());
-        registerCommand(new Commandinvsee());
-        registerCommand(new Commandloglag());
-        registerCommand(new Commandmanage());
-        registerCommand(new Commandmenu());
-        registerCommand(new Commandmore());
-        registerCommand(new Commandmsg());
-        registerCommand(new Commandnv());
-        registerCommand(new Commandpack());
-        registerCommand(new Commandpt());
-        registerCommand(new Commandptime());
-        registerCommand(new Commandpweather());
-        registerCommand(new Commandrole());
-        registerCommand(new Commandrules());
-        registerCommand(new Commandsetspawn());
-        registerCommand(new Commandsetwarp());
-        registerCommand(new Commandshop());
-        registerCommand(new Commandshow());
-        registerCommand(new Commandspawn());
-        registerCommand(new Commandstar());
-        registerCommand(new Commandtp());
-        registerCommand(new Commandtpa());
-        registerCommand(new Commandtpaccept());
-        registerCommand(new Commandtpdeny());
-        registerCommand(new Commandwarp());
+        registerCommand(new BackCommand());
+        registerCommand(new BannerCommand());
+        registerCommand(new BroadcastCommand());
+        registerCommand(new CreatorCommand());
+        registerCommand(new DelWarpCommand());
+        registerCommand(new DownloadCommand());
+        registerCommand(new GiveCommand());
+        registerCommand(new HeadCommand());
+        registerCommand(new HealCommand());
+        registerCommand(new InvseeCommand());
+        registerCommand(new LogLagCommand());
+        registerCommand(new ManageCommand());
+        registerCommand(new MenuCommand());
+        registerCommand(new MoreCommand());
+        registerCommand(new MsgCommand());
+        registerCommand(new NightvisionCommand());
+        registerCommand(new PackCommand());
+        registerCommand(new PTCommand());
+        registerCommand(new PtimeCommand());
+        registerCommand(new PweatherCommand());
+        registerCommand(new RoleCommand());
+        registerCommand(new RulesCommand());
+        registerCommand(new SetSpawnCommand());
+        registerCommand(new SetWarpCommand());
+        registerCommand(new ShopCommand());
+        registerCommand(new ShowCommand());
+        registerCommand(new SpawnCommand());
+        registerCommand(new StarCommand());
+        registerCommand(new TpCommand());
+        registerCommand(new TpaCommand());
+        registerCommand(new TpAcceptCommand());
+        registerCommand(new TpDenyCommand());
+        registerCommand(new WarpCommand());
     }
 
     private void registerListeners() {

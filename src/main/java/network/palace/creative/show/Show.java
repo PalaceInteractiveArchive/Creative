@@ -380,62 +380,57 @@ public class Show {
         long t = System.currentTimeMillis();
         CPlayer cp = Core.getPlayerManager().getPlayer(owner);
         cp.getActionBar().show(ChatColor.GREEN + "Saving show file...");
-        Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    BufferedWriter bw = new BufferedWriter(new FileWriter(new File("plugins/Creative/shows/" + getOwner().toString() +
-                            ".show"), false));
-                    bw.write("Name " + name);
-                    bw.newLine();
-                    if (!audioTrack.equals("none")) {
-                        String s = "";
-                        for (Map.Entry<String, AudioTrack> entry : Creative.getInstance().getShowManager().getAudioTracks().entrySet()) {
-                            if (entry.getValue().getAudioPath().equalsIgnoreCase(audioTrack)) {
-                                s = entry.getKey();
-                                break;
-                            }
-                        }
-                        if (!s.equals("")) {
-                            bw.write("Audio " + s);
+        Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
+            try {
+                BufferedWriter bw = new BufferedWriter(new FileWriter(new File("plugins/Creative/shows/" + getOwner().toString() +
+                        ".show"), false));
+                bw.write("Name " + name);
+                bw.newLine();
+                if (!audioTrack.equals("none")) {
+                    String s = "";
+                    for (Map.Entry<String, AudioTrack> entry : Creative.getInstance().getShowManager().getAudioTracks().entrySet()) {
+                        if (entry.getValue().getAudioPath().equalsIgnoreCase(audioTrack)) {
+                            s = entry.getKey();
+                            break;
                         }
                     }
-                    bw.newLine();
-                    for (ShowAction act : getActions()) {
-                        bw.write(act.toString());
-                        bw.newLine();
-                    }
-                    bw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                setSaving(false);
-                long t2 = System.currentTimeMillis();
-                long diff = t2 - t;
-                System.out.println("Finished saving (" + diff + "ms) show file " + cp.getName());
-                if (diff >= 500) {
-                    Bukkit.getLogger().warning("Took more than 500ms to save " + cp.getName() + "'s show file " +
-                            diff + "ms");
-                    for (CPlayer cp : Core.getPlayerManager().getOnlinePlayers()) {
-                        if (cp == null)
-                            continue;
-                        if (cp.getRank().getRankId() < Rank.DEVELOPER.getRankId()) {
-                            continue;
-                        }
-                        cp.sendMessage(ChatColor.RED + "Took more than 500ms to save " + cp.getName() +
-                                "'s show file " + diff + "ms");
+                    if (!s.equals("")) {
+                        bw.write("Audio " + s);
                     }
                 }
-                cp.getActionBar().show(ChatColor.GREEN + "Show file saved (took " + diff + "ms)");
+                bw.newLine();
+                for (ShowAction act : getActions()) {
+                    bw.write(act.toString());
+                    bw.newLine();
+                }
+                bw.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            setSaving(false);
+            long t2 = System.currentTimeMillis();
+            long diff = t2 - t;
+            System.out.println("Finished saving (" + diff + "ms) show file " + cp.getName());
+            if (diff >= 500) {
+                Bukkit.getLogger().warning("Took more than 500ms to save " + cp.getName() + "'s show file " +
+                        diff + "ms");
+                for (CPlayer cp1 : Core.getPlayerManager().getOnlinePlayers()) {
+                    if (cp1 == null)
+                        continue;
+                    if (cp1.getRank().getRankId() < Rank.DEVELOPER.getRankId()) {
+                        continue;
+                    }
+                    cp1.sendMessage(ChatColor.RED + "Took more than 500ms to save " + cp1.getName() +
+                            "'s show file " + diff + "ms");
+                }
+            }
+            cp.getActionBar().show(ChatColor.GREEN + "Show file saved (took " + diff + "ms)");
         });
     }
 
     public void syncAudioForPlayer(final CPlayer tp) {
-        final AudioArea area = Audio.getPlugin(Audio.class).getByName(Bukkit.getPlayer(owner).getName());
-        if (area == null) {
-            return;
-        }
+        final AudioArea area = Audio.getInstance().getByName(Core.getPlayerManager().getPlayer(owner).getUniqueId().toString());
+        if (area == null) return;
         area.triggerPlayer(tp);
         tp.sendMessage(ChatColor.GREEN + "Syncing your audio!");
         Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () -> area.sync(((System.currentTimeMillis() - musicTime + 300) / 1000), tp), 20L);

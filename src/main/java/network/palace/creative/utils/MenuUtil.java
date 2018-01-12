@@ -1164,7 +1164,9 @@ public class MenuUtil implements Listener {
                     IgnoreUtil ignoreUtil = Creative.getInstance().getIgnoreUtil();
                     for (CPlayer tp : Core.getPlayerManager().getOnlinePlayers()) {
                         if (rolePlayUtil.getRolePlay(tp.getUniqueId()) != null ||
-                                ignoreUtil.isIgnored(tp.getUniqueId(), player.getUniqueId()))
+                                (ignoreUtil.isIgnored(tp.getUniqueId(), player.getUniqueId()) &&
+                                        cplayer.getRank().getRankId() < Rank.TRAINEE.getRankId() &&
+                                        tp.getRank().getRankId() < Rank.TRAINEE.getRankId()))
                             continue;
                         tp.sendMessage(messageToSend);
                     }

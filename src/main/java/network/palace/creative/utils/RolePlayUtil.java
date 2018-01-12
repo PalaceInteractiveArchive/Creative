@@ -7,7 +7,6 @@ import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.handlers.RolePlay;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 
 import java.util.*;
 
@@ -48,7 +47,11 @@ public class RolePlayUtil {
         return new ArrayList<>(rolePlays.values());
     }
 
-    public void invitePlayer(final RolePlay rp, final Player tp, final CPlayer owner) {
+    public void invitePlayer(final RolePlay rp, final CPlayer tp, final CPlayer owner) {
+        if (Creative.getInstance().getIgnoreUtil().isIgnored(tp.getUniqueId(), owner.getUniqueId())) {
+            owner.sendMessage(ChatColor.RED + "You can't invite this player to your Role Play!");
+            return;
+        }
         if (timerList.containsKey(tp.getUniqueId())) {
             owner.sendMessage(ChatColor.GREEN + "This player already has a Role Play request pending!");
             return;

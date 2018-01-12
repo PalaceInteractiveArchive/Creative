@@ -125,7 +125,7 @@ public class RoleCommand extends CoreCommand {
                         return;
                     }
                     if (!rp.getOwner().equals(player.getUniqueId())) {
-                        player.sendMessage(ChatColor.RED + "You must be the Role Play Owner to change the tag!");
+                        player.sendMessage(ChatColor.RED + "You must be the Role Play Owner to send an invite!");
                         return;
                     }
                     PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
@@ -135,7 +135,7 @@ public class RoleCommand extends CoreCommand {
                                 "Increase this limit in the Shop. /role shop");
                         return;
                     }
-                    Player tp = Bukkit.getPlayer(args[1]);
+                    CPlayer tp = Core.getPlayerManager().getPlayer(Bukkit.getPlayer(args[1]));
                     if (tp == null) {
                         player.sendMessage(ChatColor.RED + "Player not found!");
                         return;

@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import network.palace.core.Core;
+import network.palace.core.economy.CurrencyType;
 import network.palace.core.player.CPlayer;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.PlayerData;
@@ -47,7 +48,8 @@ public class OnlineUtil {
                     return;
                 }
                 if (data.getOnlineTime() >= 1800) {
-                    Core.getEconomy().addBalance(p.getUniqueId(), 10, "Creative Online Time");
+                    Core.getMongoHandler().changeAmount(p.getUniqueId(), 10,
+                            "Creative Online Time", CurrencyType.BALANCE, false);
                     cp.giveHonor(5);
 //                    p.sendMessage(ChatColor.GREEN + "You received " + ChatColor.AQUA + "$10 " + ChatColor.GREEN +
 //                            "for playing on Creative for 30 minutes!");

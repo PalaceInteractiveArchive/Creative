@@ -14,6 +14,7 @@ import network.palace.creative.particles.ParticleManager;
 import network.palace.creative.particles.PlayParticle;
 import network.palace.creative.show.ShowManager;
 import network.palace.creative.utils.*;
+import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -29,7 +30,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.3.1")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.4-mongo")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -39,7 +40,6 @@ public class Creative extends Plugin {
     @Getter private BannerUtil bannerUtil;
     @Getter private MenuUtil menuUtil;
     @Getter private ParticleManager particleManager;
-    @Getter private SqlUtil sqlUtil;
     @Getter private RolePlayUtil rolePlayUtil;
     @Getter private ShowManager showManager;
     @Getter private OnlineUtil onlineUtil;
@@ -54,7 +54,6 @@ public class Creative extends Plugin {
     public void onPluginEnable() {
         loadConfig();
 
-        sqlUtil = new SqlUtil();
         redstoneListener = new RedstoneListener();
         menuUtil = new MenuUtil();
         bannerUtil = new BannerUtil();
@@ -234,7 +233,12 @@ public class Creative extends Plugin {
     }
 
     public PlayerData login(UUID uuid) {
-        PlayerData data = sqlUtil.login(uuid);
+        Document dataDocument = Core.getMongoHandler().getCreativeData(uuid);
+        if (dataDocument == null) return null;
+        PlayerData data = new PlayerData(uuid, ParticleUtil.getParticle(dataDocument.getString("particle")),
+                dataDocument.getBoolean("rptag"), dataDocument.getBoolean("showcreator"),
+                dataDocument.getInteger("rplimit"), dataDocument.getBoolean("creator"),
+                dataDocument.getBoolean("creatortag"), dataDocument.getString("pack"));
         playerData.remove(uuid);
         playerData.put(uuid, data);
         return data;

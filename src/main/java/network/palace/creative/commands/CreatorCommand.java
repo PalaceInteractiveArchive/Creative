@@ -22,10 +22,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -74,39 +70,7 @@ public class CreatorCommand extends CoreCommand {
                             helpMenu(player, p.getRank());
                             return;
                         }
-                        List<String> names = new ArrayList<>();
-                        try (Connection connection = Core.getSqlUtil().getConnection()) {
-                            List<UUID> members = new ArrayList<>();
-                            PreparedStatement sql = connection.prepareStatement("SELECT uuid FROM creative WHERE creator=1");
-                            ResultSet result = sql.executeQuery();
-                            while (result.next()) {
-                                members.add(UUID.fromString(result.getString("uuid")));
-                            }
-                            result.close();
-                            sql.close();
-                            if (members.isEmpty()) {
-                                player.sendMessage(ChatColor.RED + "There is no one in The Creator Project!");
-                                return;
-                            }
-                            StringBuilder query = new StringBuilder("SELECT username FROM player_data WHERE uuid=? ");
-                            if (members.size() > 1) {
-                                for (UUID uuid : members.subList(1, members.size())) {
-                                    query.append("or uuid=? ");
-                                }
-                            }
-                            PreparedStatement name = connection.prepareStatement(query.toString().trim());
-                            int i = 1;
-                            for (UUID uuid : members) {
-                                name.setString(i, uuid.toString());
-                                i++;
-                            }
-                            ResultSet nameRes = name.executeQuery();
-                            while (nameRes.next()) {
-                                names.add(nameRes.getString("username"));
-                            }
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
+                        List<String> names = Core.getMongoHandler().getCreatorMembers();
                         names.sort(String.CASE_INSENSITIVE_ORDER);
                         if (names.isEmpty()) {
                             player.sendMessage(ChatColor.RED + "There is no one in The Creator Project!");
@@ -140,7 +104,7 @@ public class CreatorCommand extends CoreCommand {
                         UUID uuid;
                         Player tp = Bukkit.getPlayer(username);
                         if (tp == null) {
-                            uuid = Creative.getInstance().getSqlUtil().getUniqueId(username);
+                            uuid = Core.getMongoHandler().usernameToUUID(username);
                             if (uuid == null) {
                                 player.sendMessage(ChatColor.RED + "Player not found!");
                                 return;
@@ -155,19 +119,11 @@ public class CreatorCommand extends CoreCommand {
                             }
                             Creative.getInstance().getPlayerData(uuid).setCreator(value);
                         }
-                        try (Connection connection = Core.getSqlUtil().getConnection()) {
-                            PreparedStatement sql = connection.prepareStatement("UPDATE creative SET creator=? WHERE uuid=?");
-                            sql.setInt(1, value ? 1 : 0);
-                            sql.setString(2, uuid.toString());
-                            sql.execute();
-                            sql.close();
-                            if (value) {
-                                player.sendMessage(ChatColor.GREEN + username + " is now part of The Creator Project!");
-                            } else {
-                                player.sendMessage(ChatColor.RED + username + " is no longer a part of The Creator Project!");
-                            }
-                        } catch (SQLException e) {
-                            e.printStackTrace();
+                        Core.getMongoHandler().setCreativeValue(uuid, "creator", value);
+                        if (value) {
+                            player.sendMessage(ChatColor.GREEN + username + " is now part of The Creator Project!");
+                        } else {
+                            player.sendMessage(ChatColor.RED + username + " is no longer a part of The Creator Project!");
                         }
                         return;
                     }
@@ -181,7 +137,7 @@ public class CreatorCommand extends CoreCommand {
                         UUID uuid;
                         Player tp = Bukkit.getPlayer(username);
                         if (tp == null) {
-                            uuid = Creative.getInstance().getSqlUtil().getUniqueId(username);
+                            uuid = Core.getMongoHandler().usernameToUUID(username);
                             if (uuid == null) {
                                 player.sendMessage(ChatColor.RED + "Player not found!");
                                 return;
@@ -196,19 +152,11 @@ public class CreatorCommand extends CoreCommand {
                             }
                             Creative.getInstance().getPlayerData(uuid).setCreatorTag(value);
                         }
-                        try (Connection connection = Core.getSqlUtil().getConnection()) {
-                            PreparedStatement sql = connection.prepareStatement("UPDATE creative SET creatortag=? WHERE uuid=?");
-                            sql.setInt(1, value ? 1 : 0);
-                            sql.setString(2, uuid.toString());
-                            sql.execute();
-                            sql.close();
-                            if (value) {
-                                player.sendMessage(ChatColor.GREEN + username + " now has The Creator Tag!");
-                            } else {
-                                player.sendMessage(ChatColor.RED + username + " no longer has The Creator Tag!");
-                            }
-                        } catch (SQLException e) {
-                            e.printStackTrace();
+                        Core.getMongoHandler().setCreativeValue(uuid, "creatortag", value);
+                        if (value) {
+                            player.sendMessage(ChatColor.GREEN + username + " now has The Creator Tag!");
+                        } else {
+                            player.sendMessage(ChatColor.RED + username + " no longer has The Creator Tag!");
                         }
                         return;
                     }

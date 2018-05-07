@@ -30,7 +30,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.4-mongo")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.5-mongo")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -238,7 +238,7 @@ public class Creative extends Plugin {
         PlayerData data = new PlayerData(uuid, ParticleUtil.getParticle(dataDocument.getString("particle")),
                 dataDocument.getBoolean("rptag"), dataDocument.getBoolean("showcreator"),
                 dataDocument.getInteger("rplimit"), dataDocument.getBoolean("creator"),
-                dataDocument.getBoolean("creatortag"), dataDocument.getString("pack"));
+                dataDocument.getBoolean("creatortag"), dataDocument.getString("resourcepack"));
         playerData.remove(uuid);
         playerData.put(uuid, data);
         return data;

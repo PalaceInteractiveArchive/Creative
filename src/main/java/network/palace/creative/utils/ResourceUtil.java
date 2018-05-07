@@ -113,6 +113,9 @@ public class ResourceUtil {
     public void openMenu(CPlayer player) {
         Inventory inv = Bukkit.createInventory(player.getBukkitPlayer(), 27, ChatColor.BLUE + "Resource Pack");
         String selected = Creative.getInstance().getPlayerData(player.getUniqueId()).getResourcePack();
+        if (selected == null) {
+            selected = "none";
+        }
         if (selected.equalsIgnoreCase("NoPrefer")) {
             inv.setItem(8, noPreferSelected);
         } else {

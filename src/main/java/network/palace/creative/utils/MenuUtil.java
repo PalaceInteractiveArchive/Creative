@@ -756,7 +756,7 @@ public class MenuUtil implements Listener {
                             Core.getMongoHandler().changeAmount(player.getUniqueId(), -100,
                                     "role play tag", CurrencyType.TOKENS, false);
                             data.setHasRPTag(true);
-                            setValue(player.getUniqueId(), "rptag", 1);
+                            setValue(player.getUniqueId(), "rptag", true);
                             break;
                         }
                         case "purchase second plot": {
@@ -796,7 +796,7 @@ public class MenuUtil implements Listener {
                             data.setHasShowCreator(true);
                             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "\nHOW TO USE: " + ChatColor.GREEN +
                                     "Type /show to use the Show Creator!\n ");
-                            setValue(player.getUniqueId(), "showcreator", 1);
+                            setValue(player.getUniqueId(), "showcreator", true);
                             break;
                         }
                     }

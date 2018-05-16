@@ -10,15 +10,15 @@ import java.util.UUID;
 public class PlayerData {
     private UUID uuid;
     private Particle particle;
-    private boolean rptag = false;
-    private boolean showCreator = false;
+    private boolean rptag;
+    private boolean showCreator;
     private int rplimit;
-    private boolean creator = false;
+    private boolean creator;
     private boolean creatorTag;
     private long onlineTime = 0;
     private long lastAction = 0;
     private boolean isAFK = false;
-    private String resourcePack = "";
+    private String resourcePack;
 
     public PlayerData(UUID uuid, Particle particle, boolean rptag, boolean showCreator, int rplimit,
                       boolean creator, boolean creatorTag, String resourcePack) {

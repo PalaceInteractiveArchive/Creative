@@ -84,7 +84,7 @@ public class ResourceUtil {
         PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
         if (name.equalsIgnoreCase("No Resource Pack")) {
             Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
-                Creative.getInstance().getSqlUtil().setResourcePack(player.getUniqueId(), "NoPrefer");
+                Core.getMongoHandler().setCreativeValue(player.getUniqueId(), "pack", "NoPrefer");
                 data.setResourcePack("NoPrefer");
                 player.sendMessage(ChatColor.GREEN + "You will not be sent a Resource Pack when you join Creative!");
                 player.closeInventory();
@@ -101,7 +101,7 @@ public class ResourceUtil {
         Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
             player.sendMessage(ChatColor.GREEN + "You set your Creative Resource Pack to " + ChatColor.YELLOW +
                     pack.getName() + ChatColor.GREEN + "! It will automatically download when you join Creative.");
-            Creative.getInstance().getSqlUtil().setResourcePack(player.getUniqueId(), pack.getName());
+            Core.getMongoHandler().setCreativeValue(player.getUniqueId(), "pack", pack.getName());
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 0);
             player.closeInventory();
             if (!player.getPack().equalsIgnoreCase(pack.getName())) {
@@ -113,6 +113,9 @@ public class ResourceUtil {
     public void openMenu(CPlayer player) {
         Inventory inv = Bukkit.createInventory(player.getBukkitPlayer(), 27, ChatColor.BLUE + "Resource Pack");
         String selected = Creative.getInstance().getPlayerData(player.getUniqueId()).getResourcePack();
+        if (selected == null) {
+            selected = "none";
+        }
         if (selected.equalsIgnoreCase("NoPrefer")) {
             inv.setItem(8, noPreferSelected);
         } else {

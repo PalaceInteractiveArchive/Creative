@@ -15,6 +15,7 @@ import com.plotsquared.bukkit.util.BukkitUtil;
 import lombok.Getter;
 import lombok.Setter;
 import network.palace.core.Core;
+import network.palace.core.economy.CurrencyType;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.core.utils.ItemUtil;
@@ -36,9 +37,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -673,7 +671,7 @@ public class MenuUtil implements Listener {
                                 player.sendMessage(ChatColor.RED + "You have this already!");
                                 return;
                             }
-                            int balance = Core.getEconomy().getBalance(player.getUniqueId());
+                            int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
                             if (balance < 250) {
                                 player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
                                 player.sendMessage(ChatColor.RED + "You can't afford this!");
@@ -682,7 +680,8 @@ public class MenuUtil implements Listener {
                             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
                             player.closeInventory();
                             purchaseParticle(player);
-                            Core.getEconomy().addBalance(player.getUniqueId(), -250);
+                            Core.getMongoHandler().changeAmount(player.getUniqueId(), -250,
+                                    "role play expansion (10 player)", CurrencyType.BALANCE, false);
                             data.setRPLimit(10);
                             setValue(player.getUniqueId(), "rplimit", 10);
                             break;
@@ -698,7 +697,7 @@ public class MenuUtil implements Listener {
                                 player.sendMessage(ChatColor.RED + "You must purchase the previous tier first!!");
                                 return;
                             }
-                            int balance = Core.getEconomy().getBalance(player.getUniqueId());
+                            int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
                             if (balance < 300) {
                                 player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
                                 player.sendMessage(ChatColor.RED + "You can't afford this!");
@@ -707,7 +706,8 @@ public class MenuUtil implements Listener {
                             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
                             player.closeInventory();
                             purchaseParticle(player);
-                            Core.getEconomy().addBalance(player.getUniqueId(), -300);
+                            Core.getMongoHandler().changeAmount(player.getUniqueId(), -300,
+                                    "role play expansion (15 player)", CurrencyType.BALANCE, false);
                             data.setRPLimit(15);
                             setValue(player.getUniqueId(), "rplimit", 15);
                             break;
@@ -723,7 +723,7 @@ public class MenuUtil implements Listener {
                                 player.sendMessage(ChatColor.RED + "You must purchase the previous tier first!!");
                                 return;
                             }
-                            int balance = Core.getEconomy().getBalance(player.getUniqueId());
+                            int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
                             if (balance < 350) {
                                 player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
                                 player.sendMessage(ChatColor.RED + "You can't afford this!");
@@ -732,7 +732,8 @@ public class MenuUtil implements Listener {
                             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
                             player.closeInventory();
                             purchaseParticle(player);
-                            Core.getEconomy().addBalance(player.getUniqueId(), -350);
+                            Core.getMongoHandler().changeAmount(player.getUniqueId(), -350,
+                                    "role play expansion (20 player)", CurrencyType.BALANCE, false);
                             data.setRPLimit(20);
                             setValue(player.getUniqueId(), "rplimit", 20);
                             break;
@@ -743,7 +744,7 @@ public class MenuUtil implements Listener {
                                 player.sendMessage(ChatColor.RED + "You have this already!");
                                 return;
                             }
-                            int tokens = Core.getEconomy().getTokens(player.getUniqueId());
+                            int tokens = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.TOKENS);
                             if (tokens < 100) {
                                 player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
                                 player.sendMessage(ChatColor.RED + "You can't afford this!");
@@ -752,13 +753,14 @@ public class MenuUtil implements Listener {
                             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
                             player.closeInventory();
                             purchaseParticle(player);
-                            Core.getEconomy().addTokens(player.getUniqueId(), -100);
+                            Core.getMongoHandler().changeAmount(player.getUniqueId(), -100,
+                                    "role play tag", CurrencyType.TOKENS, false);
                             data.setHasRPTag(true);
-                            setValue(player.getUniqueId(), "rptag", 1);
+                            setValue(player.getUniqueId(), "rptag", true);
                             break;
                         }
                         case "purchase second plot": {
-                            int balance = Core.getEconomy().getBalance(player.getUniqueId());
+                            int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
                             if (balance < 5000) {
                                 player.sendMessage(ChatColor.RED + "You cannot afford a Second Plot! You need "
                                         + ChatColor.GREEN + "$" + (5000 - balance) + "!");
@@ -768,12 +770,13 @@ public class MenuUtil implements Listener {
                             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
                             player.closeInventory();
                             purchaseParticle(player);
-                            Core.getEconomy().addBalance(player.getUniqueId(), -5000);
+                            Core.getMongoHandler().changeAmount(player.getUniqueId(), -5000,
+                                    "second plot", CurrencyType.BALANCE, false);
                             givePlot(player, true);
                             break;
                         }
                         case "show creator": {
-                            int balance = Core.getEconomy().getBalance(player.getUniqueId());
+                            int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
                             if (data.hasShowCreator()) {
                                 player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
                                 player.sendMessage(ChatColor.RED + "You have this already!");
@@ -788,11 +791,12 @@ public class MenuUtil implements Listener {
                             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
                             player.closeInventory();
                             purchaseParticle(player);
-                            Core.getEconomy().addBalance(player.getUniqueId(), -500);
+                            Core.getMongoHandler().changeAmount(player.getUniqueId(), -500,
+                                    "show creator", CurrencyType.BALANCE, false);
                             data.setHasShowCreator(true);
                             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "\nHOW TO USE: " + ChatColor.GREEN +
                                     "Type /show to use the Show Creator!\n ");
-                            setValue(player.getUniqueId(), "showcreator", 1);
+                            setValue(player.getUniqueId(), "showcreator", true);
                             break;
                         }
                     }
@@ -962,17 +966,7 @@ public class MenuUtil implements Listener {
     }
 
     private void setValue(UUID uuid, String name, Object o) {
-        Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
-            try (Connection connection = Core.getSqlUtil().getConnection()) {
-                PreparedStatement sql = connection.prepareStatement("UPDATE creative SET " + name + "=? WHERE uuid=?");
-                sql.setObject(1, o);
-                sql.setString(2, uuid.toString());
-                sql.execute();
-                sql.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
+        Core.runTaskAsynchronously(() -> Core.getMongoHandler().setCreativeValue(uuid, name, o));
     }
 
     private void playRecord(Player player, String name) {

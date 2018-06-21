@@ -165,7 +165,7 @@ public class HeadUtil {
 
             }
         }
-        
+
         inv.setItem(s - 9, Creative.getInstance().getMenuUtil().previousPage);
         inv.setItem(s - 5, Creative.getInstance().getMenuUtil().back);
         inv.setItem(s - 1, Creative.getInstance().getMenuUtil().nextPage);

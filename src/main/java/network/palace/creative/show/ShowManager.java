@@ -280,6 +280,7 @@ public class ShowManager implements Listener {
         inv.setItem(53, ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 5, ChatColor.GREEN + "Add Action",
                 Arrays.asList(ChatColor.GREEN + "Click to add a new Action!")));
         inv.setItem(49, Creative.getInstance().getMenuUtil().back);
+        inv.setItem(45, ItemUtil.create(Material.BARRIER, 1, (byte) 0, ChatColor.RED + "Delete All Actions", Collections.emptyList()));
         player.openInventory(inv);
     }
 
@@ -385,6 +386,14 @@ public class ShowManager implements Listener {
                         return;
                     }
                     editAction(player, event.getSlot() + (45 * (page - 1)));
+                    break;
+                }
+                case "Delete All Actions": {
+                    Show show = editSessions.get(player.getUniqueId());
+                    show.actions.clear();
+                    show.saveFile();
+                    editSessions.remove(player.getUniqueId());
+                    player.closeInventory();
                     break;
                 }
             }

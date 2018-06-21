@@ -1,5 +1,17 @@
 package network.palace.creative.utils;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.CreativeInventoryType;
@@ -17,16 +29,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.*;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 public class HeadUtil {
 
-    public String url = "https://spreadsheets.google.com/feeds/cells/1msHPnWju6nSYXcZUwq-F2tU71LoQHYyhJXbG0xiJ2AA/od6/public/basic?alt=json";
+    public String url = "https://spreadsheets.google.com/feeds/cells/1_zKmWoZYj7rUkL5qeAmJIfyJlxndl9NcRHxgw3h2wn4/od6/public/basic?alt=json";
+    //public String url = "https://spreadsheets.google.com/feeds/cells/1msHPnWju6nSYXcZUwq-F2tU71LoQHYyhJXbG0xiJ2AA/od6/public/basic?alt=json";
     private HashMap<String, List<ItemStack>> map = new HashMap<>();
 
     public HeadUtil() {
@@ -113,32 +119,56 @@ public class HeadUtil {
         if (meta == null || meta.getDisplayName() == null) {
             return;
         }
+
         String invname = ChatColor.stripColor(event.getInventory().getName());
         String name = ChatColor.stripColor(meta.getDisplayName());
-        boolean isBack = item.getType().equals(Material.ARROW);
+        Pattern pattern = Pattern.compile("Heads - (?<category>[A-Za-z0-9]*) - (?<page>[0-9]*)");
+        Matcher matcher = pattern.matcher(invname);
+        if (!matcher.matches()) {
+            player.closeInventory();
+            player.sendMessage(ChatColor.RED + "An error has occurred! Please contact a developer.");
+            return;
+        }
+
+        String category = matcher.group("category");
+        int page = Integer.valueOf(matcher.group("page"));
+        boolean isBack = item.getType().equals(Material.ARROW) && name.equals("Back");
         event.setCancelled(true);
         if (isBack) {
             Creative.getInstance().getMenuUtil().openMenu(player, CreativeInventoryType.HEADSHOP);
             return;
         }
+        else if (name.equals("Previous Page")) {
+            openCategory(player, category, page - 1);
+            return;
+        }
+        else if (name.equals("Next Page")) {
+            openCategory(player, category, page + 1);
+            return;
+        }
+
         player.getInventory().addItem(item);
         player.playSound(player.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1, 1);
     }
 
-    public void openCategory(Player player, String name) {
+    public void openCategory(Player player, String name, int page) {
         List<ItemStack> heads = map.get(name);
         int size = heads.size();
         int s = size > 18 ? (size > 27 ? (size > 36 ? 54 : 45) : 36) : 27;
-        Inventory inv = Bukkit.createInventory(player, s, ChatColor.BLUE + "Heads - " + name);
-        int place = 0;
-        for (ItemStack head : heads) {
-            if (place > s - 10) {
-                break;
+        int itemsSize = s - 9;
+        Inventory inv = Bukkit.createInventory(player, s, ChatColor.BLUE + "Heads - " + name + " - " + page);
+        for (int x = 0; x < itemsSize; x++) {
+            try {
+                inv.setItem(x, heads.get(x + (page - 1) * itemsSize));
             }
-            inv.setItem(place, head);
-            place++;
+            catch (IndexOutOfBoundsException ignored) {
+
+            }
         }
+        
+        inv.setItem(s - 9, Creative.getInstance().getMenuUtil().previousPage);
         inv.setItem(s - 5, Creative.getInstance().getMenuUtil().back);
+        inv.setItem(s - 1, Creative.getInstance().getMenuUtil().nextPage);
         player.openInventory(inv);
     }
 }

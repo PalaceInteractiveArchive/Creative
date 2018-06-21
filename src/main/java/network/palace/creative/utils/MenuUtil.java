@@ -12,6 +12,13 @@ import com.intellectualcrafters.plot.util.EventUtil;
 import com.intellectualcrafters.plot.util.MainUtil;
 import com.intellectualcrafters.plot.util.PlotWeather;
 import com.plotsquared.bukkit.util.BukkitUtil;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 import network.palace.core.Core;
@@ -20,8 +27,19 @@ import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
-import network.palace.creative.handlers.*;
-import org.bukkit.*;
+import network.palace.creative.handlers.BannerInventoryType;
+import network.palace.creative.handlers.CreativeInventoryType;
+import network.palace.creative.handlers.MemberState;
+import network.palace.creative.handlers.PlayerData;
+import network.palace.creative.handlers.RolePlay;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
+import org.bukkit.Effect;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.entity.Player;
@@ -36,8 +54,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-
-import java.util.*;
 
 /**
  * Created by Marc on 7/29/15
@@ -99,6 +115,8 @@ public class MenuUtil implements Listener {
             new ArrayList<>());
     private ItemStack none = ItemUtil.create(Material.STAINED_GLASS_PANE, ChatColor.RED + "Clear Particle",
             new ArrayList<>());
+    public ItemStack nextPage = ItemUtil.create(Material.ARROW, 1, (byte) 0, ChatColor.GREEN + "Next Page", new ArrayList<>());
+    public ItemStack previousPage = ItemUtil.create(Material.ARROW, 1, (byte) 0, ChatColor.GREEN + "Previous Page", new ArrayList<>());
     private PlotAPI api;
     private List<UUID> denyTask = new ArrayList<>();
     @Getter @Setter private boolean chatMuted = false;
@@ -590,7 +608,8 @@ public class MenuUtil implements Listener {
                         openMenu(player, CreativeInventoryType.MAIN);
                         return;
                     }
-                    Creative.getInstance().getHeadUtil().openCategory(player, name);
+
+                    Creative.getInstance().getHeadUtil().openCategory(player, name, 1);
                     break;
                 }
                 case ADDED_PLAYERS: {

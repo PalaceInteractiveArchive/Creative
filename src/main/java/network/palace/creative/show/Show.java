@@ -3,6 +3,8 @@ package network.palace.creative.show;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotId;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
 import network.palace.audio.Audio;
@@ -142,11 +144,11 @@ public class Show {
                         continue;
                     }
                     FireworkEffect.Type type = Creative.getInstance().getShowManager().getType(tokens[4]);
-                    ShowColor color = ShowColor.fromString(tokens[5]);
-                    ShowColor fade = ShowColor.fromString(tokens[6]);
+                    List<ShowColor> colors = Stream.of(tokens[5].split(",")).map(ShowColor::fromString).collect(Collectors.toList());
+                    List<ShowColor> fade = Stream.of(tokens[6].split(",")).map(ShowColor::fromString).collect(Collectors.toList());
                     boolean flicker = tokens[7].equalsIgnoreCase("true");
                     boolean trail = tokens[8].equalsIgnoreCase("true");
-                    ShowFireworkData data = new ShowFireworkData(type, color, fade, flicker, trail);
+                    ShowFireworkData data = new ShowFireworkData(type, colors, fade, flicker, trail);
                     actions.add(new FireworkAction(id, this, time, loc, data, power));
                     continue;
                 }

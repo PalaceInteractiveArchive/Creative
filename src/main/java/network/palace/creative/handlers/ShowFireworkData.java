@@ -1,20 +1,23 @@
 package network.palace.creative.handlers;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import org.bukkit.FireworkEffect;
+import org.bukkit.FireworkEffect.Type;
 
 /**
  * Created by Marc on 12/26/15
  */
 public class ShowFireworkData {
     private FireworkEffect.Type type;
-    private ShowColor color;
-    private ShowColor fade;
+    private List<ShowColor> colors;
+    private List<ShowColor> fade;
     private boolean flicker;
     private boolean trail;
 
-    public ShowFireworkData(FireworkEffect.Type type, ShowColor color, ShowColor fade, boolean flicker, boolean trail) {
+    public ShowFireworkData(Type type, List<ShowColor> colors, List<ShowColor> fade, boolean flicker, boolean trail) {
         this.type = type;
-        this.color = color;
+        this.colors = colors;
         this.fade = fade;
         this.flicker = flicker;
         this.trail = trail;
@@ -24,11 +27,11 @@ public class ShowFireworkData {
         return type;
     }
 
-    public ShowColor getColor() {
-        return color;
+    public List<ShowColor> getColors() {
+        return colors;
     }
 
-    public ShowColor getFade() {
+    public List<ShowColor> getFade() {
         return fade;
     }
 
@@ -46,15 +49,17 @@ public class ShowFireworkData {
 
     @Override
     public String toString() {
-        return type == null ? "null" : type.name() + " " + color.toString() + " " + fade.toString() + " " + (flicker ? "true" : "false") + " " +
-                (trail ? "true" : "false");
+        return type == null ? "null" : type.name() + " " +
+                String.join(",", colors.stream().map(ShowColor::name).collect(Collectors.toList())) + " " +
+                String.join(",", fade.stream().map(ShowColor::name).collect(Collectors.toList())) + " "
+                + (flicker ? "true" : "false") + " " + (trail ? "true" : "false");
     }
 
-    public void setColor(ShowColor color) {
-        this.color = color;
+    public void setColors(List<ShowColor> color) {
+        this.colors = color;
     }
 
-    public void setFade(ShowColor fade) {
+    public void setFade(List<ShowColor> fade) {
         this.fade = fade;
     }
 

@@ -1,5 +1,9 @@
 package network.palace.creative.show.actions;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.util.List;
+import java.util.stream.Collectors;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.handlers.ShowColor;
 import network.palace.creative.handlers.ShowFireworkData;
@@ -12,9 +16,6 @@ import org.bukkit.entity.Firework;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
-
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 
 public class FireworkAction extends ShowAction implements Listener {
     private Show show;
@@ -47,8 +48,8 @@ public class FireworkAction extends ShowAction implements Listener {
         FireworkMeta data = fw.getFireworkMeta();
         data.clearEffects();
         // Add effect
-        data.addEffect(FireworkEffect.builder().with(showData.getType()).withColor(showData.getColor().getColor())
-                .withFade(showData.getFade().getColor()).flicker(showData.isFlicker()).trail(showData.isTrail()).build());
+        data.addEffect(FireworkEffect.builder().with(showData.getType()).withColor(showData.getColors().stream().map(ShowColor::getColor).collect(Collectors.toList()))
+                .withFade(showData.getFade().stream().map(ShowColor::getColor).collect(Collectors.toList())).flicker(showData.isFlicker()).trail(showData.isTrail()).build());
         // Instant
         boolean instaburst;
         if (power == 0) {
@@ -90,20 +91,21 @@ public class FireworkAction extends ShowAction implements Listener {
 
     @Override
     public String getDescription() {
-        return ChatColor.GREEN + "Time: " + (time / 1000) + " Type: " + showData.getType().name() + " Color: " +
-                showData.getColor().name() + "BREAK" + ChatColor.GREEN + "Fade: " + showData.getFade().name() +
-                " Flicker: " + showData.isFlicker() + " Trail: " + showData.isTrail();
+        return ChatColor.GREEN + "Time: " + (time / 1000) + " Type: " + showData.getType().name() +
+                "BREAK" + ChatColor.GREEN + "Colors: " + String.join(", ", showData.getColors().stream().map(ShowColor::name).collect(Collectors.toList())) +
+                "BREAK" + ChatColor.GREEN + "Fade: " + String.join(", ", showData.getFade().stream().map(ShowColor::name).collect(Collectors.toList())) +
+                "BREAK" + ChatColor.GREEN + "Flicker: " + showData.isFlicker() + " Trail: " + showData.isTrail();
     }
 
     public void setType(FireworkEffect.Type type) {
         this.showData.setType(type);
     }
 
-    public void setColor(ShowColor color) {
-        this.showData.setColor(color);
+    public void setColors(List<ShowColor> color) {
+        this.showData.setColors(color);
     }
 
-    public void setFade(ShowColor fade) {
+    public void setFade(List<ShowColor> fade) {
         this.showData.setFade(fade);
     }
 

@@ -4,6 +4,21 @@ import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.plotsquared.bukkit.util.BukkitUtil;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
+import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import network.palace.audio.Audio;
 import network.palace.audio.handlers.AudioArea;
 import network.palace.core.Core;
@@ -22,22 +37,26 @@ import network.palace.creative.show.handlers.PlotArea;
 import network.palace.creative.show.ticker.TickEvent;
 import network.palace.creative.show.ticker.Ticker;
 import network.palace.creative.utils.ParticleUtil;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.FireworkEffect;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.Vector;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * Created by Marc on 12/11/15
@@ -250,9 +269,11 @@ public class ShowManager implements Listener {
             ItemStack item = new ItemStack(action.getItem());
             ItemMeta meta = item.getItemMeta();
             if (action.getDescription().contains("BREAK")) {
-                String[] l = action.getDescription().split("BREAK");
-                meta.setLore(Arrays.asList(l[0], l[1], " ", ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN +
-                        "to Edit this Action!", ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Action!"));
+                List<String> list = Arrays.asList(action.getDescription().split("BREAK"));
+                list.add(" ");
+                list.add(ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN + "to Edit this Action!");
+                list.add(ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Action!");
+                meta.setLore(list);
             } else {
                 meta.setLore(Arrays.asList(action.getDescription(), " ", ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN +
                         "to Edit this Action!", ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Action!"));
@@ -399,6 +420,8 @@ public class ShowManager implements Listener {
             }
             return;
         }
+
+        Predicate<ItemStack> colorPickerPredicate = itemStack -> itemStack != null && itemStack.getType() == Material.WOOL && !itemStack.getEnchantments().isEmpty();
         switch (invname) {
             case "Add Action": {
                 if (isBack) {
@@ -445,9 +468,9 @@ public class ShowManager implements Listener {
                         inv.setItem(11, setTime);
                         inv.setItem(12, ItemUtil.create(Material.FIREWORK_CHARGE, ChatColor.GREEN + "Select Type",
                                 Arrays.asList(ChatColor.YELLOW + "Choose shape of the Firework!")));
-                        inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.GREEN + "Select Color",
-                                Arrays.asList(ChatColor.YELLOW + "The first color of the Firework")));
-                        inv.setItem(14, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.GREEN + "Select Fade",
+                        inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.GREEN + "Select Colors",
+                                Arrays.asList(ChatColor.YELLOW + "The first colors of the Firework")));
+                        inv.setItem(14, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.GREEN + "Select Fade Colors",
                                 Arrays.asList(ChatColor.YELLOW + "The color the Firework fades to")));
                         inv.setItem(15, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Set Power",
                                 Arrays.asList(ChatColor.YELLOW + "The power of the Firework")));
@@ -477,7 +500,7 @@ public class ShowManager implements Listener {
                         actions.put(player.getUniqueId(), new AddAction(id, Action.TIME));
                         Show show = editSessions.get(player.getUniqueId());
                         show.actions.add(new FireworkAction(id, show, null, player.getLocation(),
-                                new ShowFireworkData(FireworkEffect.Type.BALL, ShowColor.BLACK, ShowColor.WHITE,
+                                new ShowFireworkData(FireworkEffect.Type.BALL, Arrays.asList(ShowColor.BLACK), Arrays.asList(ShowColor.WHITE),
                                         false, true), 1));
                         break;
                     }
@@ -497,79 +520,90 @@ public class ShowManager implements Listener {
                         player.openInventory(inv);
                         break;
                     }
-                    case "Select Color": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Color");
+                    case "Select Colors": {
+                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Colors");
                         inv.setItem(0, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(1, ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(2, ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(3, ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(4, ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(5, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Aqua",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(6, ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(7, ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(8, ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(10, ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(11, ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(12, ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Silver",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(14, ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Gray",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(15, ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(16, ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(22, Creative.getInstance().getMenuUtil().back);
+                        inv.setItem(26, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "Confirm Colors"));
                         player.openInventory(inv);
                         break;
                     }
-                    case "Select Fade": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Fade");
+                    case "Select Fade Colors": {
+                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Fade Colors");
                         inv.setItem(0, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(1, ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(2, ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(3, ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(4, ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(5, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Aqua",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(6, ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(7, ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(8, ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(10, ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(11, ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(12, ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Silver",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(14, ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Gray",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(15, ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(16, ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(22, Creative.getInstance().getMenuUtil().back);
+                        inv.setItem(26, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "Confirm Colors"));
+                        List<String> colors = ((FireworkAction) editSessions.get(player.getUniqueId()).getActions().get(player.getMetadata("actionid")
+                                .get(0).asInt())).getShowData().getFade().stream().map(ShowColor::name).map(String::toLowerCase).collect(Collectors.toList());
+                        Stream.of(inv.getContents()).filter(Objects::nonNull).filter(itemStack -> itemStack.getType() == Material.WOOL)
+                                .filter(itemStack -> colors.contains(ChatColor.stripColor(itemStack.getItemMeta().getDisplayName()).toLowerCase())).forEach(itemStack -> {
+                            ItemMeta itemMeta = itemStack.getItemMeta();
+                            itemMeta.addEnchant(Enchantment.ARROW_DAMAGE, 1, false);
+                            itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                            itemStack.setItemMeta(itemMeta);
+                        });
                         player.openInventory(inv);
                         break;
                     }
@@ -600,7 +634,7 @@ public class ShowManager implements Listener {
                 FireworkEffect.Type type = getType(name);
                 if (show.getActions().size() <= id) {
                     show.actions.add(new FireworkAction(id, show, null, player.getLocation(),
-                            new ShowFireworkData(type, ShowColor.BLACK, ShowColor.WHITE, false, true), 1));
+                            new ShowFireworkData(type, Arrays.asList(ShowColor.BLACK), Arrays.asList(ShowColor.WHITE), false, true), 1));
                 } else {
                     FireworkAction action = (FireworkAction) show.actions.get(id);
                     action.setType(type);
@@ -609,42 +643,88 @@ public class ShowManager implements Listener {
                 editAction(player, id);
                 break;
             }
-            case "Select Color": {
+            case "Select Colors": {
                 int id = player.getMetadata("actionid").get(0).asInt();
                 if (isBack) {
                     editAction(player, id);
                     return;
                 }
+
                 Show show = editSessions.get(player.getUniqueId());
-                ShowColor color = ShowColor.fromString(name);
-                if (show.getActions().size() <= id) {
-                    show.actions.add(new FireworkAction(id, show, null, player.getLocation(),
-                            new ShowFireworkData(FireworkEffect.Type.BALL, color, ShowColor.WHITE, false, true), 1));
-                } else {
-                    FireworkAction action = (FireworkAction) show.actions.get(id);
-                    action.setColor(color);
+                if (name.equalsIgnoreCase("Confirm Colors")) {
+                    List<ShowColor> colors = Stream.of(event.getClickedInventory().getContents()).filter(colorPickerPredicate)
+                            .map(itemStack -> ShowColor.fromString(ChatColor.stripColor(itemStack.getItemMeta().getDisplayName())))
+                            .collect(Collectors.toList());
+                    if (show.getActions().size() <= id) {
+                        show.actions.add(new FireworkAction(id, show, null, player.getLocation(),
+                              new ShowFireworkData(FireworkEffect.Type.BALL, colors, Arrays.asList(ShowColor.WHITE), false, true), 1));
+                    }
+                    else {
+                        FireworkAction action = (FireworkAction) show.actions.get(id);
+                        action.setColors(colors);
+                    }
+
+                    show.saveFile();
+                    editAction(player, id);
+                    return;
                 }
-                show.saveFile();
-                editAction(player, id);
+
+                //TODO add pagination to audio selection
+                if (meta.getEnchants().isEmpty()) {
+                    long colorCount = Stream.of(event.getClickedInventory().getContents()).filter(colorPickerPredicate).count();
+                    if (colorCount >= 4) {
+                        return;
+                    }
+
+                    meta.addEnchant(Enchantment.ARROW_DAMAGE, 1, false);
+                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                }
+                else {
+                    meta.removeEnchant(Enchantment.ARROW_DAMAGE);
+                }
+
+                item.setItemMeta(meta);
                 break;
             }
-            case "Select Fade": {
+            case "Select Fade Colors": {
                 int id = player.getMetadata("actionid").get(0).asInt();
                 if (isBack) {
                     editAction(player, id);
                     return;
                 }
+
                 Show show = editSessions.get(player.getUniqueId());
-                ShowColor fade = ShowColor.fromString(name);
-                if (show.getActions().size() <= id) {
-                    show.actions.add(new FireworkAction(id, show, null, player.getLocation(),
-                            new ShowFireworkData(FireworkEffect.Type.BALL, ShowColor.BLACK, fade, false, true), 1));
-                } else {
-                    FireworkAction action = (FireworkAction) show.actions.get(id);
-                    action.setFade(fade);
+                if (name.equalsIgnoreCase("Confirm Colors")) {
+                    List<ShowColor> fade = Stream.of(event.getClickedInventory().getContents()).filter(colorPickerPredicate)
+                            .map(itemStack -> ShowColor.fromString(ChatColor.stripColor(itemStack.getItemMeta().getDisplayName())))
+                            .collect(Collectors.toList());
+                    if (show.getActions().size() <= id) {
+                        show.actions.add(new FireworkAction(id, show, null, player.getLocation(),
+                                new ShowFireworkData(FireworkEffect.Type.BALL, Arrays.asList(ShowColor.BLACK), fade, false, true), 1));
+                    } else {
+                        FireworkAction action = (FireworkAction) show.actions.get(id);
+                        action.setFade(fade);
+                    }
+
+                    show.saveFile();
+                    editAction(player, id);
+                    return;
                 }
-                show.saveFile();
-                editAction(player, id);
+
+                if (meta.getEnchants().isEmpty()) {
+                    long colorCount = Stream.of(event.getClickedInventory().getContents()).filter(colorPickerPredicate).count();
+                    if (colorCount >= 4) {
+                        return;
+                    }
+
+                    meta.addEnchant(Enchantment.ARROW_DAMAGE, 1, false);
+                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                }
+                else {
+                    meta.removeEnchant(Enchantment.ARROW_DAMAGE);
+                }
+
+                item.setItemMeta(meta);
                 break;
             }
             case "Set Power": {
@@ -657,7 +737,7 @@ public class ShowManager implements Listener {
                 int power = Integer.parseInt(name.replace("Power ", ""));
                 if (show.getActions().size() <= id) {
                     show.actions.add(new FireworkAction(id, show, null, player.getLocation(),
-                            new ShowFireworkData(FireworkEffect.Type.BALL, ShowColor.BLACK, ShowColor.WHITE, false, true), power));
+                            new ShowFireworkData(FireworkEffect.Type.BALL, Arrays.asList(ShowColor.BLACK), Arrays.asList(ShowColor.WHITE), false, true), power));
                 } else {
                     FireworkAction action = (FireworkAction) show.actions.get(id);
                     action.setPower(power);
@@ -939,79 +1019,99 @@ public class ShowManager implements Listener {
                         player.openInventory(inv);
                         break;
                     }
-                    case "Select Color": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Color");
+                    case "Select Colors": {
+                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Colors");
                         inv.setItem(0, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(1, ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(2, ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(3, ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(4, ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(5, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Aqua",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(6, ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(7, ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(8, ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(10, ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(11, ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(12, ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Silver",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(14, ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Gray",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(15, ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(16, ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(22, Creative.getInstance().getMenuUtil().back);
+                        inv.setItem(26, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "Confirm Colors"));
+                        List<String> colors = ((FireworkAction) editSessions.get(player.getUniqueId()).getActions().get(player.getMetadata("actionid")
+                                .get(0).asInt())).getShowData().getColors().stream().map(ShowColor::name).map(String::toLowerCase).collect(Collectors.toList());
+                        Stream.of(inv.getContents()).filter(Objects::nonNull).filter(itemStack -> itemStack.getType() == Material.WOOL)
+                                .filter(itemStack -> colors.contains(ChatColor.stripColor(itemStack.getItemMeta().getDisplayName()).toLowerCase())).forEach(itemStack -> {
+                            ItemMeta itemMeta = itemStack.getItemMeta();
+                            itemMeta.addEnchant(Enchantment.ARROW_DAMAGE, 1, false);
+                            itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                            itemStack.setItemMeta(itemMeta);
+                        });
                         player.openInventory(inv);
                         break;
                     }
-                    case "Select Fade": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Fade");
+                    case "Select Fade Colors": {
+                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Fade Colors");
                         inv.setItem(0, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(1, ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(2, ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(3, ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(4, ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(5, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Aqua",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(6, ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(7, ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(8, ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(10, ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(11, ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(12, ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Silver",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(14, ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Gray",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(15, ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(16, ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
+                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
                         inv.setItem(22, Creative.getInstance().getMenuUtil().back);
+                        inv.setItem(26, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "Confirm Colors"));
+                        List<String> colors = ((FireworkAction) editSessions.get(player.getUniqueId()).getActions().get(player.getMetadata("actionid")
+                                .get(0).asInt())).getShowData().getFade().stream().map(ShowColor::name).map(String::toLowerCase).collect(Collectors.toList());
+                        Stream.of(inv.getContents()).filter(Objects::nonNull).filter(itemStack -> itemStack.getType() == Material.WOOL)
+                                .filter(itemStack -> colors.contains(ChatColor.stripColor(itemStack.getItemMeta().getDisplayName()).toLowerCase())).forEach(itemStack -> {
+                            ItemMeta itemMeta = itemStack.getItemMeta();
+                            itemMeta.addEnchant(Enchantment.ARROW_DAMAGE, 1, false);
+                            itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                            itemStack.setItemMeta(itemMeta);
+                        });
                         player.openInventory(inv);
                         break;
                     }
@@ -1104,9 +1204,9 @@ public class ShowManager implements Listener {
             inv.setItem(10, setTime);
             inv.setItem(11, ItemUtil.create(Material.FIREWORK_CHARGE, ChatColor.GREEN + "Select Type",
                     Arrays.asList(ChatColor.YELLOW + "Choose shape of the Firework!")));
-            inv.setItem(12, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.GREEN + "Select Color",
-                    Arrays.asList(ChatColor.YELLOW + "The first color of the Firework")));
-            inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.GREEN + "Select Fade",
+            inv.setItem(12, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.GREEN + "Select Colors",
+                    Arrays.asList(ChatColor.YELLOW + "The first colors of the Firework")));
+            inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.GREEN + "Select Fade Colors",
                     Arrays.asList(ChatColor.YELLOW + "The color the Firework fades to")));
             inv.setItem(14, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Set Power",
                     Arrays.asList(ChatColor.YELLOW + "The power of the Firework")));
@@ -1123,6 +1223,7 @@ public class ShowManager implements Listener {
         }
     }
 
+    //TODO look at show file loader and make sure it parses firework effects properly now
     private void openAddAction(Player player) {
         Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Add Action");
         ItemStack text = ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Text Action");

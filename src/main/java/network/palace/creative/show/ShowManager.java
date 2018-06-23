@@ -269,7 +269,7 @@ public class ShowManager implements Listener {
             ItemStack item = new ItemStack(action.getItem());
             ItemMeta meta = item.getItemMeta();
             if (action.getDescription().contains("BREAK")) {
-                List<String> list = Arrays.asList(action.getDescription().split("BREAK"));
+                List<String> list = new ArrayList<>(Arrays.asList(action.getDescription().split("BREAK")));
                 list.add(" ");
                 list.add(ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN + "to Edit this Action!");
                 list.add(ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Action!");
@@ -371,7 +371,7 @@ public class ShowManager implements Listener {
         }
         String invname = ChatColor.stripColor(event.getInventory().getName());
         String name = ChatColor.stripColor(meta.getDisplayName());
-        boolean isBack = item.getType().equals(Material.ARROW);
+        boolean isBack = item.getType().equals(Material.ARROW) && name.equalsIgnoreCase("back");
         boolean right = event.isRightClick();
         CPlayer cplayer = Core.getPlayerManager().getPlayer(player);
         event.setCancelled(true);
@@ -669,7 +669,6 @@ public class ShowManager implements Listener {
                     return;
                 }
 
-                //TODO add pagination to audio selection
                 if (meta.getEnchants().isEmpty()) {
                     long colorCount = Stream.of(event.getClickedInventory().getContents()).filter(colorPickerPredicate).count();
                     if (colorCount >= 4) {
@@ -796,20 +795,7 @@ public class ShowManager implements Listener {
                 }
                 switch (name) {
                     case "Select Track": {
-                        Show show = editSessions.get(player.getUniqueId());
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        Inventory inv = Bukkit.createInventory(player, 36, ChatColor.BLUE + "Select Track");
-                        int place = 0;
-                        for (AudioTrack track : audioTracks.values()) {
-                            if (place >= 27) {
-                                break;
-                            }
-                            ItemStack i = ItemUtil.create(track.getItem(), ChatColor.GREEN + track.getName());
-                            inv.setItem(place, i);
-                            place++;
-                        }
-                        inv.setItem(31, Creative.getInstance().getMenuUtil().back);
-                        player.openInventory(inv);
+                        selectTrack(player);
                         break;
                     }
                 }
@@ -887,19 +873,39 @@ public class ShowManager implements Listener {
                     editAction(player, id);
                     return;
                 }
-                Show show = editSessions.get(player.getUniqueId());
-                AudioTrack track = null;
-                for (AudioTrack t : new ArrayList<>(audioTracks.values())) {
-                    if (t.getName().equalsIgnoreCase(name)) {
-                        track = t;
+
+                int maxPages = new Double(Math.ceil(audioTracks.size() / 27D)).intValue();
+                int page = 1;
+                if (player.hasMetadata("page")) {
+                    page = player.getMetadata("page").get(0).asInt();
+                }
+
+                switch (name) {
+                    case "Next Page": {
+                        if (page + 1 <= maxPages) {
+                            player.setMetadata("page", new FixedMetadataValue(Creative.getInstance(), page + 1));
+                            selectTrack(player);
+                        }
+                        break;
+                    }
+                    case "Last Page": {
+                        if (page - 1 > 0) {
+                            player.setMetadata("page", new FixedMetadataValue(Creative.getInstance(), page - 1));
+                            selectTrack(player);
+                        }
+                        break;
+                    }
+                    default: {
+                        Show show = editSessions.get(player.getUniqueId());
+                        audioTracks.values().stream().filter(track -> track.getName().equalsIgnoreCase(name)).findFirst().ifPresent(track -> {
+                            show.setAudioTrack(track.getAudioPath());
+                            show.saveFile();
+                            editAction(player, id);
+                            player.removeMetadata("page", Creative.getInstance());
+                        });
                     }
                 }
-                if (track == null) {
-                    break;
-                }
-                show.setAudioTrack(track.getAudioPath());
-                show.saveFile();
-                editAction(player, id);
+
                 break;
             }
             case "Edit Text Action": {
@@ -1170,6 +1176,30 @@ public class ShowManager implements Listener {
         return FireworkEffect.Type.BALL;
     }
 
+    private void selectTrack(Player player) {
+        int page = 1;
+        if (player.hasMetadata("page")) {
+            page = player.getMetadata("page").get(0).asInt();
+        }
+
+        Inventory inv = Bukkit.createInventory(player, 36, ChatColor.BLUE + "Select Track");
+        List<AudioTrack> audioTracks = new ArrayList<>(this.audioTracks.values());
+        for (int x = 0; x < 28; x++) {
+            try {
+                AudioTrack track = audioTracks.get(x + (page - 1) * 27);
+                inv.setItem(x, ItemUtil.create(track.getItem(), ChatColor.GREEN + track.getName()));
+            }
+            catch (IndexOutOfBoundsException ignored) {
+
+            }
+        }
+        
+        inv.setItem(27, Creative.getInstance().getMenuUtil().last);
+        inv.setItem(31, Creative.getInstance().getMenuUtil().back);
+        inv.setItem(35, Creative.getInstance().getMenuUtil().next);
+        player.openInventory(inv);
+    }
+
     private void editAction(Player player, int slot) {
         Show show = editSessions.get(player.getUniqueId());
         if (show.getActions().size() <= slot) {
@@ -1223,7 +1253,6 @@ public class ShowManager implements Listener {
         }
     }
 
-    //TODO look at show file loader and make sure it parses firework effects properly now
     private void openAddAction(Player player) {
         Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Add Action");
         ItemStack text = ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Text Action");

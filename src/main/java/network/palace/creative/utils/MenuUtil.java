@@ -115,8 +115,6 @@ public class MenuUtil implements Listener {
             new ArrayList<>());
     private ItemStack none = ItemUtil.create(Material.STAINED_GLASS_PANE, ChatColor.RED + "Clear Particle",
             new ArrayList<>());
-    public ItemStack nextPage = ItemUtil.create(Material.ARROW, 1, (byte) 0, ChatColor.GREEN + "Next Page", new ArrayList<>());
-    public ItemStack previousPage = ItemUtil.create(Material.ARROW, 1, (byte) 0, ChatColor.GREEN + "Previous Page", new ArrayList<>());
     private PlotAPI api;
     private List<UUID> denyTask = new ArrayList<>();
     @Getter @Setter private boolean chatMuted = false;

@@ -132,18 +132,25 @@ public class HeadUtil {
 
         String category = matcher.group("category");
         int page = Integer.valueOf(matcher.group("page"));
-        boolean isBack = item.getType().equals(Material.ARROW) && name.equals("Back");
+        boolean isBack = item.getType().equals(Material.ARROW) && name.equalsIgnoreCase("Back");
         event.setCancelled(true);
+        int maxPages = new Double(Math.ceil(map.get(category).size() / 45D)).intValue();
         if (isBack) {
             Creative.getInstance().getMenuUtil().openMenu(player, CreativeInventoryType.HEADSHOP);
             return;
         }
-        else if (name.equals("Previous Page")) {
-            openCategory(player, category, page - 1);
+        else if (name.equals("Last Page")) {
+            if (page - 1 > 0) {
+                openCategory(player, category, page - 1);
+            }
+
             return;
         }
         else if (name.equals("Next Page")) {
-            openCategory(player, category, page + 1);
+            if (page + 1 <= maxPages) {
+                openCategory(player, category, page + 1);
+            }
+
             return;
         }
 
@@ -166,9 +173,9 @@ public class HeadUtil {
             }
         }
 
-        inv.setItem(s - 9, Creative.getInstance().getMenuUtil().previousPage);
+        inv.setItem(s - 9, Creative.getInstance().getMenuUtil().last);
         inv.setItem(s - 5, Creative.getInstance().getMenuUtil().back);
-        inv.setItem(s - 1, Creative.getInstance().getMenuUtil().nextPage);
+        inv.setItem(s - 1, Creative.getInstance().getMenuUtil().next);
         player.openInventory(inv);
     }
 }

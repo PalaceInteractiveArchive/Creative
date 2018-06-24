@@ -1,5 +1,6 @@
 package network.palace.creative.commands;
 
+import java.io.IOException;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
 import network.palace.core.command.CommandPermission;
@@ -12,8 +13,7 @@ import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.show.Show;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-
-import java.io.IOException;
+import org.bukkit.metadata.FixedMetadataValue;
 
 /**
  * Created by Marc on 12/11/15
@@ -46,12 +46,22 @@ public class ShowCommand extends CoreCommand {
         switch (action.toLowerCase()) {
             case "start": {
                 Bukkit.getScheduler().runTaskAsynchronously(creative, () -> {
-                    Show show = creative.getShowManager().startShow(player);
-                    if (show != null && show.getNameColored() != null) {
-                        creative.getShowManager().messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() +
-                                ChatColor.GREEN + " has started!");
-                    } else {
-                        creative.getShowManager().messagePlayer(player, "Error starting your show! (Did you create one yet?)");
+                    if (args.length > 1 || creative.getShowManager().getMaxShowAmount(player) == 1 || creative.getShowManager().getTotalShows(player) == 1) {
+                        String[] showName = new String[args.length - 1];
+                        System.arraycopy(args, 1, showName, 0, args.length);
+                        player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), ChatColor.stripColor(String.join(" ", showName))));
+                        Show show = creative.getShowManager().startShow(player);
+                        if (show != null && show.getNameColored() != null) {
+                            creative.getShowManager().messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() +
+                                    ChatColor.GREEN + " has started!");
+                        } else {
+                            creative.getShowManager().messagePlayer(player, "Error starting your show! (Did you create one yet?)");
+                        }
+
+                        player.removeMetadata("showname", Creative.getInstance());
+                    }
+                    else {
+                        creative.getShowManager().messagePlayer(player, ChatColor.RED + "Please specify the name of your show.");
                     }
                 });
                 return;
@@ -63,23 +73,6 @@ public class ShowCommand extends CoreCommand {
                     creative.getShowManager().messagePlayer(player, ChatColor.RED +
                             "There was an error stopping your show! (Maybe it wasn't running?)");
                 }
-                return;
-            }
-            case "name": {
-                if (args.length == 1) {
-                    helpMenu(player);
-                    return;
-                }
-                StringBuilder name = new StringBuilder();
-                for (int i = 1; i < args.length; i++) {
-                    name.append(args[i]);
-                    if (i < (args.length - 1)) {
-                        name.append(" ");
-                    }
-                }
-                creative.getShowManager().setShowName(player, name.toString());
-                creative.getShowManager().messagePlayer(player, "Your Show's name has been set to " +
-                        ChatColor.translateAlternateColorCodes('&', name.toString()));
                 return;
             }
             case "edit": {

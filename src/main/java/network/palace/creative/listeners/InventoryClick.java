@@ -132,6 +132,7 @@ public class InventoryClick implements Listener {
                 break;
             case "Change Biome":
                 Creative.getInstance().getMenuUtil().handleClick(event, CreativeInventoryType.CHANGE_BIOME);
+            case "Select A Show To Edit":
             case "Select Colors":
             case "Select Fade Colors":
             case "Set Power":

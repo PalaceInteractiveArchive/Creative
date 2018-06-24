@@ -464,7 +464,7 @@ public class MenuUtil implements Listener {
                             openMenu(player, CreativeInventoryType.HEADSHOP);
                             break;
                         case "show creator":
-                            Creative.getInstance().getShowManager().editShow(player);
+                            Creative.getInstance().getShowManager().selectShow(player);
                             break;
                     }
                     break;

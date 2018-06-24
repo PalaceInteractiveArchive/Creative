@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -56,6 +57,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.util.Vector;
 
 /**
@@ -174,8 +176,16 @@ public class ShowManager implements Listener {
             messagePlayer(player, ChatColor.RED + "You must start shows on your own Plot!");
             return null;
         }
+
+        List<MetadataValue> metadataValues = player.getMetadata("showname");
+        if (metadataValues.isEmpty()) {
+            messagePlayer(player, ChatColor.RED + "An error has occurred. Please contact staff.");
+            return null;
+        }
+
+        String showName = ChatColor.stripColor(metadataValues.get(0).asString());
         messagePlayer(player, ChatColor.GREEN + "Loading show file...");
-        File showFile = new File("plugins/Creative/shows/" + player.getUniqueId().toString() + ".show");
+        File showFile = new File("plugins/Creative/shows/" + player.getUniqueId().toString() + "/" + showName + ".show");
         if (!showFile.exists()) {
             return null;
         }
@@ -231,6 +241,75 @@ public class ShowManager implements Listener {
                 break;
             }
         }
+    }
+
+    public void selectShow(Player player) {
+        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+        if (!player.getLocation().getWorld().getName().equalsIgnoreCase("plotworld")) {
+            messagePlayer(cPlayer, ChatColor.RED + "You must edit shows on your own Plot!");
+            return;
+        }
+
+        PlotAPI api = new PlotAPI(Creative.getInstance());
+        Plot plot = api.getPlot(player);
+        if (plot == null) {
+            player.closeInventory();
+            messagePlayer(cPlayer, ChatColor.RED + "You must edit shows on your own Plot!");
+            return;
+        }
+
+        Optional<Plot> owns = api.getPlayerPlots(Bukkit.getWorld("plotworld"), player).stream().filter(pl -> plot.getId().equals(pl.getId())).findFirst();
+        if (!owns.isPresent()) {
+            player.closeInventory();
+            messagePlayer(cPlayer, ChatColor.RED + "You must edit shows on your own Plot!");
+            return;
+        }
+
+        File userShowsDir = new File("plugins/Creative/shows/" + player.getUniqueId().toString());
+        userShowsDir.mkdirs();
+        File[] showFiles = userShowsDir.listFiles();
+        Inventory inv = Bukkit.createInventory(player, 9, ChatColor.BLUE + "Select A Show To Edit");
+        int maxShows = getMaxShowAmount(cPlayer);
+        int showCount = 0;
+        if (showFiles != null) {
+            for (File showFile : showFiles) {
+                if (showCount >= maxShows) {
+                    break;
+                }
+
+                inv.setItem(showCount, ItemUtil.create(Material.FIREWORK, ChatColor.RESET + new Show(showFile, cPlayer, plot).getNameColored(),
+                        Arrays.asList(ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN + "to Edit this Show!",
+                                ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Show!")));
+                showCount++;
+            }
+        }
+
+        if (showCount < maxShows) {
+            inv.setItem(7, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "New Show"));
+        }
+
+        inv.setItem(8, Creative.getInstance().getMenuUtil().back);
+        player.openInventory(inv);
+    }
+
+    public int getMaxShowAmount(CPlayer player) {
+        switch (player.getRank()) {
+            case SETTLER:
+                return 1;
+            case DWELLER:
+                return 2;
+            case NOBLE:
+                return 3;
+            case MAJESTIC:
+                return 4;
+            default:
+                return 5;
+        }
+    }
+
+    public int getTotalShows(CPlayer player) {
+        File[] files = new File("plugins/Creative/shows/" + player.getUniqueId().toString()).listFiles();
+        return files == null ? 0 : files.length;
     }
 
     public void editShow(Player player) throws IOException {
@@ -313,7 +392,14 @@ public class ShowManager implements Listener {
         }
         Show show;
         if (!editSessions.containsKey(player.getUniqueId())) {
-            final File showFile = new File("plugins/Creative/shows/" + player.getUniqueId().toString() + ".show");
+            List<MetadataValue> metadataValues = player.getMetadata("showname");
+            if (metadataValues.isEmpty()) {
+                messagePlayer(player, ChatColor.RED + "You must select a show to edit before you can open the editor.");
+                return null;
+            }
+
+            String name = player.getMetadata("showname").get(0).asString();
+            final File showFile = new File("plugins/Creative/shows/" + player.getUniqueId().toString() + "/" + name + ".show");
             PlotAPI api = new PlotAPI(Creative.getInstance());
             Plot plot = api.getPlot(player.getBukkitPlayer());
             boolean owns = false;
@@ -331,6 +417,7 @@ public class ShowManager implements Listener {
                 return null;
             }
             if (!showFile.exists()) {
+                showFile.getParentFile().mkdirs();
                 showFile.createNewFile();
                 show = new Show(null, player, plot);
             } else {
@@ -355,6 +442,9 @@ public class ShowManager implements Listener {
         if (editSessions.remove(player.getUniqueId()) != null && !silent) {
             messagePlayer(player, ChatColor.RED + "Your Show edit session has ended!");
         }
+
+        player.removeMetadata("page", Creative.getInstance());
+        player.removeMetadata("showname", Creative.getInstance());
     }
 
     @SuppressWarnings("deprecation")
@@ -387,7 +477,7 @@ public class ShowManager implements Listener {
                 return;
             }
             if (isBack) {
-                Creative.getInstance().getMenuUtil().openMenu(player, CreativeInventoryType.MAIN);
+                selectShow(player);
                 return;
             }
             switch (name) {
@@ -423,6 +513,34 @@ public class ShowManager implements Listener {
 
         Predicate<ItemStack> colorPickerPredicate = itemStack -> itemStack != null && itemStack.getType() == Material.WOOL && !itemStack.getEnchantments().isEmpty();
         switch (invname) {
+            case "Select A Show To Edit": {
+                if (isBack) {
+                    Creative.getInstance().getMenuUtil().openMenu(player, CreativeInventoryType.MAIN);
+                    return;
+                }
+
+                boolean isNewShow = name.equalsIgnoreCase("New Show") && item.getType() == Material.EMERALD_BLOCK;
+                if (right && !isNewShow) {
+                    new File("plugins/Creative/shows/" + player.getUniqueId().toString() + "/" + name + ".show").delete();
+                    player.closeInventory();
+                    messagePlayer(cplayer, ChatColor.GREEN + "Show successfully deleted.");
+                    return;
+                }
+
+                if (isNewShow) {
+                    player.closeInventory();
+                    CPlayer p = Core.getPlayerManager().getPlayer(player);
+                    p.getTitle().show(ChatColor.GREEN + " Set Show Name", ChatColor.GREEN + "Type the name you want for your show.", 0, 0, 200);
+                    actions.put(player.getUniqueId(), new AddAction(-1, Action.NAME));
+                    createSession(cplayer);
+                    player.closeInventory();
+                    return;
+                }
+
+                player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), name));
+                editShow(player);
+                break;
+            }
             case "Add Action": {
                 if (isBack) {
                     int page;
@@ -1193,7 +1311,7 @@ public class ShowManager implements Listener {
 
             }
         }
-        
+
         inv.setItem(27, Creative.getInstance().getMenuUtil().last);
         inv.setItem(31, Creative.getInstance().getMenuUtil().back);
         inv.setItem(35, Creative.getInstance().getMenuUtil().next);
@@ -1275,12 +1393,15 @@ public class ShowManager implements Listener {
     }
 
     public void handleChat(AsyncPlayerChatEvent event, CPlayer player) {
-        if (player == null)
+        if (player == null) {
             return;
+        }
+
         AddAction action = actions.remove(player.getUniqueId());
         if (action == null) {
             return;
         }
+
         switch (action.getAction()) {
             case TIME: {
                 Show show = editSessions.get(player.getUniqueId());
@@ -1320,6 +1441,26 @@ public class ShowManager implements Listener {
                     ignored.printStackTrace();
                     messagePlayer(player, ChatColor.RED + "There was an error! Please try again.");
                 }
+                break;
+            }
+            case NAME: {
+                try {
+                    Show show = editSessions.get(player.getUniqueId());
+                    if (show == null) {
+                        messagePlayer(player, ChatColor.RED + "There was an error! please try again.");
+                        return;
+                    }
+
+                    show.setName(event.getMessage());
+                    show.saveFile();
+                    cancelEdit(player, true);
+                    messagePlayer(player, ChatColor.GREEN + "Show " + ChatColor.RESET +
+                            ChatColor.translateAlternateColorCodes('&', event.getMessage()) + ChatColor.GREEN + " successfully created.");
+                }
+                catch (Exception e) {
+                    messagePlayer(player, ChatColor.RED + "There was an error! please try again.");
+                }
+
                 break;
             }
         }
@@ -1374,6 +1515,6 @@ public class ShowManager implements Listener {
     }
 
     private enum Action {
-        TIME, TEXT, POWER
+        NAME, TIME, TEXT, POWER
     }
 }

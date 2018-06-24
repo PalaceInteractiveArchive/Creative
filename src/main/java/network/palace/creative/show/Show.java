@@ -52,7 +52,12 @@ public class Show {
             loadActions(file);
         }
         if (name == null) {
-            name = player.getName() + "'s Show";
+            if (file == null) {
+                name = "New Show";
+            }
+            else {
+                name = file.getName().replace(".show", "");
+            }
         }
         startTime = System.currentTimeMillis();
         this.plotId = plot.getId();
@@ -384,8 +389,8 @@ public class Show {
         cp.getActionBar().show(ChatColor.GREEN + "Saving show file...");
         Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
             try {
-                BufferedWriter bw = new BufferedWriter(new FileWriter(new File("plugins/Creative/shows/" + getOwner().toString() +
-                        ".show"), false));
+                BufferedWriter bw = new BufferedWriter(new FileWriter(new File("plugins/Creative/shows/" + getOwner().toString() + "/"
+                        + ChatColor.stripColor(getNameColored()) + ".show"), false));
                 bw.write("Name " + name);
                 bw.newLine();
                 if (!audioTrack.equals("none")) {
@@ -439,6 +444,7 @@ public class Show {
     }
 
     public void setName(String name) {
+        new File("plugins/Creative/shows/" + getOwner().toString() + "/" + ChatColor.stripColor(getNameColored()) + ".show").delete();
         this.name = name;
     }
 

@@ -375,7 +375,11 @@ public class MenuUtil implements Listener {
                         "Change Biome", new ArrayList<>()));
                 inv.setItem(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain",
                         weather.equals(PlotWeather.RAIN) ? current : not));
-                inv.setItem(13, ItemUtil.create(Material.GREEN_RECORD, ChatColor.GREEN + "Set park loop music."));
+                CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+                if (cPlayer.getRank() != Rank.SETTLER) {
+                    inv.setItem(13, ItemUtil.create(Material.GREEN_RECORD, ChatColor.GREEN + "Set park loop music."));
+                }
+
                 inv.setItem(9, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "6AM", time == 0 ? current : not));
                 inv.setItem(10, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "9AM", time == 3000 ? current : not));
                 inv.setItem(11, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "12PM", time == 6000 ? current : not));
@@ -886,7 +890,7 @@ public class MenuUtil implements Listener {
                         break;
                     }
 
-                    if (event.getSlot() == 13) {
+                    if (event.getSlot() == 13 && Core.getPlayerManager().getPlayer(player).getRank() != Rank.SETTLER) {
                         Creative.getInstance().getParkLoopUtil().open(player);
                         return;
                     }

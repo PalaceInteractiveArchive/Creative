@@ -10,6 +10,7 @@ import network.palace.creative.commands.*;
 import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.handlers.Warp;
 import network.palace.creative.listeners.*;
+import network.palace.creative.loop.ParkLoopUtil;
 import network.palace.creative.particles.ParticleManager;
 import network.palace.creative.particles.PlayParticle;
 import network.palace.creative.show.ShowManager;
@@ -39,6 +40,7 @@ public class Creative extends Plugin {
     @Getter private RedstoneListener redstoneListener;
     @Getter private BannerUtil bannerUtil;
     @Getter private MenuUtil menuUtil;
+    @Getter private ParkLoopUtil parkLoopUtil;
     @Getter private ParticleManager particleManager;
     @Getter private RolePlayUtil rolePlayUtil;
     @Getter private ShowManager showManager;
@@ -56,6 +58,7 @@ public class Creative extends Plugin {
 
         redstoneListener = new RedstoneListener();
         menuUtil = new MenuUtil();
+        parkLoopUtil = new ParkLoopUtil();
         bannerUtil = new BannerUtil();
         particleManager = new ParticleManager();
         rolePlayUtil = new RolePlayUtil();
@@ -83,6 +86,7 @@ public class Creative extends Plugin {
 
     @Override
     public void onPluginDisable() {
+        parkLoopUtil.serverShutdown();
         showManager.stopAllShows();
     }
 

@@ -130,6 +130,9 @@ public class InventoryClick implements Listener {
             case "Choose Layer Color":
                 Creative.getInstance().getBannerUtil().handle(event, BannerInventoryType.LAYER_COLOR);
                 break;
+            case "Select Park Loop":
+                Creative.getInstance().getParkLoopUtil().handle(event);
+                break;
             case "Change Biome":
                 Creative.getInstance().getMenuUtil().handleClick(event, CreativeInventoryType.CHANGE_BIOME);
             case "Select A Show To Edit":

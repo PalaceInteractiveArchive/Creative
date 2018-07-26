@@ -375,6 +375,7 @@ public class MenuUtil implements Listener {
                         "Change Biome", new ArrayList<>()));
                 inv.setItem(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain",
                         weather.equals(PlotWeather.RAIN) ? current : not));
+                inv.setItem(13, ItemUtil.create(Material.GREEN_RECORD, ChatColor.GREEN + "Set park loop music."));
                 inv.setItem(9, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "6AM", time == 0 ? current : not));
                 inv.setItem(10, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "9AM", time == 3000 ? current : not));
                 inv.setItem(11, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "12PM", time == 6000 ? current : not));
@@ -869,6 +870,7 @@ public class MenuUtil implements Listener {
                         openMenu(player, CreativeInventoryType.CHANGE_BIOME);
                         return;
                     }
+
                     if (event.getSlot() < 9) {
                         //Weather
                         PlotWeather weather = getWeather(ChatColor.stripColor(item.getItemMeta().getDisplayName()));
@@ -883,6 +885,12 @@ public class MenuUtil implements Listener {
                         }
                         break;
                     }
+
+                    if (event.getSlot() == 13) {
+                        Creative.getInstance().getParkLoopUtil().open(player);
+                        return;
+                    }
+
                     long time = getTime(ChatColor.stripColor(item.getItemMeta().getDisplayName()));
                     final Flag flag = FlagManager.getFlag("time");//new Flag(FlagManager.getFlag("time", true), time);
                     Object parsed = flag.parseValue(String.valueOf(time));

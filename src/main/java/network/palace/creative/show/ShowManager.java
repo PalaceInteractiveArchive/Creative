@@ -1366,7 +1366,7 @@ public class ShowManager implements Listener {
 
         Inventory inv = Bukkit.createInventory(player, 36, ChatColor.BLUE + "Select Track");
         List<AudioTrack> audioTracks = new ArrayList<>(this.audioTracks.values());
-        for (int x = 0; x < 28; x++) {
+        for (int x = 0; x < 27; x++) {
             try {
                 AudioTrack track = audioTracks.get(x + (page - 1) * 27);
                 inv.setItem(x, ItemUtil.create(track.getItem(), ChatColor.GREEN + track.getName()));

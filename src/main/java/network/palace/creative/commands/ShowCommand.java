@@ -1,5 +1,6 @@
 package network.palace.creative.commands;
 
+import java.io.File;
 import java.io.IOException;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
@@ -47,9 +48,22 @@ public class ShowCommand extends CoreCommand {
             case "start": {
                 Bukkit.getScheduler().runTaskAsynchronously(creative, () -> {
                     if (args.length > 1 || creative.getShowManager().getMaxShowAmount(player) == 1 || creative.getShowManager().getTotalShows(player) == 1) {
-                        String[] showName = new String[args.length - 1];
-                        System.arraycopy(args, 1, showName, 0, args.length);
-                        player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), ChatColor.stripColor(String.join(" ", showName))));
+                        if (args.length > 1) {
+                            String[] showName = new String[args.length - 1];
+                            System.arraycopy(args, 1, showName, 0, args.length);
+                            player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), ChatColor.stripColor(String.join(" ", showName))));
+                        }
+                        else {
+                            File shows = new File("plugins/Creative/shows/" + player.getUniqueId().toString());
+                            File[] files = shows.listFiles();
+                            if (files == null) {
+                                creative.getShowManager().messagePlayer(player, ChatColor.RED + "You have not created any shows yet.");
+                                return;
+                            }
+
+                            player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), files[0].getName().replace(".show", "")));
+                        }
+
                         Show show = creative.getShowManager().startShow(player);
                         if (show != null && show.getNameColored() != null) {
                             creative.getShowManager().messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() +
@@ -77,7 +91,28 @@ public class ShowCommand extends CoreCommand {
             }
             case "edit": {
                 try {
-                    creative.getShowManager().editShow(player);
+                    if (args.length > 1 || creative.getShowManager().getMaxShowAmount(player) == 1 || creative.getShowManager().getTotalShows(player) == 1) {
+                        if (args.length > 1) {
+                            String[] showName = new String[args.length - 1];
+                            System.arraycopy(args, 1, showName, 0, args.length);
+                            player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), ChatColor.stripColor(String.join(" ", showName))));
+                        }
+                        else {
+                            File shows = new File("plugins/Creative/shows/" + player.getUniqueId().toString());
+                            File[] files = shows.listFiles();
+                            if (files == null) {
+                                creative.getShowManager().messagePlayer(player, ChatColor.RED + "You have not created any shows yet.");
+                                return;
+                            }
+
+                            player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), files[0].getName().replace(".show", "")));
+                        }
+
+                        creative.getShowManager().editShow(player);
+                    }
+                    else {
+                        creative.getShowManager().messagePlayer(player, ChatColor.RED + "Please specify the name of  your show.");
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                     player.sendMessage(ChatColor.RED + "There was an error editing your current Show! Please contact a Cast Member. (Error Code 111)");
@@ -100,10 +135,9 @@ public class ShowCommand extends CoreCommand {
 
     private void helpMenu(CPlayer player) {
         player.sendMessage(ChatColor.GREEN + "Show Commands:");
-        player.sendMessage(ChatColor.GREEN + "/show start " + ChatColor.AQUA + "- Start your coded Show");
+        player.sendMessage(ChatColor.GREEN + "/show start [name]" + ChatColor.AQUA + "- Start your coded Show");
         player.sendMessage(ChatColor.GREEN + "/show stop " + ChatColor.AQUA + "- Stop your coded Show");
-        player.sendMessage(ChatColor.GREEN + "/show name [Name] " + ChatColor.AQUA + "- Name your coded Show");
-        player.sendMessage(ChatColor.GREEN + "/show edit " + ChatColor.AQUA + "- Edit your Show");
+        player.sendMessage(ChatColor.GREEN + "/show edit [name]" + ChatColor.AQUA + "- Edit your Show");
         if (player.getRank().getRankId() >= Rank.MOD.getRankId()) {
             player.sendMessage(ChatColor.GREEN + "/show reload " + ChatColor.AQUA + "- Reload track list");
         }

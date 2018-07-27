@@ -122,7 +122,7 @@ public class HeadUtil {
 
         String invname = ChatColor.stripColor(event.getInventory().getName());
         String name = ChatColor.stripColor(meta.getDisplayName());
-        Pattern pattern = Pattern.compile("Heads - (?<category>[A-Za-z0-9]*) - (?<page>[0-9]*)");
+        Pattern pattern = Pattern.compile("Heads - (?<category>[A-Za-z0-9\\s]*) - (?<page>[0-9]*)");
         Matcher matcher = pattern.matcher(invname);
         if (!matcher.matches()) {
             player.closeInventory();

@@ -2,6 +2,9 @@ package network.palace.creative.commands;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
 import network.palace.core.command.CommandPermission;
@@ -49,8 +52,8 @@ public class ShowCommand extends CoreCommand {
                 Bukkit.getScheduler().runTaskAsynchronously(creative, () -> {
                     if (args.length > 1 || creative.getShowManager().getMaxShowAmount(player) == 1 || creative.getShowManager().getTotalShows(player) == 1) {
                         if (args.length > 1) {
-                            String[] showName = new String[args.length - 1];
-                            System.arraycopy(args, 1, showName, 0, args.length);
+                            List<String> showName = new ArrayList<>(Arrays.asList(args));
+                            showName.remove(0);
                             player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), ChatColor.stripColor(String.join(" ", showName))));
                         }
                         else {
@@ -93,8 +96,8 @@ public class ShowCommand extends CoreCommand {
                 try {
                     if (args.length > 1 || creative.getShowManager().getMaxShowAmount(player) == 1 || creative.getShowManager().getTotalShows(player) == 1) {
                         if (args.length > 1) {
-                            String[] showName = new String[args.length - 1];
-                            System.arraycopy(args, 1, showName, 0, args.length);
+                            List<String> showName = new ArrayList<>(Arrays.asList(args));
+                            showName.remove(0);
                             player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), ChatColor.stripColor(String.join(" ", showName))));
                         }
                         else {

@@ -179,6 +179,7 @@ public class ShowManager implements Listener {
                     }
                     stopAudio(show);
                     shows.remove(entry.getKey());
+                    Creative.getInstance().getParkLoopUtil().enableRegion(show.getOwner());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -279,6 +280,8 @@ public class ShowManager implements Listener {
             }
         }
         shows.put(player.getUniqueId(), show);
+        player.removeMetadata("showname", Creative.getInstance());
+        Creative.getInstance().getParkLoopUtil().disableRegion(plot);
         return show;
     }
 
@@ -286,6 +289,7 @@ public class ShowManager implements Listener {
         Show show = shows.remove(uuid);
         if (show == null) return true;
         stopAudio(show);
+        Creative.getInstance().getParkLoopUtil().enableRegion(show.getOwner());
         return show != null;
     }
 
@@ -574,7 +578,7 @@ public class ShowManager implements Listener {
             }
             return;
         }
-
+        
         Predicate<ItemStack> colorPickerPredicate = itemStack -> itemStack != null && itemStack.getType() == Material.WOOL && !itemStack.getEnchantments().isEmpty();
         switch (invname) {
             case "Select A Show To Edit": {
@@ -596,6 +600,7 @@ public class ShowManager implements Listener {
                     CPlayer p = Core.getPlayerManager().getPlayer(player);
                     p.getTitle().show(ChatColor.GREEN + " Set Show Name", ChatColor.GREEN + "Type the name you want for your show.", 0, 0, 200);
                     actions.put(player.getUniqueId(), new AddAction(-1, Action.NAME));
+                    player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), "New Show"));
                     createSession(cplayer);
                     player.closeInventory();
                     return;

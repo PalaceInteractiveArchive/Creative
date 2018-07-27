@@ -44,10 +44,45 @@ public class ParkLoopUtil {
 
     private final Map<String, AudioTrack> loops = new HashMap<>();
     private final Map<PlotId, String> registeredAudioAreas = new HashMap<>();
+    private final Map<UUID, PlotId> disabledLoops = new HashMap<>();
 
     public ParkLoopUtil() {
         loadLoops();
         Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), this::loadLoopRegions, 20);
+    }
+
+    public void disableRegion(Plot plot) {
+        UUID owner = plot.getOwners().iterator().next();
+        PlotId plotId = plot.getId();
+        String audioAreaName = registeredAudioAreas.get(plotId);
+        if (audioAreaName == null) {
+            return;
+        }
+
+        AudioArea audioArea = Audio.getInstance().getByName(audioAreaName);
+        if (audioArea == null) {
+            return;
+        }
+
+        audioArea.setEnabled(true);
+        audioArea.removeAllPlayers(true);
+        disabledLoops.put(owner, plotId);
+    }
+
+    public void enableRegion(UUID owner) {
+        PlotId plotId = disabledLoops.get(owner);
+        if (plotId == null) {
+            return;
+        }
+
+        String audioAreaName = registeredAudioAreas.get(plotId);
+        if (audioAreaName == null) {
+            return;
+        }
+
+        AudioArea audioArea = Audio.getInstance().getByName(audioAreaName);
+        audioArea.setEnabled(true);
+        Core.getPlayerManager().getOnlinePlayers().forEach(audioArea::addPlayerIfInside);
     }
 
     private void loadLoops() {
@@ -85,7 +120,7 @@ public class ParkLoopUtil {
                 YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
                 yaml.getKeys(false).forEach(key -> {
                     PlotAPI plotAPI = new PlotAPI(Creative.getInstance());
-                    String[] keySplit = key.split("-");
+                    String[] keySplit = key.split(";");
                     plotAPI.getPlotAreas(Bukkit.getWorld("plotworld")).stream().map(plotArea -> plotArea.getPlot(new PlotId(Integer.parseInt(keySplit[0]), Integer.parseInt(keySplit[1])))).filter(Objects::nonNull).forEach(plot -> {
                         Optional<AudioTrack> audioTrack = loops.values().stream().filter(at -> at.getAudioPath().equals(yaml.getString(key))).findFirst();
                         if (!audioTrack.isPresent()) {
@@ -252,7 +287,7 @@ public class ParkLoopUtil {
                     }
 
                     YamlConfiguration yaml = new YamlConfiguration();
-                    yaml.set(plotId.toString().replace(";", "-"), track);
+                    yaml.set(plotId.toString(), track);
                     yaml.save(file);
                 }
                 catch (IOException e) {

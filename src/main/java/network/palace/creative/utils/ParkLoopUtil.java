@@ -40,7 +40,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 
-//TODO need to move to Util package
 public class ParkLoopUtil {
 
     private final Map<String, AudioTrack> loops = new HashMap<>();

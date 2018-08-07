@@ -1462,7 +1462,6 @@ public class MenuUtil implements Listener {
     }
 
     public static boolean isStaff(Player player) {
-        //TODO waiting on feedback from Brant
         switch (Core.getPlayerManager().getPlayer(player).getRank()) {
             case SETTLER:
             case DWELLER:

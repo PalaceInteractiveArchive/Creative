@@ -27,8 +27,6 @@ public class PlotFloorUtil {
     private List<ItemStack> materials;
 
     public PlotFloorUtil() {
-        //TODO left off here
-        //TODO need to account for variants
         this.materials = Stream.of(Material.values()).filter(Material::isSolid).filter(material -> {
             switch (material) {
                 case BEDROCK:

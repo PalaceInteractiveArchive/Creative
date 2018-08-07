@@ -48,6 +48,7 @@ public class Creative extends Plugin {
     @Getter private HeadUtil headUtil;
     @Getter private ResourceUtil resourceUtil;
     @Getter private IgnoreUtil ignoreUtil;
+    @Getter private PlotFloorUtil plotFloorUtil;
     @Getter private HashMap<UUID, PlayerData> playerData = new HashMap<>();
 
     @Getter private PlayParticle playParticle;
@@ -67,6 +68,7 @@ public class Creative extends Plugin {
         headUtil = new HeadUtil();
         resourceUtil = new ResourceUtil();
         ignoreUtil = new IgnoreUtil();
+        plotFloorUtil = new PlotFloorUtil();
 
         playParticle = new PlayParticle();
 

@@ -2,8 +2,10 @@ package network.palace.creative.utils;
 
 import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.api.PlotAPI;
+import com.intellectualcrafters.plot.flag.BooleanFlag;
 import com.intellectualcrafters.plot.flag.Flag;
 import com.intellectualcrafters.plot.flag.FlagManager;
+import com.intellectualcrafters.plot.flag.Flags;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotArea;
 import com.intellectualcrafters.plot.object.PlotId;
@@ -18,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
@@ -141,6 +144,7 @@ public class MenuUtil implements Listener {
                 tp.teleport(Creative.getInstance().getSpawn());
             }
         }, 0L, 20L);
+        Flags.registerFlag(new BooleanFlag("flight"));
     }
 
     public void openMenu(Player player, CreativeInventoryType type) {
@@ -358,6 +362,7 @@ public class MenuUtil implements Listener {
                 Plot plot = api.getPlot(player);
                 HashMap<Flag<?>, Object> flags = plot.getFlags();
                 long time = 3000;
+                boolean flightEnabled = false;
                 PlotWeather weather = PlotWeather.CLEAR;
                 for (Map.Entry<Flag<?>, Object> entry : flags.entrySet()) {
                     if (entry.getKey().getName().equalsIgnoreCase("time")) {
@@ -365,16 +370,21 @@ public class MenuUtil implements Listener {
                     } else if (entry.getKey().getName().equalsIgnoreCase("weather")) {
                         weather = (PlotWeather) entry.getValue();
                     }
+                    else if (entry.getKey().getName().equalsIgnoreCase("flight")) {
+                        flightEnabled = (boolean) entry.getValue();
+                    }
                 }
                 Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Plot Settings");
                 List<String> current = Arrays.asList(ChatColor.YELLOW + "Currently Selected!");
                 List<String> not = Arrays.asList(ChatColor.GRAY + "Click to Select!");
+                inv.setItem(2, ItemUtil.create(Material.GRASS, ChatColor.GREEN + "Set the floor of your plot."));
                 inv.setItem(3, ItemUtil.create(Material.DOUBLE_PLANT, ChatColor.GREEN + "Clear",
                         weather.equals(PlotWeather.CLEAR) ? current : not));
                 inv.setItem(4, ItemUtil.create(Material.LONG_GRASS, 1, (byte) 1, ChatColor.DARK_GREEN +
                         "Change Biome", new ArrayList<>()));
                 inv.setItem(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain",
                         weather.equals(PlotWeather.RAIN) ? current : not));
+                inv.setItem(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? current : not));
                 CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
                 if (cPlayer.getRank() != Rank.SETTLER) {
                     inv.setItem(13, ItemUtil.create(Material.GREEN_RECORD, ChatColor.GREEN + "Set park loop music."));
@@ -870,8 +880,29 @@ public class MenuUtil implements Listener {
                         return;
                     }
                     Plot plot = api.getPlot(player);
+                    if (event.getSlot() == 2) {
+                        Creative.getInstance().getPlotFloorUtil().open(player, 1);
+                        return;
+                    }
+
                     if (event.getSlot() == 4) {
                         openMenu(player, CreativeInventoryType.CHANGE_BIOME);
+                        return;
+                    }
+
+                    if (event.getSlot() == 6) {
+                        BooleanFlag flag = (BooleanFlag) FlagManager.getFlag("flight");
+                        boolean flight = plot.getFlag(flag, true);
+                        plot.setFlag(
+                                FlagManager.getFlag("flight"),
+                                !flight);
+                        plot.getPlayersInPlot().stream().map(p -> Bukkit.getPlayer(p.getUUID())).filter(Objects::nonNull).filter(p -> !plot.getOwners().contains(p.getUniqueId())).forEach(p -> p.setAllowFlight(!flight));
+                        player.closeInventory();
+                        return;
+                    }
+
+                    if (event.getSlot() == 13 && Core.getPlayerManager().getPlayer(player).getRank() != Rank.SETTLER) {
+                        Creative.getInstance().getParkLoopUtil().open(player);
                         return;
                     }
 
@@ -888,11 +919,6 @@ public class MenuUtil implements Listener {
                             player.sendMessage(ChatColor.RED + "Error setting Plot Weather! Please report this to a Cast Member.");
                         }
                         break;
-                    }
-
-                    if (event.getSlot() == 13 && Core.getPlayerManager().getPlayer(player).getRank() != Rank.SETTLER) {
-                        Creative.getInstance().getParkLoopUtil().open(player);
-                        return;
                     }
 
                     long time = getTime(ChatColor.stripColor(item.getItemMeta().getDisplayName()));
@@ -1433,5 +1459,19 @@ public class MenuUtil implements Listener {
     private void purchaseParticle(Player player) {
         Core.getPlayerManager().getPlayer(player).getParticles().send(player.getLocation(), Particle.FIREWORKS_SPARK,
                 30, 0, 0, 0, 0.25f);
+    }
+
+    public static boolean isStaff(Player player) {
+        //TODO waiting on feedback from Brant
+        switch (Core.getPlayerManager().getPlayer(player).getRank()) {
+            case SETTLER:
+            case DWELLER:
+            case NOBLE:
+            case MAJESTIC:
+            case HONORABLE:
+                return false;
+            default:
+                return true;
+        }
     }
 }

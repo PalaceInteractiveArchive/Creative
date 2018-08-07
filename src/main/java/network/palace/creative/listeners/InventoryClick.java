@@ -133,6 +133,9 @@ public class InventoryClick implements Listener {
             case "Select Park Loop":
                 Creative.getInstance().getParkLoopUtil().handle(event);
                 break;
+            case "Set the floor of your plot.":
+                Creative.getInstance().getPlotFloorUtil().handle(event);
+                break;
             case "Change Biome":
                 Creative.getInstance().getMenuUtil().handleClick(event, CreativeInventoryType.CHANGE_BIOME);
             case "Select A Show To Edit":

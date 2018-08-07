@@ -1,4 +1,4 @@
-package network.palace.creative.loop;
+package network.palace.creative.utils;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -40,6 +40,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 
+//TODO need to move to Util package
 public class ParkLoopUtil {
 
     private final Map<String, AudioTrack> loops = new HashMap<>();

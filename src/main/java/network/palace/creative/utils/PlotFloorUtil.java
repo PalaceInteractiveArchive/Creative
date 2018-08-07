@@ -283,7 +283,7 @@ public class PlotFloorUtil {
                 block.update();
             });
         }, i));
-        Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> player.sendMessage(ChatColor.GREEN + "Floor update complete."),  lines.size());
+        Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> player.sendMessage(ChatColor.GREEN + "Floor update complete."), lines.size());
         player.removeMetadata("page", Creative.getInstance());
         player.closeInventory();
         player.sendMessage(ChatColor.GREEN + "We are updating the floor to your plot. This may take a few moments.");

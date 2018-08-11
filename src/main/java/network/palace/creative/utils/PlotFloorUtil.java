@@ -278,7 +278,7 @@ public class PlotFloorUtil {
                 BlockState block = location.getBlock().getState();
                 block.setType(item.getType());
                 block.setData(item.getData());
-                block.update();
+                block.update(true);
             });
         }, i));
         Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> player.sendMessage(ChatColor.GREEN + "Floor update complete."), lines.size());

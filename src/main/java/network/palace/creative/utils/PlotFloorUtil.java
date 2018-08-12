@@ -3,6 +3,7 @@ package network.palace.creative.utils;
 import com.google.common.collect.Lists;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
+import com.intellectualcrafters.plot.object.PlotId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +26,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 public class PlotFloorUtil {
 
     private List<ItemStack> materials;
+    private List<PlotId> active = new ArrayList<>();
 
     public PlotFloorUtil() {
         this.materials = Stream.of(Material.values()).filter(Material::isSolid).filter(material -> {
@@ -263,6 +265,12 @@ public class PlotFloorUtil {
             return;
         }
 
+        if (active.contains(plot.getId())) {
+            player.sendMessage(ChatColor.RED + "The floor of your plot is still being updated. Please wait until it is completed.");
+            player.closeInventory();
+            return;
+        }
+
         Location minCorner = getFloorCorner(plot.getBottomAbs());
         Location maxCorner = getFloorCorner(plot.getTopAbs());
         List<Location> locations = new ArrayList<>();
@@ -281,7 +289,11 @@ public class PlotFloorUtil {
                 block.update(true);
             });
         }, i));
-        Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> player.sendMessage(ChatColor.GREEN + "Floor update complete."), lines.size());
+        Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> {
+            player.sendMessage(ChatColor.GREEN + "Floor update complete.");
+            active.remove(plot.getId());
+        }, lines.size());
+        active.add(plot.getId());
         player.removeMetadata("page", Creative.getInstance());
         player.closeInventory();
         player.sendMessage(ChatColor.GREEN + "We are updating the floor to your plot. This may take a few moments.");

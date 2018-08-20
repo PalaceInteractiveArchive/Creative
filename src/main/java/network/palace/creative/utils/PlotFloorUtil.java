@@ -225,7 +225,7 @@ public class PlotFloorUtil {
     public void handle(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
         ItemStack item = event.getCurrentItem();
-        if (item == null) {
+        if (item == null || item.getType() == Material.AIR) {
             return;
         }
 

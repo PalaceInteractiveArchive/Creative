@@ -897,6 +897,13 @@ public class MenuUtil implements Listener {
                                 FlagManager.getFlag("flight"),
                                 !flight);
                         plot.getPlayersInPlot().stream().map(p -> Bukkit.getPlayer(p.getUUID())).filter(Objects::nonNull).filter(p -> !plot.getOwners().contains(p.getUniqueId())).forEach(p -> p.setAllowFlight(!flight));
+                        if (!flight) {
+                            player.sendMessage(ChatColor.GREEN + "You have disabled flight for visitors of your plot.");
+                        }
+                        else {
+                            player.sendMessage(ChatColor.GREEN + "You have enabled flight for visitors of your plot.");
+                        }
+
                         player.closeInventory();
                         return;
                     }

@@ -1,9 +1,21 @@
 package network.palace.creative.show;
 
-import com.google.common.base.CharMatcher;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotId;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
@@ -22,12 +34,16 @@ import network.palace.creative.show.actions.ShowAction;
 import network.palace.creative.show.actions.TextAction;
 import network.palace.creative.show.handlers.AudioTrack;
 import network.palace.creative.utils.ParticleUtil;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.Effect;
+import org.bukkit.FireworkEffect;
 import org.bukkit.FireworkEffect.Type;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
-
-import java.io.*;
-import java.util.*;
 
 public class Show {
     private UUID owner;
@@ -390,9 +406,14 @@ public class Show {
         cp.getActionBar().show(ChatColor.GREEN + "Saving show file...");
         Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
             try {
-                CharMatcher charMatcher = CharMatcher.inRange('a', 'z').or(CharMatcher.inRange('A', 'Z')).or(CharMatcher.inRange('0', '9')).or(CharMatcher.is(' ')).precomputed();
+                String name = ChatColor.stripColor(getNameColored()).replaceAll("\\W", " ");
+                char[] chars = name.toCharArray();
+                if (chars[chars.length - 1] == ' ') {
+                    name = name.substring(0, chars.length - 1);
+                }
+
                 BufferedWriter bw = new BufferedWriter(new FileWriter(new File("plugins/Creative/shows/" + getOwner().toString() + "/"
-                        + charMatcher.retainFrom(ChatColor.stripColor(getNameColored())) + ".show"), false));
+                        + name + ".show"), false));
                 bw.write("Name " + name);
                 bw.newLine();
                 if (!audioTrack.equals("none")) {

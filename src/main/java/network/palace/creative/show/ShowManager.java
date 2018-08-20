@@ -1,6 +1,5 @@
 package network.palace.creative.show;
 
-import com.google.common.base.CharMatcher;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotPlayer;
@@ -80,6 +79,7 @@ public class ShowManager implements Listener {
         Bukkit.getScheduler().runTaskTimer(Creative.getInstance(), new Ticker(), 1, 1);
         loadTracks();
         convertOldShows();
+        fixShowNames();
     }
 
     public void loadTracks() {
@@ -138,8 +138,11 @@ public class ShowManager implements Listener {
                                 }
                             }
 
-                            CharMatcher charMatcher = CharMatcher.inRange('a', 'z').or(CharMatcher.inRange('A', 'Z')).or(CharMatcher.inRange('0', '9')).or(CharMatcher.is(' ')).precomputed();
-                            name = charMatcher.retainFrom(ChatColor.stripColor(sb.toString()));
+                            name = ChatColor.stripColor(sb.toString()).replaceAll("\\W", " ");
+                            char[] chars = name.toCharArray();
+                            if (chars[chars.length - 1] == ' ') {
+                                name = name.substring(0, chars.length - 1);
+                            }
                         }
 
                         lines.add(line);
@@ -161,6 +164,17 @@ public class ShowManager implements Listener {
                     Creative.getInstance().getLogger().warning("Failed to convert " + file.getName());
                     e.printStackTrace();
                 }
+            });
+        }
+    }
+
+    private void fixShowNames() {
+        File showsDir = new File("plugins/Creative/shows");
+        showsDir.mkdirs();
+        File[] owners = showsDir.listFiles();
+        if (owners != null) {
+            Stream.of(owners).map(File::listFiles).filter(Objects::nonNull).flatMap(Stream::of).filter(show -> show.getName().endsWith(" .show")).forEach(show -> {
+                show.renameTo(new File(show.getPath().replace(" .show", ".show")));
             });
         }
     }
@@ -547,6 +561,7 @@ public class ShowManager implements Listener {
                 return;
             }
             if (isBack) {
+                cancelEdit(player);
                 selectShow(player);
                 return;
             }

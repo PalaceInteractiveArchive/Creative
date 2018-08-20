@@ -1,5 +1,6 @@
 package network.palace.creative.show;
 
+import com.google.common.base.CharMatcher;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotPlayer;
@@ -137,7 +138,8 @@ public class ShowManager implements Listener {
                                 }
                             }
 
-                            name = ChatColor.stripColor(sb.toString());
+                            CharMatcher charMatcher = CharMatcher.inRange('a', 'z').or(CharMatcher.inRange('A', 'Z')).or(CharMatcher.inRange('0', '9')).or(CharMatcher.is(' ')).precomputed();
+                            name = charMatcher.retainFrom(ChatColor.stripColor(sb.toString()));
                         }
 
                         lines.add(line);
@@ -578,7 +580,7 @@ public class ShowManager implements Listener {
             }
             return;
         }
-        
+
         Predicate<ItemStack> colorPickerPredicate = itemStack -> itemStack != null && itemStack.getType() == Material.WOOL && !itemStack.getEnchantments().isEmpty();
         switch (invname) {
             case "Select A Show To Edit": {

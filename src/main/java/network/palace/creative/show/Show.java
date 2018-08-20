@@ -1,5 +1,6 @@
 package network.palace.creative.show;
 
+import com.google.common.base.CharMatcher;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotId;
@@ -389,8 +390,9 @@ public class Show {
         cp.getActionBar().show(ChatColor.GREEN + "Saving show file...");
         Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
             try {
+                CharMatcher charMatcher = CharMatcher.inRange('a', 'z').or(CharMatcher.inRange('A', 'Z')).or(CharMatcher.inRange('0', '9')).or(CharMatcher.is(' ')).precomputed();
                 BufferedWriter bw = new BufferedWriter(new FileWriter(new File("plugins/Creative/shows/" + getOwner().toString() + "/"
-                        + ChatColor.stripColor(getNameColored()) + ".show"), false));
+                        + charMatcher.retainFrom(ChatColor.stripColor(getNameColored())) + ".show"), false));
                 bw.write("Name " + name);
                 bw.newLine();
                 if (!audioTrack.equals("none")) {

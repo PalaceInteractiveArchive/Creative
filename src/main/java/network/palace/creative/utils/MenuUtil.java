@@ -893,10 +893,8 @@ public class MenuUtil implements Listener {
                     if (event.getSlot() == 6) {
                         BooleanFlag flag = (BooleanFlag) FlagManager.getFlag("flight");
                         boolean flight = plot.getFlag(flag, true);
-                        plot.setFlag(
-                                FlagManager.getFlag("flight"),
-                                !flight);
-                        plot.getPlayersInPlot().stream().map(p -> Bukkit.getPlayer(p.getUUID())).filter(Objects::nonNull).filter(p -> !plot.getOwners().contains(p.getUniqueId())).forEach(p -> p.setAllowFlight(!flight));
+                        plot.setFlag(FlagManager.getFlag("flight"), !flight);
+                        plot.getPlayersInPlot().stream().map(p -> Bukkit.getPlayer(p.getUUID())).filter(Objects::nonNull).filter(p -> !plot.getOwners().contains(p.getUniqueId()) && !isStaff(p)).forEach(p -> p.setAllowFlight(!flight));
                         if (!flight) {
                             player.sendMessage(ChatColor.GREEN + "You have disabled flight for visitors of your plot.");
                         }

@@ -36,11 +36,12 @@ public class PlayerMove implements Listener {
         }
         else {
             if (plot.getOwners().contains(player.getUniqueId()) || MenuUtil.isStaff(player)) {
-                return;
+                flight = true;
             }
-
-            BooleanFlag flag = (BooleanFlag) FlagManager.getFlag("flight");
-            flight = plot.getFlag(flag, true);
+            else {
+                BooleanFlag flag = (BooleanFlag) FlagManager.getFlag("flight");
+                flight = plot.getFlag(flag, true);
+            }
         }
 
         player.setAllowFlight(flight);

@@ -173,9 +173,7 @@ public class ShowManager implements Listener {
         showsDir.mkdirs();
         File[] owners = showsDir.listFiles();
         if (owners != null) {
-            Stream.of(owners).map(File::listFiles).filter(Objects::nonNull).flatMap(Stream::of).filter(show -> show.getName().endsWith(" .show")).forEach(show -> {
-                show.renameTo(new File(show.getPath().replace(" .show", ".show")));
-            });
+            Stream.of(owners).map(File::listFiles).filter(Objects::nonNull).flatMap(Stream::of).filter(show -> show.getName().endsWith(" .show")).forEach(show -> show.renameTo(new File(show.getPath().replace(" .show", ".show"))));
         }
     }
 

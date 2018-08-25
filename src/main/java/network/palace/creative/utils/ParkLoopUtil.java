@@ -156,7 +156,8 @@ public class ParkLoopUtil {
         }
 
         inv.setItem(27, Creative.getInstance().getMenuUtil().last);
-        inv.setItem(31, Creative.getInstance().getMenuUtil().back);
+        inv.setItem(30, ItemUtil.create(Material.BARRIER, ChatColor. GREEN + "None"));
+        inv.setItem(32, Creative.getInstance().getMenuUtil().back);
         inv.setItem(35, Creative.getInstance().getMenuUtil().next);
         player.openInventory(inv);
     }
@@ -207,11 +208,35 @@ public class ParkLoopUtil {
 
                         break;
                     }
+                    case "None": {
+                        player.removeMetadata("page", Creative.getInstance());
+                        PlotAPI api = new PlotAPI();
+                        Audio audio = Audio.getInstance();
+                        Plot plot = api.getPlot(player);
+                        if (!plot.getOwners().contains(player.getUniqueId())) {
+                            player.sendMessage(ChatColor.RED + "You don't have permission to change this plot's audio.");
+                            player.closeInventory();
+                            return;
+                        }
+                        String audioAreaName = registeredAudioAreas.get(plot.getId());
+                        AudioArea audioArea = audio.getByName(audioAreaName);
+                        if (audioArea != null) {
+                            audioArea.removeAllPlayers(true);
+                            registeredAudioAreas.remove(plot.getId());
+                            audio.removeArea(audioArea);
+                            Core.getPlayerManager().getOnlinePlayers().forEach(cp -> PacketHelper.sendToPlayer(new PacketAreaStop(audioArea.getAudioid(), 1000), cp));
+                        }
+
+                        player.sendMessage(ChatColor.GREEN + "Plot audio has been removed.");
+                        player.closeInventory();
+
+                        break;
+                    }
                     default: {
                         player.removeMetadata("page", Creative.getInstance());
                         PlotAPI api = new PlotAPI(Creative.getInstance());
                         Plot plot = api.getPlot(player);
-                        loops.values().stream().filter(audioTrack -> name.equals(audioTrack.getName())).findFirst().ifPresent(audioTrack -> {
+                        loops.values().stream().filter(audioTrack -> name.equals(audioTrack.getName()) && plot.getOwners().contains(player.getUniqueId())).findFirst().ifPresent(audioTrack -> {
                             String oldAudioName = registeredAudioAreas.get(plot.getId());
                             Audio audio = Audio.getInstance();
                             AudioArea audioArea = audio.getByName(oldAudioName);

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
 import network.palace.core.command.CommandPermission;
@@ -95,19 +97,26 @@ public class ShowCommand extends CoreCommand {
             case "edit": {
                 try {
                     if (args.length > 1 || creative.getShowManager().getMaxShowAmount(player) == 1 || creative.getShowManager().getTotalShows(player) == 1) {
+                        File shows = new File("plugins/Creative/shows/" + player.getUniqueId().toString());
+                        File[] files = shows.listFiles();
+                        if (files == null) {
+                            creative.getShowManager().messagePlayer(player, ChatColor.RED + "You have not created any shows yet.");
+                            return;
+                        }
+
                         if (args.length > 1) {
                             List<String> showName = new ArrayList<>(Arrays.asList(args));
                             showName.remove(0);
-                            player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), ChatColor.stripColor(String.join(" ", showName))));
-                        }
-                        else {
-                            File shows = new File("plugins/Creative/shows/" + player.getUniqueId().toString());
-                            File[] files = shows.listFiles();
-                            if (files == null) {
-                                creative.getShowManager().messagePlayer(player, ChatColor.RED + "You have not created any shows yet.");
+                            String name = String.join(" ", showName).replace("\\W", " ");
+                            Optional<File> file = Stream.of(files).filter(f -> f.getName().contains(name)).findFirst();
+                            if (!file.isPresent()) {
+                                player.sendMessage(ChatColor.RED + "You do not have a show named: " + name);
                                 return;
                             }
 
+                            player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), ChatColor.stripColor(name)));
+                        }
+                        else {
                             player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), files[0].getName().replace(".show", "")));
                         }
 

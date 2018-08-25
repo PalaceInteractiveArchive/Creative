@@ -366,7 +366,7 @@ public class ShowManager implements Listener {
             }
         }
 
-        if (showCount < maxShows) {
+        if (showCount <= maxShows) {
             inv.setItem(7, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "New Show"));
         }
 
@@ -1536,7 +1536,7 @@ public class ShowManager implements Listener {
                     }
 
                     File userShows = new File("plugins/Creative/shows/" + player.getUniqueId().toString());
-                    if (new File(userShows, ChatColor.stripColor(event.getMessage()) + ".show").exists()) {
+                    if (new File(userShows, ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', event.getMessage())) + ".show").exists()) {
                         messagePlayer(player, ChatColor.RED + "A show with that name already exists.");
                     }
                     else {

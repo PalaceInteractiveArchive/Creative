@@ -4,14 +4,8 @@ import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.plotsquared.bukkit.util.BukkitUtil;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -78,8 +72,6 @@ public class ShowManager implements Listener {
     public ShowManager() {
         Bukkit.getScheduler().runTaskTimer(Creative.getInstance(), new Ticker(), 1, 1);
         loadTracks();
-        convertOldShows();
-        fixShowNames();
     }
 
     public void loadTracks() {
@@ -104,76 +96,6 @@ public class ShowManager implements Listener {
             AudioTrack audioTrack = new AudioTrack(config.getString("tracks." + s + ".name"),
                     config.getString("tracks." + s + ".path"));
             audioTracks.put(s, audioTrack);
-        }
-    }
-
-    private void convertOldShows() {
-        File showsDir = new File("plugins/Creative/shows");
-        File[] oldShows = showsDir.listFiles();
-        if (oldShows != null) {
-            Stream.of(oldShows).filter(File::isFile).filter(file -> file.getName().endsWith(".show")).forEach(file -> {
-                String name = "Your Show";
-                String uuid = file.getName().replace(".show", "");
-                File userShowDir = new File(showsDir, uuid);
-                userShowDir.mkdirs();
-                List<String> lines = new ArrayList<>();
-                String line;
-                try {
-                    FileInputStream fis = new FileInputStream(file);
-                    DataInputStream in = new DataInputStream(fis);
-                    BufferedReader br = new BufferedReader(new InputStreamReader(in));
-                    while ((line = br.readLine()) != null) {
-                        if (line.length() == 0) {
-                            continue;
-                        }
-
-                        String[] tokens = line.split(" ");
-                        if (tokens[0].equals("Name")) {
-                            StringBuilder sb = new StringBuilder();
-                            for (int i = 1; i < tokens.length; i++) {
-                                String part = tokens[i];
-                                sb.append(part);
-                                if (i - 2 < tokens.length) {
-                                    sb.append(" ");
-                                }
-                            }
-
-                            name = ChatColor.stripColor(sb.toString()).replaceAll("\\W", " ");
-                            char[] chars = name.toCharArray();
-                            if (chars[chars.length - 1] == ' ') {
-                                name = name.substring(0, chars.length - 1);
-                            }
-                        }
-
-                        lines.add(line);
-                    }
-
-                    File showFile = new File(userShowDir, name + ".show");
-                    showFile.createNewFile();
-                    BufferedWriter bw = new BufferedWriter(new FileWriter(showFile));
-                    for (String l : lines) {
-                        bw.write(l);
-                        bw.newLine();
-                    }
-
-                    br.close();
-                    bw.close();
-                    file.delete();
-                }
-                catch (Exception e) {
-                    Creative.getInstance().getLogger().warning("Failed to convert " + file.getName());
-                    e.printStackTrace();
-                }
-            });
-        }
-    }
-
-    private void fixShowNames() {
-        File showsDir = new File("plugins/Creative/shows");
-        showsDir.mkdirs();
-        File[] owners = showsDir.listFiles();
-        if (owners != null) {
-            Stream.of(owners).map(File::listFiles).filter(Objects::nonNull).flatMap(Stream::of).filter(show -> show.getName().endsWith(" .show")).forEach(show -> show.renameTo(new File(show.getPath().replace(" .show", ".show"))));
         }
     }
 

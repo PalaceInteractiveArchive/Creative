@@ -384,7 +384,7 @@ public class MenuUtil implements Listener {
                         "Change Biome", new ArrayList<>()));
                 inv.setItem(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain",
                         weather.equals(PlotWeather.RAIN) ? current : not));
-                inv.setItem(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? current : not));
+                inv.setItem(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? Arrays.asList(ChatColor.YELLOW + "Visitors can fly.") : Arrays.asList(ChatColor.GRAY + "Visitors can not fly.")));
                 CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
                 if (cPlayer.getRank() != Rank.SETTLER) {
                     inv.setItem(13, ItemUtil.create(Material.GREEN_RECORD, ChatColor.GREEN + "Set park loop music."));

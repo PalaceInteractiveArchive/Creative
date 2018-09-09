@@ -51,6 +51,12 @@ public class ParkLoopUtil {
         Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), this::loadLoopRegions, 20);
     }
 
+    public void reloadLoops() {
+        serverShutdown();
+        loadLoops();
+        loadLoopRegions();
+    }
+
     public void disableRegion(Plot plot) {
         UUID owner = plot.getOwners().iterator().next();
         PlotId plotId = plot.getId();
@@ -86,6 +92,7 @@ public class ParkLoopUtil {
     }
 
     private void loadLoops() {
+        loops.clear();
         File file = new File("plugins/Creative/parkloops.yml");
         if (!file.exists()) {
             try {

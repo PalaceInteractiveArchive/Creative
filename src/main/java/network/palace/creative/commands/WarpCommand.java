@@ -1,5 +1,7 @@
 package network.palace.creative.commands;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import network.palace.core.Core;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
@@ -14,10 +16,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by Marc on 2/8/15
@@ -53,6 +51,7 @@ public class WarpCommand extends CoreCommand {
                     warp.getName() + ChatColor.WHITE + "]");
             return;
         }
+
         CPlayer player = Core.getPlayerManager().getPlayer((Player) sender);
         if (player == null)
             return;
@@ -70,37 +69,24 @@ public class WarpCommand extends CoreCommand {
                 player.sendMessage(ChatColor.RED + "Warp not found!");
                 return;
             }
-            if (warp.getName().toLowerCase().startsWith("dvc")) {
-                if (player.getRank().getRankId() < Rank.DWELLER.getRankId()) {
-                    player.sendMessage(ChatColor.RED + "You must be a " + Rank.DWELLER.getFormattedName() +
-                            ChatColor.RED + " or higher to go here!");
-                    return;
-                }
+
+            if (player.getRank().getRankId() < warp.getRank().getRankId()) {
+                player.sendMessage(ChatColor.RED + "You must be the " + player.getRank().getFormattedName() + ChatColor.RED + " rank or above to use this warp!");
+                return;
             }
-            if (warp.getName().toLowerCase().startsWith("share")) {
-                if (player.getRank().getRankId() < Rank.HONORABLE.getRankId()) {
-                    player.sendMessage(ChatColor.RED + "You must be a " + Rank.HONORABLE.getFormattedName() +
-                            ChatColor.RED + " or higher to go here!");
-                    return;
-                }
-            }
-            if (warp.getName().toLowerCase().startsWith("staff")) {
-                if (player.getRank().getRankId() < Rank.TRAINEE.getRankId()) {
-                    player.sendMessage(ChatColor.RED + "You must be an " + Rank.TRAINEE.getFormattedName() +
-                            ChatColor.RED + " or higher to go here!");
-                    return;
-                }
-            }
+
             Creative.getInstance().getTeleportUtil().log(player.getBukkitPlayer(), player.getLocation());
             player.teleport(warp.getLocation());
             player.sendMessage(ChatColor.BLUE + "You have arrived at " + ChatColor.WHITE + "[" + ChatColor.GREEN +
                     warp.getName() + ChatColor.WHITE + "]");
             return;
         }
+
         if (args.length == 0) {
             listWarps(player, 1);
             return;
         }
+
         if (args.length == 1) {
             if (isInt(args[0])) {
                 listWarps(player, Integer.parseInt(args[0]));
@@ -117,20 +103,24 @@ public class WarpCommand extends CoreCommand {
                     warp.getName() + ChatColor.WHITE + "]");
             return;
         }
+
         if (isInt(args[0])) {
             listWarps(player, Integer.parseInt(args[0]));
             return;
         }
+
         Warp warp = Creative.getInstance().getWarp(args[0]);
         Player tp = Bukkit.getPlayer(args[1]);
         if (warp == null) {
             player.sendMessage(ChatColor.RED + "Warp not found!");
             return;
         }
+
         if (tp == null) {
             sender.sendMessage(ChatColor.RED + "Player not found!");
             return;
         }
+
         Creative.getInstance().getTeleportUtil().log(tp, tp.getLocation());
         tp.teleport(warp.getLocation());
         tp.sendMessage(ChatColor.BLUE + "You have arrived at " + ChatColor.WHITE + "[" + ChatColor.GREEN +
@@ -148,10 +138,9 @@ public class WarpCommand extends CoreCommand {
         }
     }
 
-
     public static void listWarps(CPlayer player, int page) {
         List<Warp> warps = Creative.getInstance().getWarps();
-        List<String> nlist = warps.stream().map(Warp::getName).sorted().collect(Collectors.toList());
+        List<String> nlist = warps.stream().filter(warp -> player.getRank().getRankId() >= warp.getRank().getRankId()).map(Warp::getName).sorted().collect(Collectors.toList());
         if (nlist.size() < (page - 1) * 20 && page != 1) {
             listWarps(player, 1);
             return;

@@ -26,13 +26,24 @@ public class SetWarpCommand extends CoreCommand {
     @Override
     protected void handleCommandUnspecific(CommandSender sender, String[] args) throws CommandException {
         Player player = (Player) sender;
-        if (args.length != 1) {
-            player.sendMessage(ChatColor.RED + "/setwarp [Warp]");
+        Rank rank = Rank.SETTLER;
+        if (args.length == 0) {
+            player.sendMessage(ChatColor.RED + "/setwarp [Warp] <rank>");
             return;
+        }
+
+        if (args.length > 1) {
+            try {
+                rank = Rank.valueOf(args[1]);
+            }
+            catch (IllegalArgumentException e) {
+                sender.sendMessage(args[1] + " is not a valid rank.");
+                return;
+            }
         }
         Location loc = player.getLocation();
         Warp warp = new Warp(args[0], loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch(),
-                loc.getWorld().getName());
+                loc.getWorld().getName(), rank);
         Creative.getInstance().createWarp(warp);
         player.sendMessage(ChatColor.GRAY + "Warp " + args[0] + " set!");
     }

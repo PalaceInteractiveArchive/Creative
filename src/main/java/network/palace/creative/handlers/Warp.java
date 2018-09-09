@@ -1,5 +1,6 @@
 package network.palace.creative.handlers;
 
+import network.palace.core.player.Rank;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -11,9 +12,10 @@ public class Warp {
     private double z;
     private float yaw;
     private float pitch;
+    private Rank rank;
     private String world;
 
-    public Warp(String name, double x, double y, double z, float yaw, float pitch, String world) {
+    public Warp(String name, double x, double y, double z, float yaw, float pitch, String world, Rank rank) {
         this.name = name;
         this.x = x;
         this.y = y;
@@ -21,10 +23,15 @@ public class Warp {
         this.yaw = yaw;
         this.pitch = pitch;
         this.world = world;
+        this.rank = rank;
     }
 
     public String getName() {
         return name;
+    }
+
+    public Rank getRank() {
+        return rank;
     }
 
     public double getX() {
@@ -53,6 +60,10 @@ public class Warp {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setRank(Rank rank) {
+        this.rank = rank;
     }
 
     public void setX(double x) {

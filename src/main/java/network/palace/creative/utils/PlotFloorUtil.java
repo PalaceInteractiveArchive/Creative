@@ -4,18 +4,28 @@ import com.google.common.collect.Lists;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotId;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.CreativeInventoryType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
@@ -25,8 +35,9 @@ import org.bukkit.metadata.FixedMetadataValue;
 
 public class PlotFloorUtil {
 
-    private List<ItemStack> materials;
-    private List<PlotId> active = new ArrayList<>();
+    private final List<ItemStack> materials;
+    private final List<PlotId> active = new ArrayList<>();
+    private final Map<UUID, LogSection> logs = new HashMap<>();
 
     public PlotFloorUtil() {
         this.materials = Stream.of(Material.values()).filter(Material::isSolid).filter(material -> {
@@ -216,6 +227,40 @@ public class PlotFloorUtil {
                     return Stream.of(new ItemStack(material));
             }
         }).collect(Collectors.toList());
+        loadLogs();
+    }
+
+    public LogSection getLog(UUID uuid) {
+        return logs.get(uuid);
+    }
+
+    private void loadLogs() {
+        Creative plugin = Creative.getInstance();
+        Logger logger = plugin.getLogger();
+        File file = new File(plugin.getDataFolder(), "plot_floor_logs.yml");
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+            try {
+                file.createNewFile();
+            }
+            catch (IOException e) {
+                logger.warning("Failed to load plot floor logs!");
+                return;
+            }
+        }
+
+        YamlConfiguration logs = YamlConfiguration.loadConfiguration(file);
+        logs.getKeys(false).forEach(key -> {
+            try {
+                long timeStamp = logs.getLong(key + ".timestamp");
+                Material block = Material.valueOf(logs.getString(key + ".block"));
+                UUID uuid = UUID.fromString(key);
+                this.logs.put(uuid, new LogSection(timeStamp, block, uuid));
+            }
+            catch (Exception e) {
+                logger.warning("Failed to load log for " + key + "!");
+            }
+        });
     }
 
     private Stream<ItemStack> getVariants(int max, Material material) {
@@ -280,15 +325,15 @@ public class PlotFloorUtil {
             }
         }
 
+        log(new LogSection(System.currentTimeMillis(), item.getType(), player.getUniqueId()));
         List<List<Location>> lines = Lists.partition(locations, 10);
-        IntStream.range(0, lines.size()).forEach(i -> Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> {
-            lines.get(i).forEach(location -> {
-                BlockState block = location.getBlock().getState();
-                block.setType(item.getType());
-                block.setData(item.getData());
-                block.update(true);
-            });
-        }, i));
+        IntStream.range(0, lines.size()).forEach(i -> Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> lines.get(i).forEach(location -> {
+            Block original = location.getBlock();
+            BlockState block = original.getState();
+            block.setType(item.getType());
+            block.setData(item.getData());
+            block.update(true);
+        }), i));
         Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> {
             player.sendMessage(ChatColor.GREEN + "Floor update complete.");
             active.remove(plot.getId());
@@ -297,6 +342,36 @@ public class PlotFloorUtil {
         player.removeMetadata("page", Creative.getInstance());
         player.closeInventory();
         player.sendMessage(ChatColor.GREEN + "We are updating the floor to your plot. This may take a few moments.");
+    }
+
+    private void log(LogSection logSection) {
+        long timeStamp = logSection.timeStamp;
+        Material block = logSection.block;
+        UUID uuid = logSection.uuid;
+        logs.put(uuid, logSection);
+        Creative plugin = Creative.getInstance();
+        Logger logger = plugin.getLogger();
+        File file = new File(plugin.getDataFolder(), "plot_floor_logs.yml");
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+            try {
+                file.createNewFile();
+            }
+            catch (IOException e) {
+                logger.warning("Failed to load plot floor logs!");
+                return;
+            }
+        }
+
+        YamlConfiguration logs = YamlConfiguration.loadConfiguration(file);
+        logs.set(uuid.toString() + ".timestamp", timeStamp);
+        logs.set(uuid.toString() + ".block", block.toString());
+        try {
+            logs.save(file);
+        }
+        catch (IOException e) {
+            logger.warning("Failed to update log for " + uuid.toString() + "!");
+        }
     }
 
     public void open(Player player, int page) {
@@ -327,5 +402,16 @@ public class PlotFloorUtil {
 
     private Location getFloorCorner(com.intellectualcrafters.plot.object.Location psLocation) {
         return new Location(Bukkit.getWorld(psLocation.getWorld()), psLocation.getX(), 64, psLocation.getZ());
+    }
+
+    @AllArgsConstructor
+    public class LogSection {
+
+        @Getter
+        private final long timeStamp;
+        @Getter
+        private final Material block;
+        @Getter
+        private final UUID uuid;
     }
 }

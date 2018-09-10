@@ -44,6 +44,6 @@ public class PlotFloorLogCommand extends CoreCommand {
             return;
         }
 
-        player.sendMessage(ChatColor.GREEN + "Plot floor last changed to " + log.getBlock().toString() + " at " + new SimpleDateFormat("MM/dd/yyyy HH:mm::ss").format(new Date(log.getTimeStamp())));
+        player.sendMessage(ChatColor.GREEN + "Plot floor last changed to " + log.getBlock().toString() + " at " + new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new Date(log.getTimeStamp())) + " EST.");
     }
 }

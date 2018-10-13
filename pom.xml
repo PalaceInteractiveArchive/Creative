@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>network.palace</groupId>
     <artifactId>Creative</artifactId>
-    <version>2.8-mongo</version>
+    <version>2.8</version>
 
     <repositories>
         <repository>
@@ -32,7 +32,7 @@
         <dependency>
             <groupId>network.palace</groupId>
             <artifactId>Core</artifactId>
-            <version>2.2-mongo</version>
+            <version>2.3.5</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

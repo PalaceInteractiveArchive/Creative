@@ -89,7 +89,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.7-mongo")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.8")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;

@@ -237,7 +237,7 @@ public class CreatorCommand extends CoreCommand {
     private void helpMenu(Player player, Rank rank) {
         player.sendMessage(ChatColor.GREEN + "The Creator Project Commands:");
         player.sendMessage(ChatColor.GREEN + "/creator plot " + ChatColor.AQUA + "- Bring you to your Creator Plot");
-        if (rank.getRankId() >= Rank.ADMIN.getRankId()) {
+        if (rank.getRankId() >= Rank.SRMOD.getRankId()) {
             player.sendMessage(ChatColor.GREEN + "/creator settag [Username] [true/false] " + ChatColor.AQUA +
                     "- Add or remove The Creator Tag from a Guest");
             player.sendMessage(ChatColor.GREEN + "/creator set [Username] [true/false] " + ChatColor.AQUA +

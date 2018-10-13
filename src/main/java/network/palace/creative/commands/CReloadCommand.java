@@ -1,5 +1,6 @@
 package network.palace.creative.commands;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -13,7 +14,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-@CommandMeta(description = "Reload Creative configs.")
+@CommandMeta(description = "Reload Creative configs.", usage = "/creload <banneditems | config | loops | warps>")
 @CommandPermission(rank = Rank.SRMOD)
 public class CReloadCommand extends CoreCommand {
 
@@ -34,6 +35,15 @@ public class CReloadCommand extends CoreCommand {
 
         String part = args[0].toLowerCase();
         switch (part) {
+            case "banneditems":
+                try {
+                    plugin.getItemExploitHandler().loadBlockedItems();
+                    sender.sendMessage(ChatColor.GREEN + "Blocked items reloaded successfully.");
+                }
+                catch (IOException e) {
+                    sender.sendMessage(ChatColor.RED + "An error has occurred while trying to read/load the blocked items.");
+                }
+                break;
             case "config":
                 plugin.loadConfig();
                 sender.sendMessage(ChatColor.GREEN + "Config reloaded successfully.");
@@ -47,12 +57,12 @@ public class CReloadCommand extends CoreCommand {
                 sender.sendMessage(ChatColor.GREEN + "Warps reloaded successfully.");
                 break;
             default:
-                sender.sendMessage(ChatColor.RED + "/creload <config | loops | warps>");
+                sender.sendMessage(ChatColor.RED + "/creload <banneditems | config | loops | warps>");
         }
     }
 
     @Override
     protected List<String> handleTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return Stream.of("config", "loops", "warps").filter(arg -> args.length != 0 && arg.startsWith(args[0])).collect(Collectors.toList());
+        return Stream.of("banneditems", "config", "loops", "warps").filter(arg -> args.length != 0 && arg.startsWith(args[0])).collect(Collectors.toList());
     }
 }

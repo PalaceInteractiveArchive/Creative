@@ -2,10 +2,14 @@ package network.palace.creative.listeners;
 
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.CreativeInventoryType;
+import network.palace.creative.handlers.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,10 +22,6 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 /**
  * Created by Marc on 8/7/15
  */
@@ -31,7 +31,11 @@ public class PlayerInteract implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
-        Creative.getInstance().getPlayerData(player.getUniqueId()).resetAction();
+        PlayerData playerData = Creative.getInstance().getPlayerData(player.getUniqueId());
+        if (playerData != null) {
+            playerData.resetAction();
+        }
+
         if (event.getAction().equals(Action.PHYSICAL)) {
             return;
         }

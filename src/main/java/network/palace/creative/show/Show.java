@@ -412,6 +412,10 @@ public class Show {
                     name = name.substring(0, chars.length - 1);
                 }
 
+                while (name.endsWith(" .show")) {
+                    name = name.replace(" .show", ".show");
+                }
+
                 BufferedWriter bw = new BufferedWriter(new FileWriter(new File("plugins/Creative/shows/" + getOwner().toString() + "/"
                         + name + ".show"), false));
                 bw.write("Name " + name);

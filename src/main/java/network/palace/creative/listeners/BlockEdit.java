@@ -53,7 +53,7 @@ public class BlockEdit implements Listener {
         CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
         if (player == null) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "You cannot place blocks right now! (Error Code 107)");
+            event.getPlayer().sendMessage(ChatColor.RED + "You cannot place blocks right now! (Error Code 107)");
             return;
         }
         if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
@@ -86,7 +86,7 @@ public class BlockEdit implements Listener {
         CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
         if (player == null) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "You cannot place blocks right now! (Error Code 107)");
+            event.getPlayer().sendMessage(ChatColor.RED + "You cannot place blocks right now! (Error Code 107)");
             return;
         }
         if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
@@ -102,7 +102,7 @@ public class BlockEdit implements Listener {
         CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
         if (player == null) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "You cannot place blocks right now! (Error Code 107)");
+            event.getPlayer().sendMessage(ChatColor.RED + "You cannot place blocks right now! (Error Code 107)");
             return;
         }
         if (player.getRank().getRankId() < Rank.MOD.getRankId()) {

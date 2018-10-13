@@ -443,6 +443,10 @@ public class ShowManager implements Listener {
     }
 
     public void cancelEdit(CPlayer player, boolean silent) {
+        if (player == null) {
+            return;
+        }
+
         if (editSessions.remove(player.getUniqueId()) != null && !silent) {
             messagePlayer(player, ChatColor.RED + "Your Show edit session has ended!");
         }

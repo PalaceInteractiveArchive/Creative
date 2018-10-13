@@ -15,8 +15,10 @@ import network.palace.core.player.Rank;
 import network.palace.core.plugin.Plugin;
 import network.palace.core.plugin.PluginInfo;
 import network.palace.creative.commands.BackCommand;
+import network.palace.creative.commands.BannedItemCheckCommand;
 import network.palace.creative.commands.BannerCommand;
 import network.palace.creative.commands.BroadcastCommand;
+import network.palace.creative.commands.CReloadCommand;
 import network.palace.creative.commands.CreatorCommand;
 import network.palace.creative.commands.DelWarpCommand;
 import network.palace.creative.commands.DownloadCommand;
@@ -35,7 +37,6 @@ import network.palace.creative.commands.PackCommand;
 import network.palace.creative.commands.PlotFloorLogCommand;
 import network.palace.creative.commands.PtimeCommand;
 import network.palace.creative.commands.PweatherCommand;
-import network.palace.creative.commands.CReloadCommand;
 import network.palace.creative.commands.RoleCommand;
 import network.palace.creative.commands.RulesCommand;
 import network.palace.creative.commands.SetSpawnCommand;
@@ -54,6 +55,7 @@ import network.palace.creative.handlers.Warp;
 import network.palace.creative.listeners.BlockEdit;
 import network.palace.creative.listeners.EntitySpawn;
 import network.palace.creative.listeners.InventoryClick;
+import network.palace.creative.itemexploit.ItemExploitHandler;
 import network.palace.creative.listeners.PacketListener;
 import network.palace.creative.listeners.PlayerDamage;
 import network.palace.creative.listeners.PlayerInteract;
@@ -87,7 +89,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared"}, version = "2.7-mongo")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.7-mongo")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -104,6 +106,7 @@ public class Creative extends Plugin {
     @Getter private HeadUtil headUtil;
     @Getter private ResourceUtil resourceUtil;
     @Getter private IgnoreUtil ignoreUtil;
+    @Getter private ItemExploitHandler itemExploitHandler;
     @Getter private PlotFloorUtil plotFloorUtil;
     @Getter private HashMap<UUID, PlayerData> playerData = new HashMap<>();
 
@@ -145,6 +148,7 @@ public class Creative extends Plugin {
 
     @Override
     public void onPluginDisable() {
+        itemExploitHandler.saveCaughtItems();
         parkLoopUtil.serverShutdown();
         showManager.stopAllShows();
     }
@@ -241,6 +245,7 @@ public class Creative extends Plugin {
 
     private void registerCommands() {
         registerCommand(new BackCommand());
+        registerCommand(new BannedItemCheckCommand());
         registerCommand(new BannerCommand());
         registerCommand(new BroadcastCommand());
         registerCommand(new CreatorCommand());
@@ -293,6 +298,7 @@ public class Creative extends Plugin {
         registerListener(new WorldListener());
         registerListener(showManager);
         registerListener(menuUtil);
+        registerListener(itemExploitHandler = new ItemExploitHandler());
     }
 
     public static Creative getInstance() {

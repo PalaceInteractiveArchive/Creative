@@ -34,7 +34,7 @@ public class SetWarpCommand extends CoreCommand {
 
         if (args.length > 1) {
             try {
-                rank = Rank.valueOf(args[1]);
+                rank = Rank.valueOf(args[1].toUpperCase());
             }
             catch (IllegalArgumentException e) {
                 sender.sendMessage(args[1] + " is not a valid rank.");

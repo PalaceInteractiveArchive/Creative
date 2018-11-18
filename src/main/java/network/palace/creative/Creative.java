@@ -53,10 +53,10 @@ import network.palace.creative.commands.TpaCommand;
 import network.palace.creative.commands.WarpCommand;
 import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.handlers.Warp;
+import network.palace.creative.itemexploit.ItemExploitHandler;
 import network.palace.creative.listeners.BlockEdit;
 import network.palace.creative.listeners.EntitySpawn;
 import network.palace.creative.listeners.InventoryClick;
-import network.palace.creative.itemexploit.ItemExploitHandler;
 import network.palace.creative.listeners.PacketListener;
 import network.palace.creative.listeners.PlayerDamage;
 import network.palace.creative.listeners.PlayerInteract;
@@ -379,14 +379,6 @@ public class Creative extends Plugin {
             List<String> list = warpList.getStringList("warps");
             for (String item : list) {
                 Rank rank = Rank.SETTLER;
-                if (item.startsWith("dvc")) {
-                    rank = Rank.DWELLER;
-                }
-
-                if (item.startsWith("staff")) {
-                    rank = Rank.TRAINEE;
-                }
-
                 if (warpList.contains("warp." + item + ".rank")) {
                     rank = Stream.of(Rank.values()).filter(r -> r.toString().toLowerCase().equals(warpList.getString("warp." + item + ".rank"))).findFirst().orElse(Rank.SETTLER);
                 }

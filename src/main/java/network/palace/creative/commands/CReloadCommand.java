@@ -14,7 +14,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-@CommandMeta(description = "Reload Creative configs.", usage = "/creload <banneditems | config | loops | warps>")
+@CommandMeta(description = "Reload Creative configs.", usage = "/creload <banneditems | config | loops | plotwarps | warps>")
 @CommandPermission(rank = Rank.SRMOD)
 public class CReloadCommand extends CoreCommand {
 
@@ -52,6 +52,10 @@ public class CReloadCommand extends CoreCommand {
                 plugin.getParkLoopUtil().reloadLoops();
                 sender.sendMessage(ChatColor.GREEN + "Loops reloaded successfully.");
                 break;
+            case "plotwarps":
+                plugin.getPlotWarpUtil().load();
+                sender.sendMessage(ChatColor.GREEN + "Plot Warps reloaded successfully.");
+                break;
             case "warps":
                 plugin.loadWarps();
                 sender.sendMessage(ChatColor.GREEN + "Warps reloaded successfully.");
@@ -63,6 +67,6 @@ public class CReloadCommand extends CoreCommand {
 
     @Override
     protected List<String> handleTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return Stream.of("banneditems", "config", "loops", "warps").filter(arg -> args.length != 0 && arg.startsWith(args[0])).collect(Collectors.toList());
+        return Stream.of("banneditems", "config", "loops", "plotwarps", "warps").filter(arg -> args.length != 0 && arg.startsWith(args[0])).collect(Collectors.toList());
     }
 }

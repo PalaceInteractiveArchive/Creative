@@ -35,6 +35,7 @@ import network.palace.creative.commands.NightvisionCommand;
 import network.palace.creative.commands.PTCommand;
 import network.palace.creative.commands.PackCommand;
 import network.palace.creative.commands.PlotFloorLogCommand;
+import network.palace.creative.commands.PlotWarpCommand;
 import network.palace.creative.commands.PtimeCommand;
 import network.palace.creative.commands.PweatherCommand;
 import network.palace.creative.commands.RoleCommand;
@@ -77,6 +78,7 @@ import network.palace.creative.utils.OnlineUtil;
 import network.palace.creative.utils.ParkLoopUtil;
 import network.palace.creative.utils.ParticleUtil;
 import network.palace.creative.utils.PlotFloorUtil;
+import network.palace.creative.utils.PlotWarpUtil;
 import network.palace.creative.utils.ResourceUtil;
 import network.palace.creative.utils.RolePlayUtil;
 import network.palace.creative.utils.TeleportUtil;
@@ -108,6 +110,7 @@ public class Creative extends Plugin {
     @Getter private IgnoreUtil ignoreUtil;
     @Getter private ItemExploitHandler itemExploitHandler;
     @Getter private PlotFloorUtil plotFloorUtil;
+    @Getter private PlotWarpUtil plotWarpUtil;
     @Getter private HashMap<UUID, PlayerData> playerData = new HashMap<>();
 
     @Getter private PlayParticle playParticle;
@@ -129,7 +132,7 @@ public class Creative extends Plugin {
         resourceUtil = new ResourceUtil();
         ignoreUtil = new IgnoreUtil();
         plotFloorUtil = new PlotFloorUtil();
-
+        plotWarpUtil = new PlotWarpUtil();
         playParticle = new PlayParticle();
 
         Core.runTaskTimer(playParticle, 0L, 2L);
@@ -264,6 +267,7 @@ public class Creative extends Plugin {
         registerCommand(new NightvisionCommand());
         registerCommand(new PackCommand());
         registerCommand(new PlotFloorLogCommand());
+        registerCommand(new PlotWarpCommand());
         registerCommand(new PTCommand());
         registerCommand(new PtimeCommand());
         registerCommand(new PweatherCommand());

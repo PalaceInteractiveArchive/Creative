@@ -19,7 +19,6 @@ public class PlayerPlotListener implements Listener {
         Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> {
             Player player = event.getPlayer();
             Plot plot = event.getPlot();
-
             if (plot.getOwners().contains(player.getUniqueId()) || MenuUtil.isStaff(player)) {
                 return;
             }

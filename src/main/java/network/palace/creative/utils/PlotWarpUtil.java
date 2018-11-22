@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import network.palace.core.Core;
 import network.palace.core.player.Rank;
 import network.palace.core.utils.ItemUtil;
@@ -92,10 +93,10 @@ public class PlotWarpUtil {
                 Entry<UUID, Warp> warp = warps.get(x + (page - 1) * 45);
                 Warp w = warp.getValue();
                 ItemStack itemStack = ItemUtil.create(Material.EYE_OF_ENDER, w.getName(), Arrays.asList(ChatColor.YELLOW + "Submitted by " + Bukkit.getOfflinePlayer(warp.getKey()).getName()));
-                buttons.add(new MenuButton(x, itemStack, ImmutableMap.of(ClickType.LEFT, () -> {
-                    player.closeInventory();
-                    player.teleport(w.getLocation());
-                    player.sendMessage(ChatColor.GREEN + "You have been warped to " + ChatColor.GOLD + w.getName());
+                buttons.add(new MenuButton(x, itemStack, ImmutableMap.of(ClickType.LEFT, p -> {
+                    p.closeInventory();
+                    p.teleport(w.getLocation());
+                    p.sendMessage(ChatColor.GREEN + "You have been warped to " + ChatColor.GOLD + w.getName());
                 })));
             }
             catch (IndexOutOfBoundsException ignored) {
@@ -104,19 +105,19 @@ public class PlotWarpUtil {
         }
 
         if (MenuUtil.isStaff(player) && Core.getPlayerManager().getPlayer(player).getRank() != Rank.TRAINEE) {
-            buttons.add(new MenuButton(47, ItemUtil.create(Material.ENDER_PEARL, ChatColor.GREEN + "Review Warps"), ImmutableMap.of(ClickType.LEFT, () -> openWarpsReviewMenu(player, 1))));
+            buttons.add(new MenuButton(47, ItemUtil.create(Material.ENDER_PEARL, ChatColor.GREEN + "Review Warps"), ImmutableMap.of(ClickType.LEFT, p -> openWarpsReviewMenu(p, 1))));
         }
 
         MenuUtil menuUtil = Creative.getInstance().getMenuUtil();
-        buttons.add(new MenuButton(45, menuUtil.last, ImmutableMap.of(ClickType.LEFT, () -> {
+        buttons.add(new MenuButton(45, menuUtil.last, ImmutableMap.of(ClickType.LEFT, p -> {
             if (page > 1) {
-                openWarpsMenu(player, page - 1);
+                openWarpsMenu(p, page - 1);
             }
         })));
-        buttons.add(new MenuButton(49, menuUtil.back, ImmutableMap.of(ClickType.LEFT, player::closeInventory)));
-        buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, () -> {
+        buttons.add(new MenuButton(49, menuUtil.back, ImmutableMap.of(ClickType.LEFT, Player::closeInventory)));
+        buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, p -> {
             if (page <= new Double(Math.ceil(warps.size() / 45D)).intValue()) {
-                openWarpsMenu(player, page + 1);
+                openWarpsMenu(p, page + 1);
             }
         })));
         new Menu(Bukkit.createInventory(player, 54, ChatColor.BLUE + "Plot Warps"), player, buttons);
@@ -132,33 +133,33 @@ public class PlotWarpUtil {
                 Warp warp = pendingWarp.getValue();
                 ItemStack itemStack = ItemUtil.create(Material.EYE_OF_ENDER, ChatColor.GREEN + warp.getName(), Arrays.asList(ChatColor.YELLOW + "Submitted by " + Bukkit.getOfflinePlayer(uuid).getName(),
                         ChatColor.GREEN + "Left-Click" + ChatColor.YELLOW + " to approve.", ChatColor.RED + "Right-Click" + ChatColor.YELLOW + " to deny."));
-                buttons.add(new MenuButton(x, itemStack, ImmutableMap.<ClickType, Runnable>builder().put(ClickType.LEFT, () -> {
-                    player.sendMessage(ChatColor.GREEN + "Warp approved!");
+                buttons.add(new MenuButton(x, itemStack, ImmutableMap.<ClickType, Consumer<Player>>builder().put(ClickType.LEFT, p -> {
+                    p.sendMessage(ChatColor.GREEN + "Warp approved!");
                     pendingWarps.remove(uuid);
                     warps.put(uuid, warp);
                     try {
                         save();
                     }
                     catch (IOException e) {
-                        player.sendMessage(ChatColor.RED + "An error has occurred. Please alert a dev!");
+                        p.sendMessage(ChatColor.RED + "An error has occurred. Please alert a dev!");
                         e.printStackTrace();
                         return;
                     }
 
-                    openWarpsReviewMenu(player, page);
-                }).put(ClickType.RIGHT, () -> {
+                    openWarpsReviewMenu(p, page);
+                }).put(ClickType.RIGHT, p -> {
                     pendingWarps.remove(uuid);
-                    player.sendMessage(ChatColor.RED + "Warp denied!");
+                    p.sendMessage(ChatColor.RED + "Warp denied!");
                     try {
                         save();
                     }
                     catch (IOException e) {
-                        player.sendMessage(ChatColor.RED + "An error has occurred. Please alert a dev!");
+                        p.sendMessage(ChatColor.RED + "An error has occurred. Please alert a dev!");
                         e.printStackTrace();
                         return;
                     }
 
-                    openWarpsReviewMenu(player, page);
+                    openWarpsReviewMenu(p, page);
                 }).build()));
             }
             catch (IndexOutOfBoundsException ignored) {
@@ -167,15 +168,15 @@ public class PlotWarpUtil {
         }
 
         MenuUtil menuUtil = Creative.getInstance().getMenuUtil();
-        buttons.add(new MenuButton(45, menuUtil.last, ImmutableMap.of(ClickType.LEFT, () -> {
+        buttons.add(new MenuButton(45, menuUtil.last, ImmutableMap.of(ClickType.LEFT, p -> {
             if (page > 1) {
-                openWarpsReviewMenu(player, page - 1);
+                openWarpsReviewMenu(p, page - 1);
             }
         })));
-        buttons.add(new MenuButton(49, menuUtil.back, ImmutableMap.of(ClickType.LEFT, () -> openWarpsMenu(player, 1))));
-        buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, () -> {
+        buttons.add(new MenuButton(49, menuUtil.back, ImmutableMap.of(ClickType.LEFT, p -> openWarpsMenu(p, 1))));
+        buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, p -> {
             if (page <= new Double(Math.ceil(pendingWarps.size() / 45D)).intValue()) {
-                openWarpsReviewMenu(player, page + 1);
+                openWarpsReviewMenu(p, page + 1);
             }
         })));
         new Menu(Bukkit.createInventory(player, 54, ChatColor.BLUE + "Pending Plot Warps"), player, buttons);

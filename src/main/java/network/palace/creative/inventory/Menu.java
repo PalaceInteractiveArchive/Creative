@@ -44,7 +44,7 @@ public class Menu implements Listener {
     public void click(InventoryClickEvent event) {
         if (isSameInventory(inventory)) {
             event.setCancelled(true);
-            menuButtons.stream().filter(button -> button.getSlot() == event.getRawSlot() && button.getActions().containsKey(event.getClick())).findFirst().map(menuButton -> menuButton.getActions().get(event.getClick())).ifPresent(Runnable::run);
+            menuButtons.stream().filter(button -> button.getSlot() == event.getRawSlot() && button.getActions().containsKey(event.getClick())).findFirst().map(menuButton -> menuButton.getActions().get(event.getClick())).ifPresent(action -> action.accept((Player) event.getWhoClicked()));
         }
     }
 

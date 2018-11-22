@@ -56,6 +56,6 @@ public class Menu implements Listener {
     }
 
     private boolean isSameInventory(Inventory inventory) {
-        return inventory.getName().equals(this.inventory.getName()) && inventory.getHolder().equals(player);
+        return inventory.getName().equals(this.inventory.getName()) && inventory.getViewers().stream().anyMatch(p -> p.getUniqueId().equals(player.getUniqueId()));
     }
 }

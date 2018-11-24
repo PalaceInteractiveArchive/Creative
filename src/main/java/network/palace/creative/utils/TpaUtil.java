@@ -1,15 +1,13 @@
 package network.palace.creative.utils;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.creative.Creative;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * Created by Marc on 2/6/15
@@ -20,6 +18,10 @@ public class TpaUtil {
     private static HashMap<UUID, Integer> map3 = new HashMap<>();
 
     public static void logout(CPlayer player) {
+        if (player == null) {
+            return;
+        }
+
         if (map.containsKey(player.getUniqueId())) {
             UUID tuuid = map.remove(player.getUniqueId());
             Bukkit.getPlayer(tuuid).sendMessage(ChatColor.RED + player.getName() +

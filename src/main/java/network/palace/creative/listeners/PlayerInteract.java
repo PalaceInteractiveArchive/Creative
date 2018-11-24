@@ -31,6 +31,10 @@ public class PlayerInteract implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());
+        if (player == null) {
+            return;
+        }
+
         PlayerData playerData = Creative.getInstance().getPlayerData(player.getUniqueId());
         if (playerData != null) {
             playerData.resetAction();

@@ -2,7 +2,6 @@ package network.palace.creative.commands;
 
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.Rank;
 import org.bukkit.Bukkit;
@@ -13,8 +12,7 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 3/27/15
  */
-@CommandMeta(description = "View another player's inventory")
-@CommandPermission(rank = Rank.TRAINEE)
+@CommandMeta(description = "View another player's inventory", rank = Rank.TRAINEE)
 public class InvseeCommand extends CoreCommand {
 
     public InvseeCommand() {
@@ -35,8 +33,7 @@ public class InvseeCommand extends CoreCommand {
                 player.sendMessage(ChatColor.RED + "Player not found!");
                 return;
             }
-            player.sendMessage(ChatColor.GREEN + "Now looking in "
-                    + tp.getName() + "'s Inventory!");
+            player.sendMessage(ChatColor.GREEN + "Now looking in " + tp.getName() + "'s Inventory!");
             player.openInventory(tp.getInventory());
             return;
         }

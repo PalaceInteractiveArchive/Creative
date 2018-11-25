@@ -2,7 +2,6 @@ package network.palace.creative.commands;
 
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
@@ -15,8 +14,7 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Set a warp location")
-@CommandPermission(rank = Rank.MOD)
+@CommandMeta(description = "Set a warp location", rank = Rank.MOD)
 public class SetWarpCommand extends CoreCommand {
 
     public SetWarpCommand() {

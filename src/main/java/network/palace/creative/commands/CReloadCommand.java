@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
@@ -14,8 +13,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-@CommandMeta(description = "Reload Creative configs.", usage = "/creload <banneditems | config | loops | plotwarps | warps>")
-@CommandPermission(rank = Rank.SRMOD)
+@CommandMeta(description = "Reload Creative configs.", usage = "/creload <banneditems | config | loops | plotwarps | warps>", rank = Rank.SRMOD)
 public class CReloadCommand extends CoreCommand {
 
     public CReloadCommand() {

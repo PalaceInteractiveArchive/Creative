@@ -1,9 +1,12 @@
 package network.palace.creative.commands;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import network.palace.core.Core;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -15,16 +18,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
 /**
  * Created by Marc on 11/16/15
  */
-@CommandMeta(description = "Role Play commands", aliases = "roleplay")
-@CommandPermission(rank = Rank.SETTLER)
+@CommandMeta(description = "Role Play commands", aliases = "roleplay", rank = Rank.SETTLER)
 public class RoleCommand extends CoreCommand {
 
     public RoleCommand() {

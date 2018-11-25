@@ -2,7 +2,6 @@ package network.palace.creative.commands;
 
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.Rank;
 import org.bukkit.Bukkit;
@@ -13,8 +12,7 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Set player time")
-@CommandPermission(rank = Rank.MOD)
+@CommandMeta(description = "Set player time", rank = Rank.MOD)
 public class PtimeCommand extends CoreCommand {
 
     public PtimeCommand() {

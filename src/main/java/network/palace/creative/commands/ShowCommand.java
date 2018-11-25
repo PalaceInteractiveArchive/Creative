@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.message.FormattedMessage;
 import network.palace.core.player.CPlayer;
@@ -24,8 +23,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 /**
  * Created by Marc on 12/11/15
  */
-@CommandMeta(description = "Show Manager")
-@CommandPermission(rank = Rank.SETTLER)
+@CommandMeta(description = "Show Manager", rank = Rank.SETTLER)
 public class ShowCommand extends CoreCommand {
     private FormattedMessage msg = new FormattedMessage("[Show] ").color(ChatColor.BLUE)
             .then("Purchase the Show Creator in the Creative Shop to use this! ").color(ChatColor.YELLOW)

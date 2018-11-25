@@ -2,7 +2,6 @@ package network.palace.creative.commands;
 
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -11,8 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-@CommandMeta(description = "Get a full stack of the item in your hand")
-@CommandPermission(rank = Rank.TRAINEE)
+@CommandMeta(description = "Get a full stack of the item in your hand", rank = Rank.TRAINEE)
 public class MoreCommand extends CoreCommand {
 
     public MoreCommand() {

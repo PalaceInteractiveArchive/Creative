@@ -2,7 +2,6 @@ package network.palace.creative.commands;
 
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -12,8 +11,7 @@ import org.bukkit.ChatColor;
 /**
  * Created by Marc on 3/27/15
  */
-@CommandMeta(description = "Return to previous location")
-@CommandPermission(rank = Rank.TRAINEE)
+@CommandMeta(description = "Return to previous location", rank = Rank.TRAINEE)
 public class BackCommand extends CoreCommand {
 
     public BackCommand() {

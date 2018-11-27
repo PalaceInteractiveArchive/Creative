@@ -126,7 +126,7 @@ public class ParkLoopUtil {
             Stream.of(files).forEach(file -> {
                 YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
                 yaml.getKeys(false).forEach(key -> {
-                    PlotAPI plotAPI = new PlotAPI(Creative.getInstance());
+                    PlotAPI plotAPI = new PlotAPI();
                     String[] keySplit = key.split(";");
                     plotAPI.getPlotAreas(Bukkit.getWorld("plotworld")).stream().map(plotArea -> plotArea.getPlot(new PlotId(Integer.parseInt(keySplit[0]), Integer.parseInt(keySplit[1])))).filter(Objects::nonNull).forEach(plot -> {
                         Optional<AudioTrack> audioTrack = loops.values().stream().filter(at -> at.getAudioPath().equals(yaml.getString(key))).findFirst();
@@ -241,7 +241,7 @@ public class ParkLoopUtil {
                     }
                     default: {
                         player.removeMetadata("page", Creative.getInstance());
-                        PlotAPI api = new PlotAPI(Creative.getInstance());
+                        PlotAPI api = new PlotAPI();
                         Plot plot = api.getPlot(player);
                         loops.values().stream().filter(audioTrack -> name.equals(audioTrack.getName()) && plot.getOwners().contains(player.getUniqueId())).findFirst().ifPresent(audioTrack -> {
                             String oldAudioName = registeredAudioAreas.get(plot.getId());

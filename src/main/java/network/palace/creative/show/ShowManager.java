@@ -254,7 +254,7 @@ public class ShowManager implements Listener {
             return;
         }
 
-        PlotAPI api = new PlotAPI(Creative.getInstance());
+        PlotAPI api = new PlotAPI();
         Plot plot = api.getPlot(player);
         if (plot == null) {
             player.closeInventory();

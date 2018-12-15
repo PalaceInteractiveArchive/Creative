@@ -24,7 +24,7 @@ public class PlotArea extends AudioArea {
         super(owner.getUniqueId().toString(), soundname, 750, 1.0, null, true, false, world);
         this.plotId = plotId;
         this.owner = owner;
-        PlotAPI api = new PlotAPI(Creative.getInstance());
+        PlotAPI api = new PlotAPI();
         for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
             if (p == null || p.getBukkitPlayer() == null)
                 continue;
@@ -46,7 +46,7 @@ public class PlotArea extends AudioArea {
     @SuppressWarnings("deprecation")
     @Override
     public boolean locIsInArea(Location loc) {
-        PlotAPI api = new PlotAPI(Creative.getInstance());
+        PlotAPI api = new PlotAPI();
         Plot plot = api.getPlot(loc);
         return plot != null && plot.getId().equals(plotId);
     }

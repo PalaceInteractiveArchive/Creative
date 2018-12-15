@@ -33,7 +33,7 @@ public class CreatorCommand extends CoreCommand {
     private static FormattedMessage msg = new FormattedMessage("Learn how to join The Creator Project: ")
             .color(ChatColor.YELLOW).style(ChatColor.BOLD).then("https://palace.network/cc").color(ChatColor.AQUA)
             .link("https://palace.network/cc").tooltip(ChatColor.GREEN + "Click to visit https://palace.network/cc");
-    private static PlotAPI api = new PlotAPI(Creative.getInstance());
+    private static PlotAPI api = new PlotAPI();
 
     public CreatorCommand() {
         super("creator");

@@ -23,7 +23,7 @@ public class ManageCommand extends CoreCommand {
     @SuppressWarnings("deprecation")
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        Plot plot = new PlotAPI(Creative.getInstance()).getPlot(player.getLocation());
+        Plot plot = new PlotAPI().getPlot(player.getLocation());
         if (plot == null) {
             player.sendMessage(ChatColor.RED + "You're not standing on a Plot!");
             return;

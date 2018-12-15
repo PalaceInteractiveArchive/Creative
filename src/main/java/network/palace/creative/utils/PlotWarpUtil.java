@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 import network.palace.core.Core;
 import network.palace.core.player.Rank;
 import network.palace.core.utils.ItemUtil;
@@ -133,7 +132,7 @@ public class PlotWarpUtil {
                 Warp warp = pendingWarp.getValue();
                 ItemStack itemStack = ItemUtil.create(Material.EYE_OF_ENDER, ChatColor.GREEN + warp.getName(), Arrays.asList(ChatColor.YELLOW + "Submitted by " + Bukkit.getOfflinePlayer(uuid).getName(),
                         ChatColor.GREEN + "Left-Click" + ChatColor.YELLOW + " to approve.", ChatColor.RED + "Right-Click" + ChatColor.YELLOW + " to deny."));
-                buttons.add(new MenuButton(x, itemStack, ImmutableMap.<ClickType, Consumer<Player>>builder().put(ClickType.LEFT, p -> {
+                buttons.add(new MenuButton(x, itemStack, ImmutableMap.of(ClickType.LEFT, p -> {
                     p.sendMessage(ChatColor.GREEN + "Warp approved!");
                     pendingWarps.remove(uuid);
                     warps.put(uuid, warp);
@@ -147,7 +146,7 @@ public class PlotWarpUtil {
                     }
 
                     openWarpsReviewMenu(p, page);
-                }).put(ClickType.RIGHT, p -> {
+                }, ClickType.RIGHT, p -> {
                     pendingWarps.remove(uuid);
                     p.sendMessage(ChatColor.RED + "Warp denied!");
                     try {
@@ -160,7 +159,7 @@ public class PlotWarpUtil {
                     }
 
                     openWarpsReviewMenu(p, page);
-                }).build()));
+                })));
             }
             catch (IndexOutOfBoundsException ignored) {
 

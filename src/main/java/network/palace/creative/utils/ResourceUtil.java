@@ -1,25 +1,32 @@
 package network.palace.creative.utils;
 
+import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.function.Consumer;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.resource.ResourcePack;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.PlayerData;
+import network.palace.creative.inventory.Menu;
+import network.palace.creative.inventory.MenuButton;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * Created by Marc on 1/3/17.
@@ -69,58 +76,21 @@ public class ResourceUtil {
         }
     }
 
-    public void handle(InventoryClickEvent event) {
-        final CPlayer player = Core.getPlayerManager().getPlayer((Player) event.getWhoClicked());
-        ItemStack item = event.getCurrentItem();
-        if (item == null) {
-            return;
-        }
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null || meta.getDisplayName() == null) {
-            return;
-        }
-        String name = ChatColor.stripColor(meta.getDisplayName());
-        event.setCancelled(true);
-        PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
-        if (name.equalsIgnoreCase("No Resource Pack")) {
-            Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
-                Core.getMongoHandler().setCreativeValue(player.getUniqueId(), "pack", "NoPrefer");
-                data.setResourcePack("NoPrefer");
-                player.sendMessage(ChatColor.GREEN + "You will not be sent a Resource Pack when you join Creative!");
-                player.closeInventory();
-            });
-            return;
-        }
-        ResourcePack pack = Core.getResourceManager().getPack(name);
-        if (pack == null) {
-            player.sendMessage(ChatColor.RED + "We couldn't find the pack you clicked on! Try another one.");
-            player.closeInventory();
-            return;
-        }
-        data.setResourcePack(pack.getName());
-        Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
-            player.sendMessage(ChatColor.GREEN + "You set your Creative Resource Pack to " + ChatColor.YELLOW +
-                    pack.getName() + ChatColor.GREEN + "! It will automatically download when you join Creative.");
-            Core.getMongoHandler().setCreativeValue(player.getUniqueId(), "pack", pack.getName());
-            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 0);
-            player.closeInventory();
-            if (!player.getPack().equalsIgnoreCase(pack.getName())) {
-                Core.getResourceManager().sendPack(player, pack);
-            }
-        });
-    }
-
     public void openMenu(CPlayer player) {
-        Inventory inv = Bukkit.createInventory(player.getBukkitPlayer(), 27, ChatColor.BLUE + "Resource Pack");
+        List<MenuButton> buttons = new ArrayList<>();
         String selected = Creative.getInstance().getPlayerData(player.getUniqueId()).getResourcePack();
         if (selected == null) {
             selected = "none";
         }
-        if (selected.equalsIgnoreCase("NoPrefer")) {
-            inv.setItem(8, noPreferSelected);
-        } else {
-            inv.setItem(8, noPrefer);
-        }
+
+        PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
+        buttons.add(new MenuButton(8, selected.equalsIgnoreCase("NoPrefer") ? noPreferSelected : noPrefer, ImmutableMap.of(ClickType.LEFT, p -> {
+            Core.getMongoHandler().setCreativeValue(player.getUniqueId(), "pack", "NoPrefer");
+            data.setResourcePack("NoPrefer");
+            player.sendMessage(ChatColor.GREEN + "You will not be sent a Resource Pack when you join Creative!");
+            player.closeInventory();
+        })));
+
         int place = 13;
         int a = 1;
         boolean add = true;
@@ -137,16 +107,42 @@ public class ResourceUtil {
                 m.setLore(l);
                 i.setItemMeta(m);
             }
-            inv.setItem(place, i);
+
+            buttons.add(new MenuButton(place, i, getResourcePackAction(ChatColor.stripColor(i.getItemMeta().getDisplayName()), data)));
             if (add) {
                 place += a;
             } else {
                 place -= a;
             }
+
             a++;
             add = !add;
         }
-        player.openInventory(inv);
+
+        new Menu(Bukkit.createInventory(player.getBukkitPlayer(), 27, ChatColor.BLUE + "Resource Pack"), player.getBukkitPlayer(), buttons);
+    }
+
+    private ImmutableMap<ClickType, Consumer<Player>> getResourcePackAction(String name, PlayerData data) {
+        return ImmutableMap.of(ClickType.LEFT, p -> {
+            CPlayer cPlayer = Core.getPlayerManager().getPlayer(p);
+            ResourcePack pack = Core.getResourceManager().getPack(name);
+            if (pack == null) {
+                p.sendMessage(ChatColor.RED + "We couldn't find the pack you clicked on! Try another one.");
+                p.closeInventory();
+                return;
+            }
+            data.setResourcePack(pack.getName());
+            Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
+                p.sendMessage(ChatColor.GREEN + "You set your Creative Resource Pack to " + ChatColor.YELLOW +
+                        pack.getName() + ChatColor.GREEN + "! It will automatically download when you join Creative.");
+                Core.getMongoHandler().setCreativeValue(p.getUniqueId(), "pack", pack.getName());
+                p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 0);
+                p.closeInventory();
+                if (!cPlayer.getPack().equalsIgnoreCase(pack.getName())) {
+                    Core.getResourceManager().sendPack(cPlayer, pack);
+                }
+            });
+        });
     }
 
     public Material randomDisc() {

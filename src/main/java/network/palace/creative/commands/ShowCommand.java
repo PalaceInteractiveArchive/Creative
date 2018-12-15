@@ -102,26 +102,24 @@ public class ShowCommand extends CoreCommand {
                             return;
                         }
 
+                        String name = files[0].getName().replace(".show", "");
                         if (args.length > 1) {
                             List<String> showName = new ArrayList<>(Arrays.asList(args));
                             showName.remove(0);
-                            String name = String.join(" ", showName).replace("\\W", " ");
-                            Optional<File> file = Stream.of(files).filter(f -> f.getName().contains(name)).findFirst();
+                            String temp = String.join(" ", showName).replace("\\W", " ");
+                            Optional<File> file = Stream.of(files).filter(f -> f.getName().contains(temp)).findFirst();
                             if (!file.isPresent()) {
-                                player.sendMessage(ChatColor.RED + "You do not have a show named: " + name);
+                                player.sendMessage(ChatColor.RED + "You do not have a show named: " + temp);
                                 return;
                             }
 
-                            player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), ChatColor.stripColor(name)));
-                        }
-                        else {
-                            player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), files[0].getName().replace(".show", "")));
+                            name = ChatColor.stripColor(temp);
                         }
 
-                        creative.getShowManager().editShow(player);
+                        creative.getShowManager().editShow(player, 1, name);
                     }
                     else {
-                        creative.getShowManager().messagePlayer(player, ChatColor.RED + "Please specify the name of  your show.");
+                        creative.getShowManager().selectShow(player.getBukkitPlayer());
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

@@ -1,5 +1,6 @@
 package network.palace.creative.utils;
 
+import com.google.common.collect.ImmutableMap;
 import com.intellectualcrafters.plot.PS;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.flag.BooleanFlag;
@@ -11,34 +12,38 @@ import com.intellectualcrafters.plot.object.PlotArea;
 import com.intellectualcrafters.plot.object.PlotId;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.intellectualcrafters.plot.util.EventUtil;
-import com.intellectualcrafters.plot.util.MainUtil;
 import com.intellectualcrafters.plot.util.PlotWeather;
 import com.plotsquared.bukkit.util.BukkitUtil;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
 import network.palace.core.Core;
 import network.palace.core.economy.CurrencyType;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
+import network.palace.core.utils.HeadUtil;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.BannerInventoryType;
-import network.palace.creative.handlers.CreativeInventoryType;
 import network.palace.creative.handlers.MemberState;
 import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.handlers.RolePlay;
+import network.palace.creative.inventory.Menu;
+import network.palace.creative.inventory.MenuButton;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
-import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -49,9 +54,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PotionSplashEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -71,7 +75,7 @@ public class MenuUtil implements Listener {
     private ItemStack myPlots = ItemUtil.create(Material.GRASS, ChatColor.GREEN + "My Plots");
     private ItemStack spawn = ItemUtil.create(Material.ENDER_PEARL, ChatColor.GREEN + "Spawn");
     private ItemStack buildingPlots = ItemUtil.create(Material.DIRT, ChatColor.GREEN + "Building Plots");
-    private ItemStack headshop;
+    private ItemStack headShop;
     private ItemStack showCreator = ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Show Creator");
     private ItemStack teleport = ItemUtil.create(Material.ENDER_PEARL, ChatColor.GREEN + "Teleport to Plot");
     private ItemStack deny = ItemUtil.create(Material.BARRIER, ChatColor.GREEN + "Deny a Player");
@@ -123,7 +127,7 @@ public class MenuUtil implements Listener {
     @Getter @Setter private boolean chatMuted = false;
 
     public MenuUtil() {
-        api = new PlotAPI(Creative.getInstance());
+        api = new PlotAPI();
         BannerMeta bm = (BannerMeta) bannerCreator.getItemMeta();
         bm.setBaseColor(DyeColor.BLUE);
         bm.addPattern(new Pattern(DyeColor.RED, PatternType.TRIANGLE_BOTTOM));
@@ -133,7 +137,7 @@ public class MenuUtil implements Listener {
         bannerCreator.setItemMeta(bm);
         String hash = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUv" +
                 "Y2RhZGYxNzQ0NDMzZTFjNzlkMWQ1OWQyNzc3ZDkzOWRlMTU5YTI0Y2Y1N2U4YTYxYzgyYmM0ZmUzNzc3NTUzYyJ9fX0=";
-        headshop = network.palace.core.utils.HeadUtil.getPlayerHead(hash, ChatColor.GREEN + "Headshop");
+        headShop = network.palace.core.utils.HeadUtil.getPlayerHead(hash, ChatColor.GREEN + "Headshop");
         Bukkit.getScheduler().runTaskTimer(Creative.getInstance(), () -> {
             for (UUID uuid : new ArrayList<>(denyTask)) {
                 Player tp = Bukkit.getPlayer(uuid);
@@ -147,286 +151,440 @@ public class MenuUtil implements Listener {
         Flags.registerFlag(new BooleanFlag("flight"));
     }
 
-    public void openMenu(Player player, CreativeInventoryType type) {
-        if (player == null) return;
-        if (type == null) return;
+    public void openMenu(Player player) {
+        Creative plugin = Creative.getInstance();
+        PlayerData data = plugin.getPlayerData(player.getUniqueId());
+        if (data == null) {
+            return;
+        }
 
-        PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
 
-        if (data == null) return;
-        switch (type) {
-            case MAIN: {
-                Inventory main = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Creative Menu");
-                Plot plot = api.getPlot(player);
-                boolean owns = false;
-                if (plot != null) {
-                    for (Plot pl : api.getPlayerPlots(Bukkit.getWorld("plotworld"), player)) {
-                        if (plot.getId().equals(pl.getId())) {
-                            owns = true;
-                            break;
-                        }
-                    }
-                }
-                if (owns) {
-                    main.setItem(4, plotTime);
-                }
-                main.setItem(10, bannerCreator);
-                main.setItem(11, myPlots);
-                main.setItem(12, shop);
-                main.setItem(13, spawn);
-                main.setItem(14, particles);
-                main.setItem(15, buildingPlots);
-                main.setItem(16, headshop);
-                if (data.hasShowCreator()) {
-                    main.setItem(22, showCreator);
-                }
-                player.openInventory(main);
-                break;
-            }
-            case MY_PLOTS: {
-                Inventory myPlots = Bukkit.createInventory(player, 27, ChatColor.BLUE + "My Plots");
-                List<Plot> plots = new ArrayList<>(api.getPlayerPlots(Bukkit.getWorld("plotworld"), player));
-                if (plots.isEmpty()) {
-                    ItemStack empty = ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.RED +
-                            "You don't have any plots!", Arrays.asList(ChatColor.GREEN + "Click here to get",
-                            ChatColor.GREEN + "your own plot!"));
-                    myPlots.setItem(13, empty);
-                    myPlots.setItem(22, back);
-                    player.openInventory(myPlots);
+        Plot plot = api.getPlot(player);
+        boolean owns = false;
+        if (plot != null) {
+            for (Plot pl : api.getPlayerPlots(Bukkit.getWorld("plotworld"), player)) {
+                if (plot.getId().equals(pl.getId())) {
+                    owns = true;
                     break;
                 }
-                for (int i = 0; i < plots.size(); i++) {
-                    if (i >= 7) {
-                        break;
-                    }
-                    Plot plot = plots.get(i);
-                    ItemStack stack = ItemUtil.create(Material.GRASS, ChatColor.GREEN + "Plot ID: " +
-                            plot.getId().toString(), Collections.singletonList(ChatColor.GOLD +
-                            "Click to Manage this Plot!"));
-                    myPlots.setItem(i + 10, stack);
-                }
-                myPlots.setItem(22, back);
-                player.openInventory(myPlots);
-                break;
-            }
-            case BUILDING_PLOTS: {
-                Inventory building = Bukkit.createInventory(player, 54, ChatColor.BLUE + "Building Plots");
-                building.setItem(22, loading);
-                player.openInventory(building);
-                Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
-                    final List<Plot> plotList = new ArrayList<>(PS.get().getPlots("plotworld"));
-                    int i = 0;
-                    for (Plot p : plotList) {
-                        if (building.getViewers().isEmpty()) {
-                            return;
-                        }
-                        if (i >= 45) {
-                            building.setItem(45, more);
-                            building.setItem(46, more);
-                            building.setItem(47, more);
-                            building.setItem(48, more);
-                            building.setItem(49, back);
-                            building.setItem(50, more);
-                            building.setItem(51, more);
-                            building.setItem(52, more);
-                            building.setItem(53, more);
-                            break;
-                        }
-                        if (p.getMembers().contains(player.getUniqueId())) {
-                            building.addItem(ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(p) + "'s Plot " +
-                                    p.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
-                                    ChatColor.YELLOW + "Member")));
-                            i++;
-                        }
-                        if (p.getTrusted().contains(player.getUniqueId())) {
-                            building.addItem(ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(p) + "'s Plot " +
-                                    p.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
-                                    ChatColor.GOLD + "" + ChatColor.ITALIC + "Trusted")));
-                            i++;
-                        }
-                    }
-                    if (building.getItem(22).getType().equals(Material.STAINED_CLAY)) {
-                        building.setItem(22, new ItemStack(Material.AIR));
-                    }
-                    building.setItem(49, back);
-                });
-                break;
-            }
-            case HEADSHOP: {
-                HashMap<String, List<ItemStack>> map = Creative.getInstance().getHeadUtil().getCategories();
-                List<String> categories = new ArrayList<>(map.keySet());
-                int size = categories.size();
-                int invSize = size <= 7 ? 27 : (size <= 14 ? 36 : (size <= 21 ? 45 : 54));
-                Inventory hs = Bukkit.createInventory(player, invSize, ChatColor.BLUE + "Heads");
-                int place = 10;
-                for (String s : categories) {
-                    if (place % 9 == 8) {
-                        place += 2;
-                    }
-                    if (place >= invSize) {
-                        break;
-                    }
-                    ItemStack item = map.get(s).get(0).clone();
-                    ItemMeta meta = item.getItemMeta();
-                    meta.setDisplayName(ChatColor.GREEN + s);
-                    item.setItemMeta(meta);
-                    hs.setItem(place, item);
-                    place++;
-                }
-                hs.setItem(invSize - 5, back);
-                player.openInventory(hs);
-                break;
-            }
-            case PARTICLE: {
-                Inventory pt = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Particle Menu");
-                pt.setItem(4, none);
-                pt.setItem(9, note);
-                pt.setItem(10, spark);
-                pt.setItem(11, flame);
-                pt.setItem(12, enchant);
-                pt.setItem(13, mickey);
-                pt.setItem(14, heart);
-                pt.setItem(15, portal);
-                pt.setItem(16, lava);
-                pt.setItem(17, witch);
-                pt.setItem(22, back);
-                player.openInventory(pt);
-                break;
-            }
-            case CREATIVESHOP: {
-                Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Creative Shop");
-                int limit = data.getRPLimit();
-                if (limit >= 10) {
-                    if (limit >= 15) {
-                        if (limit >= 20) {
-                            inv.setItem(1, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                    "Role Play Expansion (10 Player)", Arrays.asList(ChatColor.GREEN + "You own this!")));
-                            inv.setItem(2, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                    "Role Play Expansion (15 Player)", Arrays.asList(ChatColor.GREEN + "You own this!")));
-                            inv.setItem(3, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                    "Role Play Expansion (20 Player)", Arrays.asList(ChatColor.GREEN + "You own this!")));
-                        } else {
-                            inv.setItem(1, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                    "Role Play Expansion (10 Player)", Arrays.asList(ChatColor.GREEN + "You own this!")));
-                            inv.setItem(2, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                    "Role Play Expansion (15 Player)", Arrays.asList(ChatColor.GREEN + "You own this!")));
-                            inv.setItem(3, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                    "Role Play Expansion (20 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
-                                    ChatColor.GREEN + "$350", ChatColor.RED + "This can't be undone!")));
-                        }
-                    } else {
-                        inv.setItem(1, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                "Role Play Expansion (10 Player)", Arrays.asList(ChatColor.GREEN + "You own this!")));
-                        inv.setItem(2, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                "Role Play Expansion (15 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
-                                ChatColor.GREEN + "$300", ChatColor.RED + "This can't be undone!")));
-                        inv.setItem(3, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                "Role Play Expansion (20 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
-                                ChatColor.GREEN + "$350", ChatColor.RED + "This can't be undone!")));
-                    }
-                } else {
-                    inv.setItem(1, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                            "Role Play Expansion (10 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
-                            ChatColor.GREEN + "$250", ChatColor.RED + "This can't be undone!")));
-                    inv.setItem(2, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                            "Role Play Expansion (15 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
-                            ChatColor.GREEN + "$300", ChatColor.RED + "This can't be undone!")));
-                    inv.setItem(3, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                            "Role Play Expansion (20 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
-                            ChatColor.GREEN + "$350", ChatColor.RED + "This can't be undone!")));
-                }
-                if (data.hasRPTag()) {
-                    inv.setItem(11, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Role Play Tag",
-                            Arrays.asList(ChatColor.GREEN + "You own this!")));
-                } else {
-                    inv.setItem(11, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Role Play Tag",
-                            Arrays.asList(ChatColor.YELLOW + "Price: " + ChatColor.GREEN + "✪ 100", ChatColor.RED +
-                                    "This can't be undone!")));
-                }
-                if (api.getPlayerPlots(Bukkit.getWorld("plotworld"), player).size() == 1) {
-                    inv.setItem(13, purchase);
-                }
-                if (data.hasShowCreator()) {
-                    inv.setItem(15, ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Show Creator",
-                            Arrays.asList(ChatColor.GREEN + "You own this!")));
-                } else {
-                    inv.setItem(15, ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Show Creator",
-                            Arrays.asList(ChatColor.YELLOW + "Price: " + ChatColor.GREEN + "$500", ChatColor.RED +
-                                    "This can't be undone!")));
-                }
-                inv.setItem(22, back);
-                player.openInventory(inv);
-                break;
-            }
-            case PLOT_SETTINGS: {
-                Plot plot = api.getPlot(player);
-                HashMap<Flag<?>, Object> flags = plot.getFlags();
-                long time = 3000;
-                boolean flightEnabled = false;
-                PlotWeather weather = PlotWeather.CLEAR;
-                for (Map.Entry<Flag<?>, Object> entry : flags.entrySet()) {
-                    if (entry.getKey().getName().equalsIgnoreCase("time")) {
-                        time = (long) entry.getValue();
-                    } else if (entry.getKey().getName().equalsIgnoreCase("weather")) {
-                        weather = (PlotWeather) entry.getValue();
-                    }
-                    else if (entry.getKey().getName().equalsIgnoreCase("flight")) {
-                        flightEnabled = (boolean) entry.getValue();
-                    }
-                }
-                Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Plot Settings");
-                List<String> current = Arrays.asList(ChatColor.YELLOW + "Currently Selected!");
-                List<String> not = Arrays.asList(ChatColor.GRAY + "Click to Select!");
-                inv.setItem(2, ItemUtil.create(Material.GRASS, ChatColor.GREEN + "Set the floor of your plot."));
-                inv.setItem(3, ItemUtil.create(Material.DOUBLE_PLANT, ChatColor.GREEN + "Clear",
-                        weather.equals(PlotWeather.CLEAR) ? current : not));
-                inv.setItem(4, ItemUtil.create(Material.LONG_GRASS, 1, (byte) 1, ChatColor.DARK_GREEN +
-                        "Change Biome", new ArrayList<>()));
-                inv.setItem(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain",
-                        weather.equals(PlotWeather.RAIN) ? current : not));
-                inv.setItem(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? Arrays.asList(ChatColor.YELLOW + "Visitors can fly.") : Arrays.asList(ChatColor.GRAY + "Visitors can not fly.")));
-                CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
-                if (cPlayer.getRank() != Rank.SETTLER) {
-                    inv.setItem(13, ItemUtil.create(Material.GREEN_RECORD, ChatColor.GREEN + "Set park loop music."));
-                }
-
-                inv.setItem(9, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "6AM", time == 0 ? current : not));
-                inv.setItem(10, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "9AM", time == 3000 ? current : not));
-                inv.setItem(11, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "12PM", time == 6000 ? current : not));
-                inv.setItem(12, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "3PM", time == 9000 ? current : not));
-                inv.setItem(14, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "6PM", time == 12000 ? current : not));
-                inv.setItem(15, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "9PM", time == 15000 ? current : not));
-                inv.setItem(16, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "12AM", time == 18000 ? current : not));
-                inv.setItem(17, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "3AM", time == 21000 ? current : not));
-                inv.setItem(22, back);
-                player.openInventory(inv);
-                break;
-            }
-            case CHANGE_BIOME: {
-                Plot plot = api.getPlot(player);
-                String biome = plot.getBiome();
-                List<String> empty = new ArrayList<>();
-                List<String> selected = Arrays.asList(ChatColor.YELLOW + "Currently Selected");
-                Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Change Biome");
-                inv.setItem(10, ItemUtil.create(Material.LONG_GRASS, 1, (byte) 1, ChatColor.GREEN +
-                        "Plains", biome.equalsIgnoreCase("plains") ? selected : empty));
-                inv.setItem(11, ItemUtil.create(Material.DEAD_BUSH, ChatColor.YELLOW + "Desert",
-                        biome.equalsIgnoreCase("desert") ? selected : empty));
-                inv.setItem(12, ItemUtil.create(Material.SAPLING, 1, (byte) 1, ChatColor.DARK_GREEN +
-                        "Forest", biome.equalsIgnoreCase("forest") ? selected : empty));
-                inv.setItem(13, ItemUtil.create(Material.VINE, ChatColor.DARK_GREEN + "Swampland",
-                        biome.equalsIgnoreCase("swampland") ? selected : empty));
-                inv.setItem(14, ItemUtil.create(Material.SAPLING, 1, (byte) 3, ChatColor.DARK_GREEN +
-                        "Jungle", biome.equalsIgnoreCase("jungle") ? selected : empty));
-                inv.setItem(15, ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 1, ChatColor.GOLD +
-                        "Mesa", biome.equalsIgnoreCase("mesa") ? selected : empty));
-                inv.setItem(16, ItemUtil.create(Material.PACKED_ICE, ChatColor.AQUA + "Ice Plains (Snow)",
-                        biome.equalsIgnoreCase("ice_flats") ? selected : empty));
-                inv.setItem(22, back);
-                player.openInventory(inv);
-                break;
             }
         }
+
+        List<MenuButton> buttons = new ArrayList<>();
+        if (owns) {
+            buttons.add(new MenuButton(4, plotTime, ImmutableMap.of(ClickType.LEFT, this::openPlotSettings)));
+        }
+
+        buttons.add(new MenuButton(10, bannerCreator, ImmutableMap.of(ClickType.LEFT, p -> plugin.getBannerUtil().openMenu(p, BannerInventoryType.SELECT_BASE))));
+        buttons.add(new MenuButton(11, myPlots, ImmutableMap.of(ClickType.LEFT, this::openMyPlots)));
+        buttons.add(new MenuButton(12, shop, ImmutableMap.of(ClickType.LEFT, this::openShop)));
+        buttons.add(new MenuButton(13, spawn, ImmutableMap.of(ClickType.LEFT, p -> {
+            p.performCommand("spawn");
+            p.closeInventory();
+        })));
+        buttons.add(new MenuButton(14, particles, ImmutableMap.of(ClickType.LEFT, p -> p.performCommand("pt"))));
+        buttons.add(new MenuButton(15, buildingPlots, ImmutableMap.of(ClickType.LEFT, this::openBuildingPlots)));
+        buttons.add(new MenuButton(16, headShop, ImmutableMap.of(ClickType.LEFT, this::openHeadShop)));
+        if (data.hasShowCreator()) {
+            buttons.add(new MenuButton(22, showCreator, ImmutableMap.of(ClickType.LEFT, p -> plugin.getShowManager().selectShow(p))));
+        }
+
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Creative Menu"), player, buttons);
+    }
+
+    public void openBuildingPlots(Player player) {
+        List<MenuButton> buttons = new ArrayList<>();
+        buttons.add(new MenuButton(22, loading));
+        Menu menu = new Menu(Bukkit.createInventory(player, 54, ChatColor.BLUE + "Building Plots"), player, buttons);
+        Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
+            final List<Plot> plotList = new ArrayList<>(PS.get().getPlots("plotworld"));
+            int i = 0;
+            for (Plot plot : plotList) {
+                if (i >= 45) {
+                    menu.setButton(new MenuButton(45, more));
+                    menu.setButton(new MenuButton(46, more));
+                    menu.setButton(new MenuButton(47, more));
+                    menu.setButton(new MenuButton(48, more));
+                    menu.setButton(new MenuButton(49, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
+                    menu.setButton(new MenuButton(50, more));
+                    menu.setButton(new MenuButton(51, more));
+                    menu.setButton(new MenuButton(52, more));
+                    menu.setButton(new MenuButton(53, more));
+                    break;
+                }
+
+                Map<ClickType, Consumer<Player>> actions = ImmutableMap.of(ClickType.LEFT, p -> {
+                    if (plot == null) {
+                        player.sendMessage(ChatColor.RED + "There was a problem performing this action! (Error Code 110)");
+                        player.closeInventory();
+                        return;
+                    }
+
+                    Location loc = getHome(plot);
+                    player.teleport(loc);
+                    player.sendMessage(ChatColor.GREEN + "Teleported to " + getOwner(plot) + "'s Plot");
+                });
+                if (plot.getMembers().contains(player.getUniqueId())) {
+                    menu.setButton(new MenuButton(i++, ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(plot) + "'s Plot " +
+                            plot.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
+                            ChatColor.YELLOW + "Member")), actions));
+                }
+
+                if (plot.getTrusted().contains(player.getUniqueId())) {
+                    menu.setButton(new MenuButton(i++, ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(plot) + "'s Plot " +
+                            plot.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
+                            ChatColor.GOLD + "" + ChatColor.ITALIC + "Trusted")), actions));
+                }
+            }
+        });
+    }
+
+    public void openHeadShop(Player player) {
+        List<MenuButton> buttons = new ArrayList<>();
+        HashMap<String, List<ItemStack>> map = Creative.getInstance().getHeadUtil().getCategories();
+        List<String> categories = new ArrayList<>(map.keySet());
+        int size = categories.size();
+        int invSize = size <= 7 ? 27 : (size <= 14 ? 36 : (size <= 21 ? 45 : 54));
+        int place = 10;
+        for (String s : categories) {
+            if (place % 9 == 8) {
+                place += 2;
+            }
+            if (place >= invSize) {
+                break;
+            }
+            ItemStack item = map.get(s).get(0).clone();
+            ItemMeta meta = item.getItemMeta();
+            meta.setDisplayName(ChatColor.GREEN + s);
+            item.setItemMeta(meta);
+            buttons.add(new MenuButton(place++, item, ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getHeadUtil().openCategory(p, s, 1))));
+        }
+
+        buttons.add(new MenuButton(invSize - 5, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
+        new Menu(Bukkit.createInventory(player, invSize, ChatColor.BLUE + "Heads"), player, buttons);
+    }
+
+    public void openMyPlots(Player player) {
+        List<MenuButton> buttons = new ArrayList<>();
+        List<Plot> plots = new ArrayList<>(api.getPlayerPlots(Bukkit.getWorld("plotworld"), player));
+        if (plots.isEmpty()) {
+            ItemStack empty = ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.RED +
+                    "You don't have any plots!", Arrays.asList(ChatColor.GREEN + "Click here to get",
+                    ChatColor.GREEN + "your own plot!"));
+            buttons.add(new MenuButton(13, empty));
+        }
+        else {
+            for (int i = 0; i < plots.size(); i++) {
+                if (i >= 7) {
+                    break;
+                }
+
+                Plot plot = plots.get(i);
+                ItemStack stack = ItemUtil.create(Material.GRASS, ChatColor.GREEN + "Plot ID: " +
+                        plot.getId().toString(), Collections.singletonList(ChatColor.GOLD +
+                        "Click to Manage this Plot!"));
+                buttons.add(new MenuButton(i + 10, stack, ImmutableMap.of(ClickType.LEFT, p -> openManagePlot(p, plot))));
+            }
+        }
+
+        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "My Plots"), player, buttons);
+    }
+
+    public void openPlotSettings(Player player) {
+        Plot plot = api.getPlot(player);
+        HashMap<Flag<?>, Object> flags = plot.getFlags();
+        long time = 3000;
+        boolean flightEnabled = false;
+        PlotWeather weather = PlotWeather.CLEAR;
+        for (Map.Entry<Flag<?>, Object> entry : flags.entrySet()) {
+            if (entry.getKey().getName().equalsIgnoreCase("time")) {
+                time = (long) entry.getValue();
+            } else if (entry.getKey().getName().equalsIgnoreCase("weather")) {
+                weather = (PlotWeather) entry.getValue();
+            }
+            else if (entry.getKey().getName().equalsIgnoreCase("flight")) {
+                flightEnabled = (boolean) entry.getValue();
+            }
+        }
+        List<String> current = Arrays.asList(ChatColor.YELLOW + "Currently Selected!");
+        List<String> not = Arrays.asList(ChatColor.GRAY + "Click to Select!");
+        List<MenuButton> buttons = new ArrayList<>();
+        buttons.add(new MenuButton(2, ItemUtil.create(Material.GRASS, ChatColor.GREEN + "Set the floor of your plot."), ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getPlotFloorUtil().open(p, 1))));
+        buttons.add(new MenuButton(3, ItemUtil.create(Material.DOUBLE_PLANT, ChatColor.GREEN + "Clear", weather.equals(PlotWeather.CLEAR) ? current : not), getWeatherAction(plot, PlotWeather.CLEAR)));
+        buttons.add(new MenuButton(4, ItemUtil.create(Material.LONG_GRASS, 1, (byte) 1, ChatColor.DARK_GREEN + "Change Biome", new ArrayList<>()), ImmutableMap.of(ClickType.LEFT, p -> openChangeBiome(p, plot))));
+        buttons.add(new MenuButton(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain", weather.equals(PlotWeather.RAIN) ? current : not), getWeatherAction(plot, PlotWeather.RAIN)));
+        buttons.add(new MenuButton(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? Arrays.asList(ChatColor.YELLOW + "Visitors can fly.") : Arrays.asList(ChatColor.GRAY + "Visitors can not fly.")), ImmutableMap.of(ClickType.LEFT, p -> {
+            BooleanFlag flag = (BooleanFlag) FlagManager.getFlag("flight");
+            boolean flight = plot.getFlag(flag, true);
+            plot.setFlag(FlagManager.getFlag("flight"), !flight);
+            plot.getPlayersInPlot().stream().map(ply -> Bukkit.getPlayer(ply.getUUID())).filter(Objects::nonNull).filter(ply -> !plot.getOwners().contains(ply.getUniqueId()) && !isStaff(ply)).forEach(ply -> ply.setAllowFlight(!flight));
+            if (!flight) {
+                p.sendMessage(ChatColor.GREEN + "You have disabled flight for visitors of your plot.");
+            }
+            else {
+                p.sendMessage(ChatColor.GREEN + "You have enabled flight for visitors of your plot.");
+            }
+
+            p.closeInventory();
+        })));
+        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+        if (cPlayer.getRank() != Rank.SETTLER) {
+            buttons.add(new MenuButton(13, ItemUtil.create(Material.GREEN_RECORD, ChatColor.GREEN + "Set park loop music."), ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParkLoopUtil().open(p, 1))));
+        }
+
+        buttons.add(new MenuButton(9, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "6AM", time == 0 ? current : not), getTimeAction(plot, 0)));
+        buttons.add(new MenuButton(10, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "9AM", time == 3000 ? current : not), getTimeAction(plot, 3000)));
+        buttons.add(new MenuButton(11, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "12PM", time == 6000 ? current : not), getTimeAction(plot, 6000)));
+        buttons.add(new MenuButton(12, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "3PM", time == 9000 ? current : not), getTimeAction(plot, 9000)));
+        buttons.add(new MenuButton(14, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "6PM", time == 12000 ? current : not), getTimeAction(plot, 12000)));
+        buttons.add(new MenuButton(15, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "9PM", time == 15000 ? current : not), getTimeAction(plot, 15000)));
+        buttons.add(new MenuButton(16, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "12AM", time == 18000 ? current : not), getTimeAction(plot, 18000)));
+        buttons.add(new MenuButton(17, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "3AM", time == 21000 ? current : not), getTimeAction(plot, 21000)));
+        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Plot Settings"), player, buttons);
+    }
+
+    private Map<ClickType, Consumer<Player>> getTimeAction(Plot plot, long time) {
+        return ImmutableMap.of(ClickType.LEFT, p -> {
+            final Flag flag = FlagManager.getFlag("time");//new Flag(FlagManager.getFlag("time", true), time);
+            Object parsed = flag.parseValue(String.valueOf(time));
+            if (plot.setFlag(flag, parsed)) {
+                p.sendMessage(ChatColor.GREEN + "Set Plot Time to " + time + "!");
+                openMenu(p);
+            } else {
+                p.sendMessage(ChatColor.RED + "Error setting Plot Time! Please report this to a Cast Member.");
+            }
+        });
+    }
+
+    public void openChangeBiome(Player player, Plot plot) {
+        List<MenuButton> buttons = new ArrayList<>();
+        String biome = plot.getBiome();
+        List<String> empty = new ArrayList<>();
+        List<String> selected = Arrays.asList(ChatColor.YELLOW + "Currently Selected");
+        buttons.add(new MenuButton(10, ItemUtil.create(Material.LONG_GRASS, 1, (byte) 1, ChatColor.GREEN +
+                "Plains", biome.equalsIgnoreCase("plains") ? selected : empty), getBiomeAction(biome, plot)));
+        buttons.add(new MenuButton(11, ItemUtil.create(Material.DEAD_BUSH, ChatColor.YELLOW + "Desert",
+                biome.equalsIgnoreCase("desert") ? selected : empty)));
+        buttons.add(new MenuButton(12, ItemUtil.create(Material.SAPLING, 1, (byte) 1, ChatColor.DARK_GREEN +
+                "Forest", biome.equalsIgnoreCase("forest") ? selected : empty)));
+        buttons.add(new MenuButton(13, ItemUtil.create(Material.VINE, ChatColor.DARK_GREEN + "Swampland",
+                biome.equalsIgnoreCase("swampland") ? selected : empty)));
+        buttons.add(new MenuButton(14, ItemUtil.create(Material.SAPLING, 1, (byte) 3, ChatColor.DARK_GREEN +
+                "Jungle", biome.equalsIgnoreCase("jungle") ? selected : empty)));
+        buttons.add(new MenuButton(15, ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 1, ChatColor.GOLD +
+                "Mesa", biome.equalsIgnoreCase("mesa") ? selected : empty)));
+        buttons.add(new MenuButton(16, ItemUtil.create(Material.PACKED_ICE, ChatColor.AQUA + "Ice Plains (Snow)",
+                biome.equalsIgnoreCase("ice_flats") ? selected : empty)));
+        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Change Biome"), player, buttons);
+    }
+
+    private Map<ClickType, Consumer<Player>> getBiomeAction(String biome, Plot plot) {
+        return ImmutableMap.of(ClickType.LEFT, p -> {
+            if (plot.getBiome().equalsIgnoreCase(biome)) {
+                p.sendMessage(ChatColor.RED + "Your plot is already set to this biome!");
+                return;
+            }
+            if (plot.getRunning() > 0) {
+                p.sendMessage(ChatColor.RED + "Your plot is currently executing a task, try again in a few minutes.");
+                return;
+            }
+            p.sendMessage(ChatColor.GREEN + "Changing your plot's biome...");
+            p.closeInventory();
+            plot.addRunning();
+            plot.setBiome(biome.toUpperCase(), () -> {
+                plot.removeRunning();
+                p.sendMessage(ChatColor.GREEN + "Your plot's biome was set to " + ChatColor.YELLOW +
+                        biome.toLowerCase());
+            });
+        });
+    }
+
+    private Map<ClickType, Consumer<Player>> getWeatherAction(Plot plot, PlotWeather plotWeather) {
+        return ImmutableMap.of(ClickType.LEFT, p -> {
+            if (plot.setFlag(FlagManager.getFlag("weather"), plotWeather)) {
+                p.sendMessage(ChatColor.GREEN + "Set Plot Weather to " + StringUtils.capitalize(plotWeather.toString().toLowerCase()) + "!");
+                openMenu(p);
+            }
+            else {
+                p.sendMessage(ChatColor.RED + "Error setting Plot Weather! Please report this to a Cast Member.");
+            }
+        });
+    }
+
+    public void openShop(Player player) {
+        List<MenuButton> buttons = new ArrayList<>();
+        PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
+        int limit = data.getRPLimit();
+        int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
+        if (limit >= 10) {
+            buttons.add(new MenuButton(1, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
+                    "Role Play Expansion (10 Player)", Arrays.asList(ChatColor.GREEN + "You own this!"))));
+        } else {
+            buttons.add(new MenuButton(1, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
+                    "Role Play Expansion (10 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
+                    ChatColor.GREEN + "$250", ChatColor.RED + "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
+                        if (balance < 250) {
+                            p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
+                            p.sendMessage(ChatColor.RED + "You can't afford this!");
+                            return;
+                        }
+
+                        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 5, 2);
+                        p.closeInventory();
+                        purchaseParticle(p);
+
+            })));
+        }
+
+        if (limit >= 15) {
+            buttons.add(new MenuButton(2, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
+                    "Role Play Expansion (15 Player)", Arrays.asList(ChatColor.GREEN + "You own this!"))));
+        } else {
+            buttons.add(new MenuButton(2, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
+                    "Role Play Expansion (15 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
+                    ChatColor.GREEN + "$300", ChatColor.RED + "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
+                        if (limit < 10) {
+                            p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
+                            p.sendMessage(ChatColor.RED + "You must purchase the previous tier first!!");
+                            return;
+                        }
+
+                        if (balance < 300) {
+                            p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
+                            p.sendMessage(ChatColor.RED + "You can't afford this!");
+                            return;
+                        }
+
+                        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
+                        p.closeInventory();
+                        purchaseParticle(p);
+                        Core.getMongoHandler().changeAmount(p.getUniqueId(), -300, "role play expansion (15 player)", CurrencyType.BALANCE, false);
+                        data.setRPLimit(15);
+                        setValue(p.getUniqueId(), "rplimit", 15);
+            })));
+        }
+
+        if (limit >= 20) {
+            buttons.add(new MenuButton(3, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
+                    "Role Play Expansion (20 Player)", Arrays.asList(ChatColor.GREEN + "You own this!"))));
+        } else {
+            buttons.add(new MenuButton(3, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
+                    "Role Play Expansion (20 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
+                    ChatColor.GREEN + "$350", ChatColor.RED + "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
+                        if (limit < 15) {
+                            p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
+                            p.sendMessage(ChatColor.RED + "You must purchase the previous tier first!!");
+                            return;
+                        }
+
+                        if (balance < 350) {
+                            p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
+                            p.sendMessage(ChatColor.RED + "You can't afford this!");
+                            return;
+                        }
+
+                        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
+                        p.closeInventory();
+                        purchaseParticle(p);
+                        Core.getMongoHandler().changeAmount(p.getUniqueId(), -350,
+                                "role play expansion (20 player)", CurrencyType.BALANCE, false);
+                        data.setRPLimit(20);
+                        setValue(p.getUniqueId(), "rplimit", 20);
+            })));
+        }
+
+        if (data.hasRPTag()) {
+            buttons.add(new MenuButton(11, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Role Play Tag",
+                    Arrays.asList(ChatColor.GREEN + "You own this!"))));
+        } else {
+            buttons.add(new MenuButton(11, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Role Play Tag",
+                    Arrays.asList(ChatColor.YELLOW + "Price: " + ChatColor.GREEN + "✪ 100", ChatColor.RED +
+                            "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
+                        int tokens = Core.getMongoHandler().getCurrency(p.getUniqueId(), CurrencyType.TOKENS);
+                        if (tokens < 100) {
+                            p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
+                            p.sendMessage(ChatColor.RED + "You can't afford this!");
+                            return;
+                        }
+
+                        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
+                        p.closeInventory();
+                        purchaseParticle(p);
+                        Core.getMongoHandler().changeAmount(p.getUniqueId(), -100,
+                                "role play tag", CurrencyType.TOKENS, false);
+                        data.setHasRPTag(true);
+                        setValue(p.getUniqueId(), "rptag", true);
+            })));
+        }
+
+        if (api.getPlayerPlots(Bukkit.getWorld("plotworld"), player).size() == 1) {
+            buttons.add(new MenuButton(13, purchase, ImmutableMap.of(ClickType.LEFT, p -> {
+                if (balance < 5000) {
+                    p.sendMessage(ChatColor.RED + "You cannot afford a Second Plot! You need "
+                            + ChatColor.GREEN + "$" + (5000 - balance) + "!");
+                    p.closeInventory();
+                    return;
+                }
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
+                p.closeInventory();
+                purchaseParticle(p);
+                Core.getMongoHandler().changeAmount(p.getUniqueId(), -5000,
+                        "second plot", CurrencyType.BALANCE, false);
+                givePlot(p, true);
+            })));
+        }
+
+        if (data.hasShowCreator()) {
+            buttons.add(new MenuButton(15, ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Show Creator",
+                    Arrays.asList(ChatColor.GREEN + "You own this!"))));
+        } else {
+            buttons.add(new MenuButton(15, ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Show Creator",
+                    Arrays.asList(ChatColor.YELLOW + "Price: " + ChatColor.GREEN + "$500", ChatColor.RED +
+                            "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
+                        if (balance < 500) {
+                            p.sendMessage(ChatColor.RED + "You cannot afford the Show Creator! You need "
+                                    + ChatColor.GREEN + "$" + (500 - balance) + "!");
+                            p.closeInventory();
+                            return;
+                        }
+                        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
+                        p.closeInventory();
+                        purchaseParticle(p);
+                        Core.getMongoHandler().changeAmount(p.getUniqueId(), -500,
+                                "show creator", CurrencyType.BALANCE, false);
+                        data.setHasShowCreator(true);
+                        p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "\nHOW TO USE: " + ChatColor.GREEN +
+                                "Type /show to use the Show Creator!\n ");
+                        setValue(p.getUniqueId(), "showcreator", true);
+            })));
+        }
+
+        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Creative Shop"), player, buttons);
+    }
+
+    public void openParticle(Player player) {
+        List<MenuButton> buttons = new ArrayList<>();
+        buttons.add(new MenuButton(4, none, ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParticleManager().clearParticle(Core.getPlayerManager().getPlayer(p)))));
+        buttons.add(new MenuButton(9, note, particleAction(note)));
+        buttons.add(new MenuButton(10, spark, particleAction(spark)));
+        buttons.add(new MenuButton(11, flame, particleAction(flame)));
+        buttons.add(new MenuButton(12, enchant, particleAction(enchant)));
+        buttons.add(new MenuButton(13, mickey, particleAction(mickey)));
+        buttons.add(new MenuButton(14, heart, particleAction(heart)));
+        buttons.add(new MenuButton(15, portal, particleAction(portal)));
+        buttons.add(new MenuButton(16, lava, particleAction(lava)));
+        buttons.add(new MenuButton(17, witch, particleAction(witch)));
+        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Particle Menu"), player, buttons);
+    }
+
+    private Map<ClickType, Consumer<Player>> particleAction(ItemStack itemStack) {
+        String name = itemStack.getItemMeta().getDisplayName();
+        return ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParticleManager().setParticle(Core.getPlayerManager().getPlayer(p), ChatColor.stripColor(name).toLowerCase(), name));
     }
 
     private String getOwner(Plot p) {
@@ -434,637 +592,8 @@ public class MenuUtil implements Listener {
         return Bukkit.getOfflinePlayer(list.get(0)).getName();
     }
 
-    @SuppressWarnings("unchecked")
-    public void handleClick(InventoryClickEvent event, CreativeInventoryType type) {
-        try {
-            final Player player = (Player) event.getWhoClicked();
-            final PlotPlayer tp = BukkitUtil.getPlayer(player);
-            ItemStack item = event.getCurrentItem();
-            if (item == null) {
-                return;
-            }
-            ItemMeta meta = item.getItemMeta();
-            if (meta == null || meta.getDisplayName() == null) {
-                return;
-            }
-            String name = ChatColor.stripColor(meta.getDisplayName());
-            boolean isBack = item.getType().equals(Material.ARROW);
-            event.setCancelled(true);
-            switch (type) {
-                case MAIN: {
-                    switch (name.toLowerCase()) {
-                        case "banner creator":
-                            Creative.getInstance().getBannerUtil().openMenu(player, BannerInventoryType.SELECT_BASE);
-                            break;
-                        case "my plots":
-                            openMenu(player, CreativeInventoryType.MY_PLOTS);
-                            break;
-                        case "creative shop":
-                            openMenu(player, CreativeInventoryType.CREATIVESHOP);
-                            break;
-                        case "plot settings":
-                            openMenu(player, CreativeInventoryType.PLOT_SETTINGS);
-                            break;
-                        case "spawn":
-                            player.performCommand("spawn");
-                            player.closeInventory();
-                            break;
-                        case "particles":
-                            player.performCommand("pt");
-                            break;
-                        case "building plots":
-                            openMenu(player, CreativeInventoryType.BUILDING_PLOTS);
-                            break;
-                        case "headshop":
-                            openMenu(player, CreativeInventoryType.HEADSHOP);
-                            break;
-                        case "show creator":
-                            Creative.getInstance().getShowManager().selectShow(player);
-                            break;
-                    }
-                    break;
-                }
-                case MY_PLOTS: {
-                    if (isBack) {
-                        openMenu(player, CreativeInventoryType.MAIN);
-                        return;
-                    }
-                    if (item.getType().equals(Material.WOOL)) {
-                        givePlot(player, true);
-                        return;
-                    }
-                    Plot pl = null;
-                    for (Plot p : new ArrayList<>(api.getPlayerPlots(player))) {
-                        if (p.getId().toString().equals(name.replace("Plot ID: ", ""))) {
-                            pl = p;
-                        }
-                    }
-                    openManagePlot(player, pl);
-                    break;
-                }
-                case MANAGE_PLOT: {
-                    if (isBack) {
-                        openMenu(player, CreativeInventoryType.MY_PLOTS);
-                        return;
-                    }
-                    Plot plot = null;
-                    for (Plot p : new ArrayList<>(api.getPlayerPlots(player))) {
-                        if (p.getId().toString().equals(event.getInventory().getName().replace(ChatColor.BLUE +
-                                "Manage Plot ", ""))) {
-                            plot = p;
-                        }
-                    }
-                    if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.MOD.getRankId()) {
-                        if (plot == null) {
-                            plot = MainUtil.getPlotFromString(tp, event.getInventory().getName().replace(ChatColor.BLUE +
-                                    "Manage Plot ", ""), false);
-                        }
-                    }
-                    if (plot == null) {
-                        player.sendMessage(ChatColor.RED + "There was a problem performing this action! (Error Code 110)");
-                        player.closeInventory();
-                        return;
-                    }
-                    switch (name.toLowerCase()) {
-                        case "add a player":
-                            openAddOrTrust(player, plot);
-                            break;
-                        case "deny a player":
-                            denying.put(player.getUniqueId(), plot);
-                            player.closeInventory();
-                            Core.getPlayerManager().getPlayer(player).getTitle().show(ChatColor.RED + "Deny a Player",
-                                    ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
-                            break;
-                        case "teleport to plot":
-                            Location loc = getHome(plot);
-                            player.teleport(loc);
-                            player.sendMessage(ChatColor.GREEN + "Teleported to Plot " + plot.getId().toString());
-                            break;
-                        case "added players":
-                            openAddedPlayers(player, tp, plot);
-                            break;
-                        case "denied players":
-                            openDeniedPlayers(player, tp, plot);
-                            break;
-                    }
-                    break;
-                }
-                case ADD_PLAYER: {
-                    Plot plawrt = null;
-                    for (Plot p : new ArrayList<>(api.getPlayerPlots(player))) {
-                        if (p.getId().toString().equals(event.getInventory().getName().replace(ChatColor.BLUE +
-                                "Add Player to Plot ", ""))) {
-                            plawrt = p;
-                        }
-                    }
-                    if (isBack) {
-                        if (plawrt == null) {
-                            openMenu(player, CreativeInventoryType.MAIN);
-                            return;
-                        }
-                        openManagePlot(player, plawrt);
-                        return;
-                    }
-                    if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.MOD.getRankId()) {
-                        if (plawrt == null) {
-                            plawrt = MainUtil.getPlotFromString(tp, event.getInventory().getName().replace(ChatColor.BLUE +
-                                    "Add Player to Plot ", ""), false);
-                        }
-                    }
-                    if (plawrt == null) {
-                        player.sendMessage(ChatColor.RED + "There was a problem performing this action! (Error Code 110)");
-                        player.closeInventory();
-                        return;
-                    }
-                    switch (name.toLowerCase()) {
-                        case "member":
-                            adding.put(player.getUniqueId(), plawrt);
-                            player.closeInventory();
-                            Core.getPlayerManager().getPlayer(player).getTitle().show(ChatColor.GREEN + "Add a Member",
-                                    ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
-                            break;
-                        case "trusted":
-                            trusting.put(player.getUniqueId(), plawrt);
-                            player.closeInventory();
-                            Core.getPlayerManager().getPlayer(player).getTitle().show(ChatColor.GREEN + "Trust a Player",
-                                    ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
-                            break;
-                    }
-                    break;
-                }
-                case BUILDING_PLOTS: {
-                    if (isBack) {
-                        openMenu(player, CreativeInventoryType.MAIN);
-                        return;
-                    }
-                    if (!name.contains(" ")) {
-                        return;
-                    }
-                    String id = name.split(" ")[2];
-                    Plot plot = null;
-                    for (PlotArea a : api.getPlotAreas(Bukkit.getWorld("plotworld"))) {
-                        plot = a.getPlot(PlotId.fromString(id));
-                        if (plot != null) break;
-                    }
-                    if (plot == null) {
-                        player.sendMessage(ChatColor.RED + "There was a problem performing this action! (Error Code 110)");
-                        player.closeInventory();
-                        return;
-                    }
-                    Location loc = getHome(plot);
-                    player.teleport(loc);
-                    player.sendMessage(ChatColor.GREEN + "Teleported to " + name);
-                    break;
-                }
-                case HEADSHOP: {
-                    if (isBack) {
-                        openMenu(player, CreativeInventoryType.MAIN);
-                        return;
-                    }
-
-                    Creative.getInstance().getHeadUtil().openCategory(player, name, 1);
-                    break;
-                }
-                case ADDED_PLAYERS: {
-                    Plot plert = null;
-                    for (Plot p : api.getPlayerPlots(player)) {
-                        if (p.getId().toString().equals(event.getInventory().getName().replace(ChatColor.BLUE +
-                                "Added Players ", ""))) {
-                            plert = p;
-                        }
-                    }
-                    if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.MOD.getRankId()) {
-                        if (plert == null) {
-                            plert = MainUtil.getPlotFromString(tp, event.getInventory().getName().replace(ChatColor.BLUE +
-                                    "Added Players ", ""), false);
-                        }
-                    }
-                    if (plert == null) {
-                        player.sendMessage(ChatColor.RED + "There was a problem performing this action! (Error Code 110)");
-                        player.closeInventory();
-                        return;
-                    }
-                    if (isBack) {
-                        openManagePlot(player, plert);
-                        return;
-                    }
-                    boolean left = event.isLeftClick();
-                    List<String> lore = item.getItemMeta().getLore();
-                    UUID uuid = UUID.fromString(ChatColor.stripColor(lore.get(lore.size() - 1)));
-                    if (event.isRightClick()) {
-                        if (plert.getTrusted().contains(uuid)) {
-                            plert.removeTrusted(uuid);
-                        } else if (plert.getMembers().contains(uuid)) {
-                            plert.removeMember(uuid);
-                        } else if (plert.getDenied().contains(uuid)) {
-                            plert.removeDenied(uuid);
-                        }
-                        player.sendMessage(ChatColor.GREEN + name + " is no longer Added to Plot " +
-                                plert.getId().toString());
-                        openAddedPlayers(player, tp, plert);
-                    } else {
-                        if (plert.getTrusted().contains(uuid)) {
-                            if (!plert.removeTrusted(uuid)) {
-                                if (plert.getDenied().contains(uuid)) {
-                                    plert.removeDenied(uuid);
-                                }
-                            }
-                            plert.addMember(uuid);
-                            EventUtil.manager.callMember(PlotPlayer.wrap(player), plert, uuid, true);
-                            player.sendMessage(ChatColor.GREEN + name + " is now a " + ChatColor.YELLOW + "Member " +
-                                    ChatColor.GREEN + "on Plot " + plert.getId().toString());
-                        } else if (plert.getMembers().contains(uuid)) {
-                            if (!plert.removeMember(uuid)) {
-                                if (plert.getDenied().contains(uuid)) {
-                                    plert.removeDenied(uuid);
-                                }
-                            }
-                            plert.addTrusted(uuid);
-                            EventUtil.manager.callTrusted(PlotPlayer.wrap(player), plert, uuid, true);
-                            player.sendMessage(ChatColor.GREEN + name + " is now " + ChatColor.GOLD + "" +
-                                    ChatColor.ITALIC + "trusted " + ChatColor.GREEN + "on Plot " +
-                                    plert.getId().toString());
-                        }
-                        openAddedPlayers(player, tp, plert);
-                    }
-                    break;
-                }
-                case CREATIVESHOP: {
-                    if (isBack) {
-                        openMenu(player, CreativeInventoryType.MAIN);
-                        return;
-                    }
-                    PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
-                    int limit = data.getRPLimit();
-                    switch (name.toLowerCase()) {
-                        case "role play expansion (10 player)": {
-                            if (limit >= 10) {
-                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
-                                player.sendMessage(ChatColor.RED + "You have this already!");
-                                return;
-                            }
-                            int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
-                            if (balance < 250) {
-                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
-                                player.sendMessage(ChatColor.RED + "You can't afford this!");
-                                return;
-                            }
-                            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
-                            player.closeInventory();
-                            purchaseParticle(player);
-                            Core.getMongoHandler().changeAmount(player.getUniqueId(), -250,
-                                    "role play expansion (10 player)", CurrencyType.BALANCE, false);
-                            data.setRPLimit(10);
-                            setValue(player.getUniqueId(), "rplimit", 10);
-                            break;
-                        }
-                        case "role play expansion (15 player)": {
-                            if (limit >= 15) {
-                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
-                                player.sendMessage(ChatColor.RED + "You have this already!");
-                                return;
-                            }
-                            if (limit < 10) {
-                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
-                                player.sendMessage(ChatColor.RED + "You must purchase the previous tier first!!");
-                                return;
-                            }
-                            int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
-                            if (balance < 300) {
-                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
-                                player.sendMessage(ChatColor.RED + "You can't afford this!");
-                                return;
-                            }
-                            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
-                            player.closeInventory();
-                            purchaseParticle(player);
-                            Core.getMongoHandler().changeAmount(player.getUniqueId(), -300,
-                                    "role play expansion (15 player)", CurrencyType.BALANCE, false);
-                            data.setRPLimit(15);
-                            setValue(player.getUniqueId(), "rplimit", 15);
-                            break;
-                        }
-                        case "role play expansion (20 player)": {
-                            if (limit >= 20) {
-                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
-                                player.sendMessage(ChatColor.RED + "You have this already!");
-                                return;
-                            }
-                            if (limit < 15) {
-                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
-                                player.sendMessage(ChatColor.RED + "You must purchase the previous tier first!!");
-                                return;
-                            }
-                            int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
-                            if (balance < 350) {
-                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
-                                player.sendMessage(ChatColor.RED + "You can't afford this!");
-                                return;
-                            }
-                            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
-                            player.closeInventory();
-                            purchaseParticle(player);
-                            Core.getMongoHandler().changeAmount(player.getUniqueId(), -350,
-                                    "role play expansion (20 player)", CurrencyType.BALANCE, false);
-                            data.setRPLimit(20);
-                            setValue(player.getUniqueId(), "rplimit", 20);
-                            break;
-                        }
-                        case "role play tag": {
-                            if (data.hasRPTag()) {
-                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
-                                player.sendMessage(ChatColor.RED + "You have this already!");
-                                return;
-                            }
-                            int tokens = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.TOKENS);
-                            if (tokens < 100) {
-                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
-                                player.sendMessage(ChatColor.RED + "You can't afford this!");
-                                return;
-                            }
-                            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
-                            player.closeInventory();
-                            purchaseParticle(player);
-                            Core.getMongoHandler().changeAmount(player.getUniqueId(), -100,
-                                    "role play tag", CurrencyType.TOKENS, false);
-                            data.setHasRPTag(true);
-                            setValue(player.getUniqueId(), "rptag", true);
-                            break;
-                        }
-                        case "purchase second plot": {
-                            int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
-                            if (balance < 5000) {
-                                player.sendMessage(ChatColor.RED + "You cannot afford a Second Plot! You need "
-                                        + ChatColor.GREEN + "$" + (5000 - balance) + "!");
-                                player.closeInventory();
-                                return;
-                            }
-                            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
-                            player.closeInventory();
-                            purchaseParticle(player);
-                            Core.getMongoHandler().changeAmount(player.getUniqueId(), -5000,
-                                    "second plot", CurrencyType.BALANCE, false);
-                            givePlot(player, true);
-                            break;
-                        }
-                        case "show creator": {
-                            int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
-                            if (data.hasShowCreator()) {
-                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 25, 1);
-                                player.sendMessage(ChatColor.RED + "You have this already!");
-                                return;
-                            }
-                            if (balance < 500) {
-                                player.sendMessage(ChatColor.RED + "You cannot afford the Show Creator! You need "
-                                        + ChatColor.GREEN + "$" + (500 - balance) + "!");
-                                player.closeInventory();
-                                return;
-                            }
-                            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
-                            player.closeInventory();
-                            purchaseParticle(player);
-                            Core.getMongoHandler().changeAmount(player.getUniqueId(), -500,
-                                    "show creator", CurrencyType.BALANCE, false);
-                            data.setHasShowCreator(true);
-                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "\nHOW TO USE: " + ChatColor.GREEN +
-                                    "Type /show to use the Show Creator!\n ");
-                            setValue(player.getUniqueId(), "showcreator", true);
-                            break;
-                        }
-                    }
-                    break;
-                }
-                case DENIED_PLAYERS: {
-                    Plot plawt = null;
-                    for (Plot p : api.getPlayerPlots(player)) {
-                        if (p.getId().toString().equals(event.getInventory().getName().replace(ChatColor.BLUE +
-                                "Denied Players ", ""))) {
-                            plawt = p;
-                        }
-                    }
-                    if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.MOD.getRankId()) {
-                        if (plawt == null) {
-                            plawt = MainUtil.getPlotFromString(tp, event.getInventory().getName().replace(ChatColor.BLUE +
-                                    "Denied Players ", ""), false);
-                        }
-                    }
-                    if (plawt == null) {
-                        player.sendMessage(ChatColor.RED + "There was a problem performing this action! (Error Code 110)");
-                        player.closeInventory();
-                        return;
-                    }
-                    if (isBack) {
-                        openManagePlot(player, plawt);
-                        return;
-                    }
-                    plawt.removeDenied(Bukkit.getOfflinePlayer(name).getUniqueId());
-                    player.sendMessage(ChatColor.GREEN + name + " is no longer Denied on Plot " + plawt.getId().toString());
-                    openDeniedPlayers(player, tp, plawt);
-                    break;
-                }
-                case PARTICLE: {
-                    if (isBack) {
-                        openMenu(player, CreativeInventoryType.MAIN);
-                        return;
-                    }
-                    if (item.getType().equals(Material.STAINED_GLASS_PANE)) {
-                        Creative.getInstance().getParticleManager().clearParticle(Core.getPlayerManager().getPlayer(player));
-                        return;
-                    }
-                    Creative.getInstance().getParticleManager().setParticle(Core.getPlayerManager().getPlayer(player), name.toLowerCase(), meta.getDisplayName());
-                    break;
-                }
-                case PLOT_SETTINGS: {
-                    if (isBack) {
-                        openMenu(player, CreativeInventoryType.MAIN);
-                        return;
-                    }
-                    Plot plot = api.getPlot(player);
-                    if (event.getSlot() == 2) {
-                        Creative.getInstance().getPlotFloorUtil().open(player, 1);
-                        return;
-                    }
-
-                    if (event.getSlot() == 4) {
-                        openMenu(player, CreativeInventoryType.CHANGE_BIOME);
-                        return;
-                    }
-
-                    if (event.getSlot() == 6) {
-                        BooleanFlag flag = (BooleanFlag) FlagManager.getFlag("flight");
-                        boolean flight = plot.getFlag(flag, true);
-                        plot.setFlag(FlagManager.getFlag("flight"), !flight);
-                        plot.getPlayersInPlot().stream().map(p -> Bukkit.getPlayer(p.getUUID())).filter(Objects::nonNull).filter(p -> !plot.getOwners().contains(p.getUniqueId()) && !isStaff(p)).forEach(p -> p.setAllowFlight(!flight));
-                        if (!flight) {
-                            player.sendMessage(ChatColor.GREEN + "You have disabled flight for visitors of your plot.");
-                        }
-                        else {
-                            player.sendMessage(ChatColor.GREEN + "You have enabled flight for visitors of your plot.");
-                        }
-
-                        player.closeInventory();
-                        return;
-                    }
-
-                    if (event.getSlot() == 13 && Core.getPlayerManager().getPlayer(player).getRank() != Rank.SETTLER) {
-                        Creative.getInstance().getParkLoopUtil().open(player);
-                        return;
-                    }
-
-                    if (event.getSlot() < 9) {
-                        //Weather
-                        PlotWeather weather = getWeather(ChatColor.stripColor(item.getItemMeta().getDisplayName()));
-                        final Flag flag = FlagManager.getFlag("weather");//new Flag(FlagManager.getFlag("weather", true), weather.getType().toLowerCase());
-                        Object parsed = flag.parseValue(weather.name());
-                        final boolean result = plot.setFlag(flag, parsed);
-                        if (result) {
-                            player.sendMessage(ChatColor.GREEN + "Set Plot Weather to " + item.getItemMeta().getDisplayName() + "!");
-                            openMenu(player, CreativeInventoryType.PLOT_SETTINGS);
-                        } else {
-                            player.sendMessage(ChatColor.RED + "Error setting Plot Weather! Please report this to a Cast Member.");
-                        }
-                        break;
-                    }
-
-                    long time = getTime(ChatColor.stripColor(item.getItemMeta().getDisplayName()));
-                    final Flag flag = FlagManager.getFlag("time");//new Flag(FlagManager.getFlag("time", true), time);
-                    Object parsed = flag.parseValue(String.valueOf(time));
-                    final boolean result = plot.setFlag(flag, parsed);
-                    if (result) {
-                        player.sendMessage(ChatColor.GREEN + "Set Plot Time to " + item.getItemMeta().getDisplayName() + "!");
-                        openMenu(player, CreativeInventoryType.PLOT_SETTINGS);
-                    } else {
-                        player.sendMessage(ChatColor.RED + "Error setting Plot Time! Please report this to a Cast Member.");
-                    }
-                    break;
-                }
-                case CHANGE_BIOME: {
-                    if (isBack) {
-                        openMenu(player, CreativeInventoryType.PLOT_SETTINGS);
-                        return;
-                    }
-                    Plot plot = api.getPlot(player);
-                    String biome = "plains";
-                    switch (event.getSlot()) {
-                        case 10:
-                            biome = "plains";
-                            break;
-                        case 11:
-                            biome = "desert";
-                            break;
-                        case 12:
-                            biome = "forest";
-                            break;
-                        case 13:
-                            biome = "swampland";
-                            break;
-                        case 14:
-                            biome = "jungle";
-                            break;
-                        case 15:
-                            biome = "mesa";
-                            break;
-                        case 16:
-                            biome = "ice_flats";
-                            break;
-                    }
-                    if (plot.getBiome().equalsIgnoreCase(biome)) {
-                        player.sendMessage(ChatColor.RED + "Your plot is already set to this biome!");
-                        return;
-                    }
-                    if (plot.getRunning() > 0) {
-                        player.sendMessage(ChatColor.RED + "Your plot is currently executing a task, try again in a few minutes.");
-                        return;
-                    }
-                    player.sendMessage(ChatColor.GREEN + "Changing your plot's biome...");
-                    player.closeInventory();
-                    plot.addRunning();
-                    String finalBiome = biome;
-                    plot.setBiome(biome.toUpperCase(), () -> {
-                        plot.removeRunning();
-                        player.sendMessage(ChatColor.GREEN + "Your plot's biome was set to " + ChatColor.YELLOW +
-                                finalBiome.toLowerCase());
-                    });
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private PlotWeather getWeather(String s) {
-        switch (s.toLowerCase()) {
-            case "clear":
-                return PlotWeather.CLEAR;
-            case "rain":
-                return PlotWeather.RAIN;
-        }
-        return PlotWeather.RESET;
-    }
-
-    private long getTime(String s) {
-        switch (s) {
-            case "6AM":
-                return 0;
-            case "9AM":
-                return 3000;
-            case "12PM":
-                return 6000;
-            case "3PM":
-                return 9000;
-            case "6PM":
-                return 12000;
-            case "9PM":
-                return 15000;
-            case "12AM":
-                return 18000;
-            case "3AM":
-                return 21000;
-        }
-        return 0;
-    }
-
     private void setValue(UUID uuid, String name, Object o) {
         Core.runTaskAsynchronously(() -> Core.getMongoHandler().setCreativeValue(uuid, name, o));
-    }
-
-    private void playRecord(Player player, String name) {
-        List<PlotPlayer> list = MainUtil.getPlotFromString(BukkitUtil.getPlayer(player), null, false).getPlayersInPlot();
-        for (PlotPlayer pl : list) {
-            Player tp = Bukkit.getPlayer(pl.getUUID());
-            tp.playEffect(tp.getLocation(), Effect.RECORD_PLAY, getId(name));
-        }
-    }
-
-    private int getId(String name) {
-        switch (name) {
-            case "13":
-                return 2256;
-            case "cat":
-                return 2257;
-            case "blocks":
-                return 2258;
-            case "chirp":
-                return 2259;
-            case "far":
-                return 2260;
-            case "mall":
-                return 2261;
-            case "mellohi":
-                return 2262;
-            case "stal":
-                return 2263;
-            case "strad":
-                return 2264;
-            case "ward":
-                return 2265;
-            case "11":
-                return 2266;
-            case "wait":
-                return 2267;
-        }
-        return 0;
     }
 
     public Location getHome(Plot plot) {
@@ -1081,21 +610,34 @@ public class MenuUtil implements Listener {
         tp.openInventory(inv);
     }
 
-    public void openManagePlot(Player tp, Plot plot) {
+    public void openManagePlot(Player player, Plot plot) {
         if (!plot.hasOwner()) {
-            tp.sendMessage(ChatColor.RED + "This plot is not owned right now!");
+            player.sendMessage(ChatColor.RED + "This plot is not owned right now!");
             return;
         }
-        Inventory manage = Bukkit.createInventory(tp, 27, ChatColor.BLUE + "Manage Plot " +
-                plot.getId().toString());
-        manage.setItem(9, network.palace.core.utils.HeadUtil.getPlayerHead(Core.getPlayerManager().getPlayer(tp)
-                .getTextureValue(), ChatColor.GREEN + "Add a Player"));
-        manage.setItem(11, deny);
-        manage.setItem(13, teleport);
-        manage.setItem(15, members);
-        manage.setItem(17, denied);
-        manage.setItem(22, back);
-        tp.openInventory(manage);
+
+        PlotPlayer plotPlayer = BukkitUtil.getPlayer(player);
+        if (plotPlayer == null) {
+            return;
+        }
+
+        List<MenuButton> buttons = new ArrayList<>();
+        new MenuButton(9, network.palace.core.utils.HeadUtil.getPlayerHead(Core.getPlayerManager().getPlayer(player).getTextureValue(), ChatColor.GREEN + "Add a Player"), ImmutableMap.of(ClickType.LEFT, p -> openAddOrTrust(p, plot)));
+        new MenuButton(11, deny, ImmutableMap.of(ClickType.LEFT, p -> {
+            denying.put(p.getUniqueId(), plot);
+            p.closeInventory();
+            p.sendTitle(ChatColor.RED + "Deny a Player", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
+        }));
+        new MenuButton(13, teleport, ImmutableMap.of(ClickType.LEFT, p -> {
+            Location location = getHome(plot);
+            p.teleport(location);
+            p.sendMessage(ChatColor.GREEN + "Teleported to Plot " + plot.getId().toString());
+            p.closeInventory();
+        }));
+        new MenuButton(15, members, ImmutableMap.of(ClickType.LEFT, p -> openAddedPlayers(p, plot)));
+        new MenuButton(17, denied, ImmutableMap.of(ClickType.LEFT, p -> openDeniedPlayers(p, plot)));
+        new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Manage Plot " + plot.getId().toString()), player, buttons);
     }
 
     public void givePlot(final Player player, boolean spawn) {
@@ -1185,14 +727,14 @@ public class MenuUtil implements Listener {
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         Creative.getInstance().getPlayerData(player.getUniqueId()).resetAction();
+        if (TextInput.hasSession(player)) {
+            return;
+        }
+
         if (!trusting.containsKey(player.getUniqueId())) {
             if (!adding.containsKey(player.getUniqueId())) {
                 if (!denying.containsKey(player.getUniqueId())) {
                     event.setCancelled(true);
-                    if (Creative.getInstance().getShowManager().isEditing(player.getUniqueId())) {
-                        Creative.getInstance().getShowManager().handleChat(event, Core.getPlayerManager().getPlayer(player));
-                        return;
-                    }
                     RolePlay rp = Creative.getInstance().getRolePlayUtil().getRolePlay(player.getUniqueId());
                     if (rp != null) {
                         rp.chat(player, event.getMessage());
@@ -1367,79 +909,111 @@ public class MenuUtil implements Listener {
         event.setCancelled(true);
     }
 
-    //@EventHandler
-    public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
-        Player player = event.getPlayer();
-        if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() >= Rank.MOD.getRankId()) {
-            return;
-        }
-        String msg = event.getMessage();
-        if (event.getMessage().startsWith("/plot")) {
-            event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "Don't use /plot anymore, use /menu!");
-        }
-    }
-
-    private void openAddedPlayers(Player player, PlotPlayer tp, Plot plot) {
-        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Added Players " + plot.getId().toString());
-        HashMap<UUID, MemberState> added = new HashMap<>();
+    private void openAddedPlayers(Player player, Plot plot) {
+        List<MenuButton> buttons = new ArrayList<>();
+        List<Entry<UUID, MemberState>> added = new ArrayList<>();
         for (UUID uuid : plot.getTrusted()) {
-            added.put(uuid, MemberState.TRUSTED);
+            added.add(new SimpleEntry<>(uuid, MemberState.TRUSTED));
         }
+
         for (UUID uuid : plot.getMembers()) {
-            added.put(uuid, MemberState.MEMBER);
+            added.add(new SimpleEntry<>(uuid, MemberState.MEMBER));
         }
-        int i = 0;
-        for (Map.Entry<UUID, MemberState> entry : added.entrySet()) {
-            if (i >= 18) {
-                break;
-            }
+
+        for (int x = 0; x < 18; x++) {
             try {
+                Entry<UUID, MemberState> entry = added.get(x);
                 UUID uuid = entry.getKey();
                 MemberState state = entry.getValue();
-                ItemStack item;
-                CPlayer cplayer = Core.getPlayerManager().getPlayer(uuid);
-                if (cplayer == null) {
-                    item = ItemUtil.create(Material.SKULL_ITEM, ChatColor.GRAY + Bukkit.getOfflinePlayer(uuid).getName());
-                    ItemMeta meta = item.getItemMeta();
-                    item.setItemMeta(meta);
-                } else {
-                    item = network.palace.core.utils.HeadUtil.getPlayerHead(cplayer.getTextureValue(), cplayer.getRank().getTagColor() + cplayer.getName());
-                    ItemMeta meta = item.getItemMeta();
-                    item.setItemMeta(meta);
+                CPlayer cPlayer = Core.getPlayerManager().getPlayer(uuid);
+                ItemStack itemStack;
+                if (cPlayer == null) {
+                    itemStack = ItemUtil.create(Material.SKULL_ITEM, ChatColor.GRAY + Bukkit.getOfflinePlayer(uuid).getName());
                 }
-                ItemMeta meta = item.getItemMeta();
+                else {
+                    itemStack = network.palace.core.utils.HeadUtil.getPlayerHead(cPlayer.getTextureValue(), cPlayer.getRank().getTagColor() + cPlayer.getName());
+                }
+
+                ItemMeta meta = itemStack.getItemMeta();
                 switch (state) {
                     case MEMBER:
-                        meta.setLore(Arrays.asList(ChatColor.GREEN + "Left-Click to change this Player from", ChatColor.YELLOW
-                                + "Member " + ChatColor.GREEN + "to " + ChatColor.GOLD + "" + ChatColor.ITALIC +
-                                "Trusted", ChatColor.RED + "Right-Click to Remove this Player!", ChatColor.BLACK +
-                                "" + uuid));
+                        meta.setLore(Arrays.asList(ChatColor.GREEN + "Left-Click to change this Player from,",
+                                ChatColor.YELLOW + "Member " + ChatColor.GREEN + "to " + ChatColor.GOLD + ChatColor.ITALIC + "Trusted",
+                                ChatColor.RED + "Right-Click to Remove this Player!", ChatColor.BLACK + "" + uuid));
+                        itemStack.setItemMeta(meta);
                         break;
                     case TRUSTED:
-                        meta.setLore(Arrays.asList(ChatColor.GREEN + "Left-Click to change this Player from", ChatColor.GOLD
-                                + "" + ChatColor.ITALIC + "Trusted " + ChatColor.GREEN + "to " + ChatColor.YELLOW +
-                                "Member", ChatColor.RED + "Right-Click to Remove this Player!", ChatColor.BLACK +
-                                "" + uuid));
+                        meta.setLore(Arrays.asList(ChatColor.GREEN + "Left-Click to change this Player from,",
+                                ChatColor.YELLOW + "Trusted " + ChatColor.GREEN + "to " + ChatColor.GOLD + ChatColor.ITALIC + "Member",
+                                ChatColor.RED + "Right-Click to Remove this Player!", ChatColor.BLACK + "" + uuid));
                         break;
                 }
-                item.setItemMeta(meta);
-                inv.addItem(item);
-            } catch (Exception ignored) {
+
+                String name = ChatColor.stripColor(meta.getDisplayName());
+                buttons.add(new MenuButton(x, itemStack, ImmutableMap.of(ClickType.LEFT, p -> {
+                    if (plot.getTrusted().contains(uuid)) {
+                        if (!plot.removeTrusted(uuid)) {
+                            if (plot.getDenied().contains(uuid)) {
+                                plot.removeDenied(uuid);
+                            }
+                        }
+
+                        plot.addMember(uuid);
+                        EventUtil.manager.callTrusted(PlotPlayer.wrap(player), plot, uuid, true);
+                        player.sendMessage(ChatColor.GREEN + name + " is now a " +
+                                ChatColor.YELLOW + "Member " + ChatColor.GREEN + "on Plot " + plot.getId().toString());
+                    }
+                    else if (plot.getMembers().contains(uuid)) {
+                        if (!plot.removeMember(uuid)) {
+                            if (plot.getDenied().contains(uuid)) {
+                                plot.removeDenied(uuid);
+                            }
+                        }
+
+                        plot.addTrusted(uuid);
+                        EventUtil.manager.callTrusted(PlotPlayer.wrap(player), plot, uuid, true);
+                        player.sendMessage(ChatColor.GREEN + name + " is now a " +
+                                ChatColor.YELLOW + "Trusted " + ChatColor.GREEN + "on Plot " + plot.getId().toString());
+                    }
+
+                    openAddedPlayers(player, plot);
+                }, ClickType.RIGHT, p -> {
+                    if (plot.getTrusted().contains(uuid)) {
+                        plot.removeTrusted(uuid);
+                    }
+                    else if (plot.getMembers().contains(uuid)) {
+                        plot.removeMember(uuid);
+                    }
+                    else if (plot.getDenied().contains(uuid)) {
+                        plot.removeDenied(uuid);
+                    }
+
+                    player.sendMessage(ChatColor.GREEN + name + " is no longer Added to Plot " +
+                            plot.getId().toString());
+                    openAddedPlayers(player, plot);
+                })));
             }
-            i++;
+            catch (Exception ignored) {
+
+            }
         }
-        inv.setItem(22, back);
-        player.openInventory(inv);
+
+        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, p -> {
+            if (plot == null) {
+                openMenu(player);
+                return;
+            }
+
+            openManagePlot(player, plot);
+        })));
+
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Added Players " + plot.getId().toString()), player, buttons);
     }
 
-    private void openDeniedPlayers(Player player, PlotPlayer tp, Plot plot) {
-        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Denied Players " + plot.getId().toString());
+    private void openDeniedPlayers(Player player, Plot plot) {
+        List<MenuButton> buttons = new ArrayList<>();
         List<UUID> denied = new ArrayList<>(plot.getDenied());
-        for (int i = 0; i < denied.size(); i++) {
-            if (i == 18) {
-                break;
-            }
+        for (int i = 0; i < 18; i++) {
             try {
                 UUID uuid = denied.get(i);
                 ItemStack item;
@@ -1448,17 +1022,29 @@ public class MenuUtil implements Listener {
                     item = ItemUtil.create(Material.SKULL_ITEM, ChatColor.GRAY + Bukkit.getOfflinePlayer(uuid).getName(),
                             Collections.singletonList(ChatColor.RED + "Click to Un-Deny this Player!"));
                 } else {
-                    item = network.palace.core.utils.HeadUtil.getPlayerHead(cplayer.getTextureValue(), cplayer.getRank().getTagColor() + cplayer.getName());
+                    item = HeadUtil.getPlayerHead(cplayer.getTextureValue(), cplayer.getRank().getTagColor() + cplayer.getName());
                     ItemMeta meta = item.getItemMeta();
                     meta.setLore(Collections.singletonList(ChatColor.RED + "Click to Un-Deny this Player!"));
                     item.setItemMeta(meta);
                 }
-                inv.addItem(item);
+                buttons.add(new MenuButton(i, item, ImmutableMap.of(ClickType.LEFT, p -> {
+                    if (plot == null) {
+                        player.sendMessage(ChatColor.RED + "There was a problem performing this action! (Error Code 110)");
+                        player.closeInventory();
+                        return;
+                    }
+
+                    plot.removeDenied(Bukkit.getOfflinePlayer(ChatColor.stripColor(item.getItemMeta().getDisplayName())).getUniqueId());
+                    player.sendMessage(ChatColor.GREEN + item.getItemMeta().getDisplayName() + " is no longer Denied on Plot " + plot.getId().toString());
+                    openDeniedPlayers(player, plot);
+                })));
             } catch (Exception ignored) {
+
             }
         }
-        inv.setItem(22, back);
-        player.openInventory(inv);
+
+        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Denied Players " + plot.getId().toString()), player, buttons);
     }
 
     private void purchaseParticle(Player player) {

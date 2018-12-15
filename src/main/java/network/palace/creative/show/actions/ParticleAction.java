@@ -1,5 +1,6 @@
 package network.palace.creative.show.actions;
 
+import java.util.Arrays;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
@@ -26,9 +27,8 @@ public class ParticleAction extends ShowAction {
     public float speed;
     public int amount;
 
-    public ParticleAction(Integer id, Show show, Long time, Particle particle, Location loc, double offsetX,
-                          double offsetY, double offsetZ, float speed, int amount) {
-        super(id, show, time == null ? 0 : time);
+    public ParticleAction(Show show, Long time, Particle particle, Location loc, double offsetX, double offsetY, double offsetZ, float speed, int amount) {
+        super(show, time == null ? 0 : time);
         DecimalFormat df = new DecimalFormat("#.##");
         df.setRoundingMode(RoundingMode.CEILING);
         this.particle = particle;
@@ -54,19 +54,13 @@ public class ParticleAction extends ShowAction {
 
     @Override
     public ItemStack getItem() {
-        return ItemUtil.create(Material.NETHER_STAR, ChatColor.AQUA + "Particle Action");
+        return ItemUtil.create(Material.NETHER_STAR, ChatColor.AQUA + "Particle Action", Arrays.asList(ChatColor.GREEN + "Time: " + (time / 1000) + " Particle: " + caps(particle == null ? "none" : ParticleUtil.getName(particle)) + " Loc: " + strLoc(loc)));
     }
 
     @Override
     public String toString() {
         return time / 1000 + " Particle " + (particle == null ? "null" : ParticleUtil.getName(particle)) + " " + loc.getX() + "," +
                 loc.getY() + "," + loc.getZ() + " " + offsetX + " " + offsetY + " " + offsetZ + " " + speed + " " + amount;
-    }
-
-    @Override
-    public String getDescription() {
-        return ChatColor.GREEN + "Time: " + (time / 1000) + " Particle: " + caps(particle == null ? "none" :
-                ParticleUtil.getName(particle)) + " Loc: " + strLoc(loc);
     }
 
     public void setParticle(Particle particle) {

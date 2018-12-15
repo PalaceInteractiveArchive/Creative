@@ -1,8 +1,12 @@
 package network.palace.creative.inventory;
 
 import java.util.List;
+import network.palace.core.Core;
+import network.palace.core.player.CPlayer;
+import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -42,12 +46,27 @@ public class Menu implements Listener {
 
     @EventHandler
     public void click(InventoryClickEvent event) {
-        if (isSameInventory(inventory)) {
+        long t = System.currentTimeMillis();
+        Inventory inv = event.getClickedInventory();
+        if (isSameInventory(inv)) {
             event.setCancelled(true);
             menuButtons.stream().filter(button -> button.getSlot() == event.getRawSlot() && button.getActions().containsKey(event.getClick())).findFirst().map(menuButton -> menuButton.getActions().get(event.getClick())).ifPresent(action -> action.accept((Player) event.getWhoClicked()));
+
+            long t2 = System.currentTimeMillis();
+            long diff = t2 - t;
+            if (diff >= 500) {
+                for (CPlayer cp : Core.getPlayerManager().getOnlinePlayers()) {
+                    if (cp == null)
+                        continue;
+                    if (cp.getRank().getRankId() >= Rank.DEVELOPER.getRankId()) {
+                        cp.sendMessage(ChatColor.RED + "Click event took " + diff + "ms! " + ChatColor.GREEN +
+                                event.getWhoClicked().getName() + " " + ChatColor.stripColor(inv.getTitle()) + " ");
+                    }
+                }
+            }
         }
     }
-
+    
     @EventHandler
     public void close(InventoryCloseEvent event) {
         if (isSameInventory(event.getInventory())) {

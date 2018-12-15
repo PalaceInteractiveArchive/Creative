@@ -2,6 +2,7 @@ package network.palace.creative.show.actions;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import network.palace.core.utils.ItemUtil;
@@ -23,8 +24,8 @@ public class FireworkAction extends ShowAction implements Listener {
     public ShowFireworkData showData;
     public int power;
 
-    public FireworkAction(Integer id, Show show, Long time, Location loc, ShowFireworkData data, int power) {
-        super(id, show, time == null ? 0 : time);
+    public FireworkAction(Show show, Long time, Location loc, ShowFireworkData data, int power) {
+        super(show, time == null ? 0 : time);
         DecimalFormat df = new DecimalFormat("#.##");
         df.setRoundingMode(RoundingMode.CEILING);
         this.show = show;
@@ -61,7 +62,7 @@ public class FireworkAction extends ShowAction implements Listener {
         // Set data
         fw.setFireworkMeta(data);
         if (instaburst) {
-            FireworkExplodeAction explode = new FireworkExplodeAction(id + 1, show, time + 50, fw);
+            FireworkExplodeAction explode = new FireworkExplodeAction(show,time + 50, fw);
             show.actions.add(explode);
         }
     }
@@ -80,21 +81,16 @@ public class FireworkAction extends ShowAction implements Listener {
 
     @Override
     public ItemStack getItem() {
-        return ItemUtil.create(Material.FIREWORK, ChatColor.AQUA + "Firework Action");
+        return ItemUtil.create(Material.FIREWORK, ChatColor.AQUA + "Firework Action", Arrays.asList(ChatColor.GREEN + "Time: " + (time / 1000) + " Type: " + showData.getType().name(),
+                ChatColor.GREEN + "Colors: " + String.join(", ", showData.getColors().stream().map(ShowColor::name).collect(Collectors.toList())),
+                ChatColor.GREEN + "Fade: " + String.join(", ", showData.getFade().stream().map(ShowColor::name).collect(Collectors.toList())),
+                ChatColor.GREEN + "Flicker: " + showData.isFlicker() + " Trail: " + showData.isTrail()));
     }
 
     @Override
     public String toString() {
         return time / 1000 + " Firework " + loc.getX() + "," + loc.getY() + "," + loc.getZ() + " " +
                 power + " " + showData.toString();
-    }
-
-    @Override
-    public String getDescription() {
-        return ChatColor.GREEN + "Time: " + (time / 1000) + " Type: " + showData.getType().name() +
-                "BREAK" + ChatColor.GREEN + "Colors: " + String.join(", ", showData.getColors().stream().map(ShowColor::name).collect(Collectors.toList())) +
-                "BREAK" + ChatColor.GREEN + "Fade: " + String.join(", ", showData.getFade().stream().map(ShowColor::name).collect(Collectors.toList())) +
-                "BREAK" + ChatColor.GREEN + "Flicker: " + showData.isFlicker() + " Trail: " + showData.isTrail();
     }
 
     public void setType(FireworkEffect.Type type) {

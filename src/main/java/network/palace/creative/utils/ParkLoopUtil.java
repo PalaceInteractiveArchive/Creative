@@ -1,6 +1,7 @@
 package network.palace.creative.utils;
 
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
@@ -25,7 +26,8 @@ import network.palace.core.dashboard.packets.audio.PacketAreaStop;
 import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
-import network.palace.creative.handlers.CreativeInventoryType;
+import network.palace.creative.inventory.Menu;
+import network.palace.creative.inventory.MenuButton;
 import network.palace.creative.show.handlers.AudioTrack;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,11 +36,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.event.inventory.ClickType;
 
 public class ParkLoopUtil {
 
@@ -144,130 +142,72 @@ public class ParkLoopUtil {
         Creative.getInstance().getLogger().info("Plot audio loops created.");
     }
 
-    public void open(Player player) {
-        int page = 1;
-        if (player.hasMetadata("page")) {
-            page = player.getMetadata("page").get(0).asInt();
-        }
-
-        Inventory inv = Bukkit.createInventory(player, 36, ChatColor.BLUE + "Select Park Loop");
+    public void open(Player player, int page) {
+        List<MenuButton> buttons = new ArrayList<>();
         List<AudioTrack> loops = new ArrayList<>(this.loops.values());
         for (int x = 0; x < 27; x++) {
             try {
                 AudioTrack track = loops.get(x + (page - 1) * 27);
-                inv.setItem(x, ItemUtil.create(track.getItem(), ChatColor.GREEN + track.getName()));
+                buttons.add(new MenuButton(x, ItemUtil.create(track.getItem(), ChatColor.GREEN + track.getName()), ImmutableMap.of(ClickType.LEFT, p -> {
+                    PlotAPI api = new PlotAPI();
+                    Plot plot = api.getPlot(player);
+                    String oldAudioName = registeredAudioAreas.get(plot.getId());
+                    Audio audio = Audio.getInstance();
+                    AudioArea audioArea = audio.getByName(oldAudioName);
+                    CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+                    World world = player.getWorld();
+                    if (audioArea != null) {
+                        world = audioArea.getWorld();
+                        audioArea.removeAllPlayers(true);
+                        registeredAudioAreas.remove(plot.getId());
+                        audio.removeArea(audioArea);
+                        PacketHelper.sendToPlayer(new PacketAreaStop(audioArea.getAudioid(), 1000), cPlayer);
+                    }
+
+                    AudioArea newAudioArea = createRegion(track, plot, world);
+                    newAudioArea.addPlayerIfInside(cPlayer);
+                    player.sendMessage(ChatColor.GREEN + "Plot audio loop updated to " + track.getName());
+                    player.closeInventory();
+                })));
             }
             catch (IndexOutOfBoundsException ignored) {
 
             }
         }
 
-        inv.setItem(27, Creative.getInstance().getMenuUtil().last);
-        inv.setItem(30, ItemUtil.create(Material.BARRIER, ChatColor. GREEN + "None"));
-        inv.setItem(32, Creative.getInstance().getMenuUtil().back);
-        inv.setItem(35, Creative.getInstance().getMenuUtil().next);
-        player.openInventory(inv);
-    }
-
-    public void handle(InventoryClickEvent event) {
-        Player player = (Player) event.getWhoClicked();
-        ItemStack item = event.getCurrentItem();
-        if (item == null) {
-            return;
-        }
-
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null || meta.getDisplayName() == null) {
-            return;
-        }
-
-        String invname = ChatColor.stripColor(event.getInventory().getName());
-        String name = ChatColor.stripColor(meta.getDisplayName());
-        boolean isBack = item.getType() == Material.ARROW && name.equalsIgnoreCase("Back");
-        event.setCancelled(true);
-        switch (invname) {
-            case "Select Park Loop": {
-                if (isBack) {
-                    Creative.getInstance().getMenuUtil().openMenu(player, CreativeInventoryType.PLOT_SETTINGS);
-                    return;
-                }
-
-                int maxPages = new Double(Math.ceil(loops.size() / 27D)).intValue();
-                int page = 1;
-                if (player.hasMetadata("page")) {
-                    page = player.getMetadata("page").get(0).asInt();
-                }
-
-                switch (name) {
-                    case "Next Page": {
-                        if (page + 1 <= maxPages) {
-                            player.setMetadata("page", new FixedMetadataValue(Creative.getInstance(), page + 1));
-                            open(player);
-                        }
-
-                        break;
-                    }
-                    case "Last Page": {
-                        if (page - 1 > 0) {
-                            player.setMetadata("page", new FixedMetadataValue(Creative.getInstance(), page - 1));
-                            open(player);
-                        }
-
-                        break;
-                    }
-                    case "None": {
-                        player.removeMetadata("page", Creative.getInstance());
-                        PlotAPI api = new PlotAPI();
-                        Audio audio = Audio.getInstance();
-                        Plot plot = api.getPlot(player);
-                        if (!plot.getOwners().contains(player.getUniqueId())) {
-                            player.sendMessage(ChatColor.RED + "You don't have permission to change this plot's audio.");
-                            player.closeInventory();
-                            return;
-                        }
-                        String audioAreaName = registeredAudioAreas.get(plot.getId());
-                        AudioArea audioArea = audio.getByName(audioAreaName);
-                        if (audioArea != null) {
-                            audioArea.removeAllPlayers(true);
-                            registeredAudioAreas.remove(plot.getId());
-                            audio.removeArea(audioArea);
-                            Core.getPlayerManager().getOnlinePlayers().forEach(cp -> PacketHelper.sendToPlayer(new PacketAreaStop(audioArea.getAudioid(), 1000), cp));
-                        }
-
-                        player.sendMessage(ChatColor.GREEN + "Plot audio has been removed.");
-                        player.closeInventory();
-
-                        break;
-                    }
-                    default: {
-                        player.removeMetadata("page", Creative.getInstance());
-                        PlotAPI api = new PlotAPI();
-                        Plot plot = api.getPlot(player);
-                        loops.values().stream().filter(audioTrack -> name.equals(audioTrack.getName()) && plot.getOwners().contains(player.getUniqueId())).findFirst().ifPresent(audioTrack -> {
-                            String oldAudioName = registeredAudioAreas.get(plot.getId());
-                            Audio audio = Audio.getInstance();
-                            AudioArea audioArea = audio.getByName(oldAudioName);
-                            CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
-                            World world = player.getWorld();
-                            if (audioArea != null) {
-                                world = audioArea.getWorld();
-                                audioArea.removeAllPlayers(true);
-                                registeredAudioAreas.remove(plot.getId());
-                                audio.removeArea(audioArea);
-                                PacketHelper.sendToPlayer(new PacketAreaStop(audioArea.getAudioid(), 1000), cPlayer);
-                            }
-
-                            AudioArea newAudioArea = createRegion(audioTrack, plot, world);
-                            newAudioArea.addPlayerIfInside(cPlayer);
-                            player.sendMessage(ChatColor.GREEN + "Plot audio loop updated to " + name);
-                            player.closeInventory();
-                        });
-                    }
-                }
-
-                break;
+        buttons.add(new MenuButton(27, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> {
+            if (page - 1 > 0) {
+                open(p, page - 1);
             }
-        }
+        })));
+        buttons.add(new MenuButton(30, ItemUtil.create(Material.BARRIER, ChatColor. GREEN + "None"), ImmutableMap.of(ClickType.LEFT, p -> {
+            Plot plot = new PlotAPI().getPlot(p);
+            if (!plot.getOwners().contains(player.getUniqueId())) {
+                player.sendMessage(ChatColor.RED + "You don't have permission to change this plot's audio.");
+                player.closeInventory();
+                return;
+            }
+
+            String audioAreaName = registeredAudioAreas.get(plot.getId());
+            Audio audio = Audio.getInstance();
+            AudioArea audioArea = audio.getByName(audioAreaName);
+            if (audioArea != null) {
+                audioArea.removeAllPlayers(true);
+                registeredAudioAreas.remove(plot.getId());
+                audio.removeArea(audioArea);
+                Core.getPlayerManager().getOnlinePlayers().forEach(cp -> PacketHelper.sendToPlayer(new PacketAreaStop(audioArea.getAudioid(), 1000), cp));
+            }
+
+            player.sendMessage(ChatColor.GREEN + "Plot audio has been removed.");
+            player.closeInventory();
+        })));
+        buttons.add(new MenuButton(32, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, Creative.getInstance().getMenuUtil()::openMenu)));
+        buttons.add(new MenuButton(35, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> {
+            if (page + 1 <= new Double(Math.ceil(loops.size() / 27D)).intValue()) {
+                open(p, page + 1);
+            }
+        })));
+        new Menu(Bukkit.createInventory(player, 36, ChatColor.BLUE + "Select Park Loop"), player, buttons);
     }
 
     private AudioArea createRegion(AudioTrack audioTrack, Plot plot, World world) {

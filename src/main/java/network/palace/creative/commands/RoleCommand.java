@@ -11,7 +11,6 @@ import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
-import network.palace.creative.handlers.CreativeInventoryType;
 import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.handlers.RolePlay;
 import org.bukkit.Bukkit;
@@ -71,7 +70,7 @@ public class RoleCommand extends CoreCommand {
                     return;
                 }
                 case "shop": {
-                    Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer(), CreativeInventoryType.CREATIVESHOP);
+                    Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer());
                     return;
                 }
                 case "close": {

@@ -1053,7 +1053,12 @@ public class MenuUtil implements Listener {
     }
 
     public static boolean isStaff(Player player) {
-        switch (Core.getPlayerManager().getPlayer(player).getRank()) {
+        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+        if (cPlayer == null) {
+            return false;
+        }
+
+        switch (cPlayer.getRank()) {
             case SETTLER:
             case DWELLER:
             case NOBLE:

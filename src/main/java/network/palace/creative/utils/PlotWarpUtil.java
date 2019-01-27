@@ -1,5 +1,6 @@
 package network.palace.creative.utils;
 
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.io.IOException;
@@ -200,7 +201,7 @@ public class PlotWarpUtil {
             file.createNewFile();
         }
 
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration yaml = new YamlConfiguration();
         saveWarps(warps, yaml, "warps");
         saveWarps(pendingWarps, yaml, "pending");
         yaml.save(file);
@@ -218,5 +219,16 @@ public class PlotWarpUtil {
             yaml.set(path + "world", warp.getWorld().getName());
             yaml.set(path + "rank", Rank.SETTLER.toString());
         });
+    }
+
+    public void removeWarp(Warp warp) {
+        UUID uuid = getWarpOwner(warp);
+        if (uuid != null) {
+            warps.remove(uuid);
+        }
+    }
+
+    public UUID getWarpOwner(Warp warp) {
+        return HashBiMap.create(warps).inverse().get(warp);
     }
 }

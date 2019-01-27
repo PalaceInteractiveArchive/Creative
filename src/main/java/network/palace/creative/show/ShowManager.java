@@ -342,7 +342,7 @@ public class ShowManager implements Listener {
         buttons.add(new MenuButton(53, ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 5, ChatColor.GREEN + "Add Action",
                 Arrays.asList(ChatColor.GREEN + "Click to add a new Action!")), ImmutableMap.of(ClickType.LEFT, p -> openAddAction(p, show))));
         buttons.add(new MenuButton(49, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> {
-            cancelEdit(p);
+            cancelEdit(p, false);
             selectShow(p);
         })));
         buttons.add(new MenuButton(45, ItemUtil.create(Material.BARRIER, 1, (byte) 0, ChatColor.RED + "Delete All Actions", Collections.emptyList()),
@@ -355,7 +355,7 @@ public class ShowManager implements Listener {
     }
 
     public void cancelEdit(Player player) {
-        cancelEdit(player, false);
+        cancelEdit(player, true);
     }
 
     public void cancelEdit(Player player, boolean silent) {

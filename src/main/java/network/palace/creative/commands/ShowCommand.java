@@ -1,7 +1,8 @@
 package network.palace.creative.commands;
 
+import com.intellectualcrafters.plot.api.PlotAPI;
+import com.intellectualcrafters.plot.object.Plot;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -93,38 +94,46 @@ public class ShowCommand extends CoreCommand {
                 return;
             }
             case "edit": {
-                try {
-                    if (args.length > 1 || creative.getShowManager().getMaxShowAmount(player) == 1 || creative.getShowManager().getTotalShows(player) == 1) {
-                        File shows = new File("plugins/Creative/shows/" + player.getUniqueId().toString());
-                        File[] files = shows.listFiles();
-                        if (files == null) {
-                            creative.getShowManager().messagePlayer(player, ChatColor.RED + "You have not created any shows yet.");
+                if (args.length > 1 || creative.getShowManager().getMaxShowAmount(player) == 1 || creative.getShowManager().getTotalShows(player) == 1) {
+                    File shows = new File("plugins/Creative/shows/" + player.getUniqueId().toString());
+                    File[] files = shows.listFiles();
+                    if (files == null) {
+                        creative.getShowManager().messagePlayer(player, ChatColor.RED + "You have not created any shows yet.");
+                        return;
+                    }
+
+                    String name = files[0].getName().replace(".show", "");
+                    if (args.length > 1) {
+                        List<String> showName = new ArrayList<>(Arrays.asList(args));
+                        showName.remove(0);
+                        String temp = String.join(" ", showName).replace("\\W", " ");
+                        Optional<File> file = Stream.of(files).filter(f -> f.getName().contains(temp)).findFirst();
+                        if (!file.isPresent()) {
+                            player.sendMessage(ChatColor.RED + "You do not have a show named: " + temp);
                             return;
                         }
 
-                        String name = files[0].getName().replace(".show", "");
-                        if (args.length > 1) {
-                            List<String> showName = new ArrayList<>(Arrays.asList(args));
-                            showName.remove(0);
-                            String temp = String.join(" ", showName).replace("\\W", " ");
-                            Optional<File> file = Stream.of(files).filter(f -> f.getName().contains(temp)).findFirst();
-                            if (!file.isPresent()) {
-                                player.sendMessage(ChatColor.RED + "You do not have a show named: " + temp);
-                                return;
-                            }
-
-                            name = ChatColor.stripColor(temp);
-                        }
-
-                        creative.getShowManager().editShow(player, 1, name);
+                        name = ChatColor.stripColor(temp);
                     }
-                    else {
-                        creative.getShowManager().selectShow(player.getBukkitPlayer());
+
+                    File file = new File(Creative.getInstance().getDataFolder(), "shows/" + player.getUniqueId().toString() + "/" + name + ".show");
+                    if (!file.exists()) {
+                        player.sendMessage(ChatColor.RED + "A show with that name does not exist.");
+                        return;
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    player.sendMessage(ChatColor.RED + "There was an error editing your current Show! Please contact a Cast Member. (Error Code 111)");
+
+                    Plot plot = new PlotAPI().getPlot(player.getBukkitPlayer());
+                    if (plot == null || player.getUniqueId().equals(plot.getOwners().iterator().next())) {
+                        player.sendMessage(ChatColor.RED + "You must be on your own plot to edit this show.");
+                        return;
+                    }
+
+                    creative.getShowManager().editShow(player.getBukkitPlayer(), 1, new Show(file, player, plot));
                 }
+                else {
+                    creative.getShowManager().selectShow(player.getBukkitPlayer());
+                }
+
                 return;
             }
             case "reload": {

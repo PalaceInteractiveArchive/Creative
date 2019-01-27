@@ -17,6 +17,8 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import network.palace.audio.Audio;
 import network.palace.audio.handlers.AudioArea;
 import network.palace.core.Core;
@@ -254,7 +256,14 @@ public class ShowManager implements Listener {
                 p.sendTitle(ChatColor.GREEN + "Set Show Name", ChatColor.GREEN + "Type the name you want for your show.", 0, 0, 200);
                 new TextInput(p, (ply, msg) -> {
                     try {
-                        String name = ChatColor.stripColor(msg).replaceAll("\\W", " ");
+                        String name = ChatColor.stripColor(msg);
+                        Pattern pattern = Pattern.compile("[^a-zA-Z0-9_ ]");
+                        Matcher matcher = pattern.matcher(name);
+                        if (matcher.find()) {
+                            player.sendMessage(ChatColor.RED + "Show names can only contain letters, numbers, spaces and underscores (_).");
+                            return;
+                        }
+
                         File showFile = new File(userShowsDir, name + ".show");
                         if (!showFile.exists()) {
                             showFile.createNewFile();

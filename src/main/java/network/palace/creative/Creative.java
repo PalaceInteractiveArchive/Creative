@@ -53,7 +53,6 @@ import network.palace.creative.commands.TpaCommand;
 import network.palace.creative.commands.WarpCommand;
 import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.handlers.Warp;
-import network.palace.creative.itemexploit.ItemExploitHandler;
 import network.palace.creative.listeners.BlockEdit;
 import network.palace.creative.listeners.EntitySpawn;
 import network.palace.creative.listeners.InventoryClick;
@@ -108,7 +107,7 @@ public class Creative extends Plugin {
     @Getter private HeadUtil headUtil;
     @Getter private ResourceUtil resourceUtil;
     @Getter private IgnoreUtil ignoreUtil;
-    @Getter private ItemExploitHandler itemExploitHandler;
+    //@Getter private ItemExploitHandler itemExploitHandler;
     @Getter private PlotFloorUtil plotFloorUtil;
     @Getter private PlotWarpUtil plotWarpUtil;
     @Getter private HashMap<UUID, PlayerData> playerData = new HashMap<>();
@@ -151,7 +150,7 @@ public class Creative extends Plugin {
 
     @Override
     public void onPluginDisable() {
-        itemExploitHandler.saveCaughtItems();
+        //itemExploitHandler.saveCaughtItems();
         parkLoopUtil.serverShutdown();
         showManager.stopAllShows();
     }
@@ -302,7 +301,7 @@ public class Creative extends Plugin {
         registerListener(new WorldListener());
         registerListener(showManager);
         registerListener(menuUtil);
-        registerListener(itemExploitHandler = new ItemExploitHandler());
+        //registerListener(itemExploitHandler = new ItemExploitHandler());
     }
 
     public static Creative getInstance() {

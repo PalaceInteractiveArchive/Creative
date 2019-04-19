@@ -32,7 +32,7 @@ public class PlotWarpCommand extends CoreCommand {
         if (args.length > 0) {
             String name = args[0];
             if (args.length > 1) {
-                if (player.getRank() != Rank.HONORABLE && !MenuUtil.isStaff(player.getBukkitPlayer())) {
+                if (player.getRank().getRankId() < Rank.HONORABLE.getRankId()) {
                     player.sendMessage(ChatColor.RED + "You must be Honorable+ to use this command.");
                     return;
                 }

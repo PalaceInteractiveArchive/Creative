@@ -32,9 +32,8 @@ public class SetWarpCommand extends CoreCommand {
 
         if (args.length > 1) {
             try {
-                rank = Rank.valueOf(args[1].toUpperCase());
-            }
-            catch (IllegalArgumentException e) {
+                rank = Rank.fromString(args[1]);
+            } catch (IllegalArgumentException e) {
                 sender.sendMessage(args[1] + " is not a valid rank.");
                 return;
             }
@@ -44,5 +43,8 @@ public class SetWarpCommand extends CoreCommand {
                 loc.getWorld().getName(), rank);
         Creative.getInstance().createWarp(warp);
         player.sendMessage(ChatColor.GRAY + "Warp " + args[0] + " set!");
+        if (!rank.equals(Rank.SETTLER)) {
+            player.sendMessage(ChatColor.RED + "This warp is restricted to " + rank.getFormattedName() + ChatColor.RED + " and up!");
+        }
     }
 }

@@ -14,35 +14,17 @@ import com.intellectualcrafters.plot.util.EventUtil;
 import com.intellectualcrafters.plot.util.MainUtil;
 import com.intellectualcrafters.plot.util.PlotWeather;
 import com.plotsquared.bukkit.util.BukkitUtil;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 import network.palace.core.Core;
 import network.palace.core.economy.CurrencyType;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
+import network.palace.core.player.SponsorTier;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
-import network.palace.creative.handlers.BannerInventoryType;
-import network.palace.creative.handlers.CreativeInventoryType;
-import network.palace.creative.handlers.MemberState;
-import network.palace.creative.handlers.PlayerData;
-import network.palace.creative.handlers.RolePlay;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
-import org.bukkit.Effect;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import network.palace.creative.handlers.*;
+import org.bukkit.*;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.entity.Player;
@@ -57,6 +39,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.*;
 
 /**
  * Created by Marc on 7/29/15
@@ -300,23 +284,23 @@ public class MenuUtil implements Listener {
                     if (limit >= 15) {
                         if (limit >= 20) {
                             inv.setItem(1, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                    "Role Play Expansion (10 Player)", Arrays.asList(ChatColor.GREEN + "You own this!")));
+                                    "Role Play Expansion (10 Player)", Collections.singletonList(ChatColor.GREEN + "You own this!")));
                             inv.setItem(2, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                    "Role Play Expansion (15 Player)", Arrays.asList(ChatColor.GREEN + "You own this!")));
+                                    "Role Play Expansion (15 Player)", Collections.singletonList(ChatColor.GREEN + "You own this!")));
                             inv.setItem(3, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                    "Role Play Expansion (20 Player)", Arrays.asList(ChatColor.GREEN + "You own this!")));
+                                    "Role Play Expansion (20 Player)", Collections.singletonList(ChatColor.GREEN + "You own this!")));
                         } else {
                             inv.setItem(1, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                    "Role Play Expansion (10 Player)", Arrays.asList(ChatColor.GREEN + "You own this!")));
+                                    "Role Play Expansion (10 Player)", Collections.singletonList(ChatColor.GREEN + "You own this!")));
                             inv.setItem(2, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                    "Role Play Expansion (15 Player)", Arrays.asList(ChatColor.GREEN + "You own this!")));
+                                    "Role Play Expansion (15 Player)", Collections.singletonList(ChatColor.GREEN + "You own this!")));
                             inv.setItem(3, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
                                     "Role Play Expansion (20 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
                                     ChatColor.GREEN + "$350", ChatColor.RED + "This can't be undone!")));
                         }
                     } else {
                         inv.setItem(1, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
-                                "Role Play Expansion (10 Player)", Arrays.asList(ChatColor.GREEN + "You own this!")));
+                                "Role Play Expansion (10 Player)", Collections.singletonList(ChatColor.GREEN + "You own this!")));
                         inv.setItem(2, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
                                 "Role Play Expansion (15 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
                                 ChatColor.GREEN + "$300", ChatColor.RED + "This can't be undone!")));
@@ -337,7 +321,7 @@ public class MenuUtil implements Listener {
                 }
                 if (data.hasRPTag()) {
                     inv.setItem(11, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Role Play Tag",
-                            Arrays.asList(ChatColor.GREEN + "You own this!")));
+                            Collections.singletonList(ChatColor.GREEN + "You own this!")));
                 } else {
                     inv.setItem(11, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Role Play Tag",
                             Arrays.asList(ChatColor.YELLOW + "Price: " + ChatColor.GREEN + "✪ 100", ChatColor.RED +
@@ -348,7 +332,7 @@ public class MenuUtil implements Listener {
                 }
                 if (data.hasShowCreator()) {
                     inv.setItem(15, ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Show Creator",
-                            Arrays.asList(ChatColor.GREEN + "You own this!")));
+                            Collections.singletonList(ChatColor.GREEN + "You own this!")));
                 } else {
                     inv.setItem(15, ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Show Creator",
                             Arrays.asList(ChatColor.YELLOW + "Price: " + ChatColor.GREEN + "$500", ChatColor.RED +
@@ -369,14 +353,13 @@ public class MenuUtil implements Listener {
                         time = (long) entry.getValue();
                     } else if (entry.getKey().getName().equalsIgnoreCase("weather")) {
                         weather = (PlotWeather) entry.getValue();
-                    }
-                    else if (entry.getKey().getName().equalsIgnoreCase("flight")) {
+                    } else if (entry.getKey().getName().equalsIgnoreCase("flight")) {
                         flightEnabled = (boolean) entry.getValue();
                     }
                 }
                 Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Plot Settings");
-                List<String> current = Arrays.asList(ChatColor.YELLOW + "Currently Selected!");
-                List<String> not = Arrays.asList(ChatColor.GRAY + "Click to Select!");
+                List<String> current = Collections.singletonList(ChatColor.YELLOW + "Currently Selected!");
+                List<String> not = Collections.singletonList(ChatColor.GRAY + "Click to Select!");
                 inv.setItem(2, ItemUtil.create(Material.GRASS, ChatColor.GREEN + "Set the floor of your plot."));
                 inv.setItem(3, ItemUtil.create(Material.DOUBLE_PLANT, ChatColor.GREEN + "Clear",
                         weather.equals(PlotWeather.CLEAR) ? current : not));
@@ -384,7 +367,7 @@ public class MenuUtil implements Listener {
                         "Change Biome", new ArrayList<>()));
                 inv.setItem(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain",
                         weather.equals(PlotWeather.RAIN) ? current : not));
-                inv.setItem(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? Arrays.asList(ChatColor.YELLOW + "Visitors can fly.") : Arrays.asList(ChatColor.GRAY + "Visitors can not fly.")));
+                inv.setItem(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? Collections.singletonList(ChatColor.YELLOW + "Visitors can fly.") : Collections.singletonList(ChatColor.GRAY + "Visitors can not fly.")));
                 CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
                 if (cPlayer.getRank() != Rank.SETTLER) {
                     inv.setItem(13, ItemUtil.create(Material.GREEN_RECORD, ChatColor.GREEN + "Set park loop music."));
@@ -406,7 +389,7 @@ public class MenuUtil implements Listener {
                 Plot plot = api.getPlot(player);
                 String biome = plot.getBiome();
                 List<String> empty = new ArrayList<>();
-                List<String> selected = Arrays.asList(ChatColor.YELLOW + "Currently Selected");
+                List<String> selected = Collections.singletonList(ChatColor.YELLOW + "Currently Selected");
                 Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Change Biome");
                 inv.setItem(10, ItemUtil.create(Material.LONG_GRASS, 1, (byte) 1, ChatColor.GREEN +
                         "Plains", biome.equalsIgnoreCase("plains") ? selected : empty));
@@ -897,8 +880,7 @@ public class MenuUtil implements Listener {
                         plot.getPlayersInPlot().stream().map(p -> Bukkit.getPlayer(p.getUUID())).filter(Objects::nonNull).filter(p -> !plot.getOwners().contains(p.getUniqueId()) && !isStaff(p)).forEach(p -> p.setAllowFlight(!flight));
                         if (!flight) {
                             player.sendMessage(ChatColor.GREEN + "You have disabled flight for visitors of your plot.");
-                        }
-                        else {
+                        } else {
                             player.sendMessage(ChatColor.GREEN + "You have enabled flight for visitors of your plot.");
                         }
 
@@ -1189,10 +1171,6 @@ public class MenuUtil implements Listener {
             if (!adding.containsKey(player.getUniqueId())) {
                 if (!denying.containsKey(player.getUniqueId())) {
                     event.setCancelled(true);
-                    if (Creative.getInstance().getShowManager().isEditing(player.getUniqueId())) {
-                        Creative.getInstance().getShowManager().handleChat(event, Core.getPlayerManager().getPlayer(player));
-                        return;
-                    }
                     RolePlay rp = Creative.getInstance().getRolePlayUtil().getRolePlay(player.getUniqueId());
                     if (rp != null) {
                         rp.chat(player, event.getMessage());
@@ -1200,6 +1178,7 @@ public class MenuUtil implements Listener {
                     }
                     CPlayer cplayer = Core.getPlayerManager().getPlayer(player);
                     Rank rank = cplayer.getRank();
+                    SponsorTier tier = cplayer.getSponsorTier();
                     if (isChatMuted() && rank.getRankId() < Rank.TRAINEE.getRankId()) {
                         cplayer.sendMessage(ChatColor.RED + "Chat is muted right now! (You can still add/remove players and use Show Creator)");
                         return;
@@ -1212,8 +1191,8 @@ public class MenuUtil implements Listener {
                         msg = event.getMessage();
                     }
                     String messageToSend = (data.hasCreatorTag() ? (ChatColor.WHITE + "[" + ChatColor.BLUE + "Creator"
-                            + ChatColor.WHITE + "] ") : "") + rank.getFormattedName() + " " + ChatColor.GRAY +
-                            player.getName() + ": " + rank.getChatColor() + msg;
+                            + ChatColor.WHITE + "] ") : "") + tier.getChatTag(true) + rank.getFormattedName() +
+                            " " + ChatColor.GRAY + player.getName() + ": " + rank.getChatColor() + msg;
                     RolePlayUtil rolePlayUtil = Creative.getInstance().getRolePlayUtil();
                     IgnoreUtil ignoreUtil = Creative.getInstance().getIgnoreUtil();
                     for (CPlayer tp : Core.getPlayerManager().getOnlinePlayers()) {

@@ -2,9 +2,6 @@ package network.palace.creative.commands;
 
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Optional;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
 import network.palace.core.command.CoreCommand;
@@ -12,9 +9,12 @@ import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.Warp;
-import network.palace.creative.utils.MenuUtil;
 import network.palace.creative.utils.PlotWarpUtil;
 import org.bukkit.ChatColor;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Optional;
 
 @CommandMeta(description = "Player submitted warps to plots.", rank = Rank.SETTLER)
 public class PlotWarpCommand extends CoreCommand {
@@ -35,7 +35,7 @@ public class PlotWarpCommand extends CoreCommand {
                     return;
                 }
 
-                if (player.getRank() != Rank.HONORABLE && !MenuUtil.isStaff(player.getBukkitPlayer())) {
+                if (player.getRank().getRankId() < Rank.HONORABLE.getRankId()) {
                     player.sendMessage(ChatColor.RED + "You must be Honorable+ to use this command.");
                     return;
                 }
@@ -55,8 +55,7 @@ public class PlotWarpCommand extends CoreCommand {
                 try {
                     plotWarpUtil.submitWarp(args[0], player.getBukkitPlayer());
                     player.sendMessage(ChatColor.GREEN + "Your warp has been submitted. We will review it soon.");
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     player.sendMessage(ChatColor.RED + "An error has occurred. Please alert a dev!");
                     e.printStackTrace();
                 }

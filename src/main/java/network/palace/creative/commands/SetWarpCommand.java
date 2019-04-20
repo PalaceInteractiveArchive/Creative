@@ -2,7 +2,6 @@ package network.palace.creative.commands;
 
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
@@ -15,8 +14,7 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Set a warp location")
-@CommandPermission(rank = Rank.MOD)
+@CommandMeta(description = "Set a warp location", rank = Rank.MOD)
 public class SetWarpCommand extends CoreCommand {
 
     public SetWarpCommand() {
@@ -34,9 +32,8 @@ public class SetWarpCommand extends CoreCommand {
 
         if (args.length > 1) {
             try {
-                rank = Rank.valueOf(args[1].toUpperCase());
-            }
-            catch (IllegalArgumentException e) {
+                rank = Rank.fromString(args[1]);
+            } catch (IllegalArgumentException e) {
                 sender.sendMessage(args[1] + " is not a valid rank.");
                 return;
             }
@@ -46,5 +43,8 @@ public class SetWarpCommand extends CoreCommand {
                 loc.getWorld().getName(), rank);
         Creative.getInstance().createWarp(warp);
         player.sendMessage(ChatColor.GRAY + "Warp " + args[0] + " set!");
+        if (!rank.equals(Rank.SETTLER)) {
+            player.sendMessage(ChatColor.RED + "This warp is restricted to " + rank.getFormattedName() + ChatColor.RED + " and up!");
+        }
     }
 }

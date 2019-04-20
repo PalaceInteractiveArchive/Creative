@@ -1,12 +1,5 @@
 package network.palace.creative;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Stream;
 import lombok.Getter;
 import network.palace.audio.Audio;
 import network.palace.audio.handlers.AudioArea;
@@ -14,84 +7,32 @@ import network.palace.core.Core;
 import network.palace.core.player.Rank;
 import network.palace.core.plugin.Plugin;
 import network.palace.core.plugin.PluginInfo;
-import network.palace.creative.commands.BackCommand;
-import network.palace.creative.commands.BannedItemCheckCommand;
-import network.palace.creative.commands.BannerCommand;
-import network.palace.creative.commands.BroadcastCommand;
-import network.palace.creative.commands.CReloadCommand;
-import network.palace.creative.commands.CreatorCommand;
-import network.palace.creative.commands.DelWarpCommand;
-import network.palace.creative.commands.DownloadCommand;
-import network.palace.creative.commands.GiveCommand;
-import network.palace.creative.commands.HeadCommand;
-import network.palace.creative.commands.HealCommand;
-import network.palace.creative.commands.InvseeCommand;
-import network.palace.creative.commands.LogLagCommand;
-import network.palace.creative.commands.ManageCommand;
-import network.palace.creative.commands.MenuCommand;
-import network.palace.creative.commands.MoreCommand;
-import network.palace.creative.commands.MsgCommand;
-import network.palace.creative.commands.NightvisionCommand;
-import network.palace.creative.commands.PTCommand;
-import network.palace.creative.commands.PackCommand;
-import network.palace.creative.commands.PlotFloorLogCommand;
-import network.palace.creative.commands.PlotWarpCommand;
-import network.palace.creative.commands.PtimeCommand;
-import network.palace.creative.commands.PweatherCommand;
-import network.palace.creative.commands.RoleCommand;
-import network.palace.creative.commands.RulesCommand;
-import network.palace.creative.commands.SetSpawnCommand;
-import network.palace.creative.commands.SetWarpCommand;
-import network.palace.creative.commands.ShopCommand;
-import network.palace.creative.commands.ShowCommand;
-import network.palace.creative.commands.SpawnCommand;
-import network.palace.creative.commands.StarCommand;
-import network.palace.creative.commands.TpAcceptCommand;
-import network.palace.creative.commands.TpCommand;
-import network.palace.creative.commands.TpDenyCommand;
-import network.palace.creative.commands.TpaCommand;
-import network.palace.creative.commands.WarpCommand;
+import network.palace.creative.commands.*;
 import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.handlers.Warp;
 import network.palace.creative.itemexploit.ItemExploitHandler;
-import network.palace.creative.listeners.BlockEdit;
-import network.palace.creative.listeners.EntitySpawn;
-import network.palace.creative.listeners.InventoryClick;
-import network.palace.creative.listeners.PacketListener;
-import network.palace.creative.listeners.PlayerDamage;
-import network.palace.creative.listeners.PlayerInteract;
-import network.palace.creative.listeners.PlayerJoinAndLeave;
-import network.palace.creative.listeners.PlayerMove;
-import network.palace.creative.listeners.PlayerPlotListener;
-import network.palace.creative.listeners.RedstoneListener;
-import network.palace.creative.listeners.ResourceListener;
-import network.palace.creative.listeners.SignChange;
-import network.palace.creative.listeners.WorldListener;
+import network.palace.creative.listeners.*;
 import network.palace.creative.particles.ParticleManager;
 import network.palace.creative.particles.PlayParticle;
 import network.palace.creative.show.ShowManager;
-import network.palace.creative.utils.BannerUtil;
-import network.palace.creative.utils.HeadUtil;
-import network.palace.creative.utils.IgnoreUtil;
-import network.palace.creative.utils.MenuUtil;
-import network.palace.creative.utils.OnlineUtil;
-import network.palace.creative.utils.ParkLoopUtil;
-import network.palace.creative.utils.ParticleUtil;
-import network.palace.creative.utils.PlotFloorUtil;
-import network.palace.creative.utils.PlotWarpUtil;
-import network.palace.creative.utils.ResourceUtil;
-import network.palace.creative.utils.RolePlayUtil;
-import network.palace.creative.utils.TeleportUtil;
+import network.palace.creative.utils.*;
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.8")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.8.2")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -302,7 +243,7 @@ public class Creative extends Plugin {
         registerListener(new WorldListener());
         registerListener(showManager);
         registerListener(menuUtil);
-        registerListener(itemExploitHandler = new ItemExploitHandler());
+//        registerListener(itemExploitHandler = new ItemExploitHandler());
     }
 
     public static Creative getInstance() {
@@ -380,7 +321,7 @@ public class Creative extends Plugin {
             for (String item : list) {
                 Rank rank = Rank.SETTLER;
                 if (warpList.contains("warp." + item + ".rank")) {
-                    rank = Stream.of(Rank.values()).filter(r -> r.toString().toLowerCase().equals(warpList.getString("warp." + item + ".rank"))).findFirst().orElse(Rank.SETTLER);
+                    rank = Rank.fromString(warpList.getString("warp." + item + ".rank"));
                 }
 
                 Warp w = new Warp(item, warpList.getDouble("warp." + item + ".x"),

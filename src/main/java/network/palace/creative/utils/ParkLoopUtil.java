@@ -155,6 +155,10 @@ public class ParkLoopUtil {
                     Audio audio = Audio.getInstance();
                     AudioArea audioArea = audio.getByName(oldAudioName);
                     CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+                    if (cPlayer == null) {
+                        p.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
+                        return;
+                    }
                     World world = player.getWorld();
                     if (audioArea != null) {
                         world = audioArea.getWorld();

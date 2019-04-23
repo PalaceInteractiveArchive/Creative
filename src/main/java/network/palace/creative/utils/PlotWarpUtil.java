@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
 import network.palace.core.Core;
+import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
@@ -104,7 +105,13 @@ public class PlotWarpUtil {
             }
         }
 
-        if (MenuUtil.isStaff(player) && Core.getPlayerManager().getPlayer(player).getRank() != Rank.TRAINEE) {
+        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+        if (cPlayer == null) {
+            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
+            return;
+        }
+
+        if (MenuUtil.isStaff(player) && cPlayer.getRank() != Rank.TRAINEE) {
             buttons.add(new MenuButton(47, ItemUtil.create(Material.ENDER_PEARL, ChatColor.GREEN + "Review Warps"), ImmutableMap.of(ClickType.LEFT, p -> openWarpsReviewMenu(p, 1))));
         }
 

@@ -228,6 +228,11 @@ public class ShowManager implements Listener {
         File[] showFiles = userShowsDir.listFiles();
         List<MenuButton> buttons = new ArrayList<>();
         CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+        if (cPlayer == null) {
+            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
+            return;
+        }
+
         int maxShows = getMaxShowAmount(cPlayer);
         int showCount = 0;
         if (showFiles != null) {

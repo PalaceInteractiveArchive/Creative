@@ -66,7 +66,7 @@ public class Menu implements Listener {
             }
         }
     }
-    
+
     @EventHandler
     public void close(InventoryCloseEvent event) {
         if (isSameInventory(event.getInventory())) {

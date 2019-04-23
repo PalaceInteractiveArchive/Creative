@@ -14,6 +14,17 @@ import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.intellectualcrafters.plot.util.EventUtil;
 import com.intellectualcrafters.plot.util.PlotWeather;
 import com.plotsquared.bukkit.util.BukkitUtil;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
 import network.palace.core.Core;
@@ -31,7 +42,13 @@ import network.palace.creative.handlers.RolePlay;
 import network.palace.creative.inventory.Menu;
 import network.palace.creative.inventory.MenuButton;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.entity.Player;
@@ -45,11 +62,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-
-import java.util.AbstractMap.SimpleEntry;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.function.Consumer;
 
 /**
  * Created by Marc on 7/29/15
@@ -315,6 +327,11 @@ public class MenuUtil implements Listener {
             p.closeInventory();
         })));
         CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+        if (cPlayer == null) {
+            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
+            return;
+        }
+
         if (cPlayer.getRank() != Rank.SETTLER) {
             buttons.add(new MenuButton(13, ItemUtil.create(Material.GREEN_RECORD, ChatColor.GREEN + "Set park loop music."), ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParkLoopUtil().open(p, 1))));
         }
@@ -607,7 +624,13 @@ public class MenuUtil implements Listener {
         }
 
         List<MenuButton> buttons = new ArrayList<>();
-        new MenuButton(9, network.palace.core.utils.HeadUtil.getPlayerHead(Core.getPlayerManager().getPlayer(player).getTextureValue(), ChatColor.GREEN + "Add a Player"), ImmutableMap.of(ClickType.LEFT, p -> openAddOrTrust(p, plot)));
+        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+        if (cPlayer == null) {
+            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
+            return;
+        }
+
+        new MenuButton(9, network.palace.core.utils.HeadUtil.getPlayerHead(cPlayer.getTextureValue(), ChatColor.GREEN + "Add a Player"), ImmutableMap.of(ClickType.LEFT, p -> openAddOrTrust(p, plot)));
         new MenuButton(11, deny, ImmutableMap.of(ClickType.LEFT, p -> {
             denying.put(p.getUniqueId(), plot);
             p.closeInventory();
@@ -726,6 +749,11 @@ public class MenuUtil implements Listener {
                         return;
                     }
                     CPlayer cplayer = Core.getPlayerManager().getPlayer(player);
+                    if (cplayer == null) {
+                        player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
+                        return;
+                    }
+
                     Rank rank = cplayer.getRank();
                     SponsorTier tier = cplayer.getSponsorTier();
                     if (isChatMuted() && rank.getRankId() < Rank.TRAINEE.getRankId()) {
@@ -1029,7 +1057,13 @@ public class MenuUtil implements Listener {
     }
 
     private void purchaseParticle(Player player) {
-        Core.getPlayerManager().getPlayer(player).getParticles().send(player.getLocation(), Particle.FIREWORKS_SPARK,
+        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+        if (cPlayer == null) {
+            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
+            return;
+        }
+
+        cPlayer.getParticles().send(player.getLocation(), Particle.FIREWORKS_SPARK,
                 30, 0, 0, 0, 0.25f);
     }
 

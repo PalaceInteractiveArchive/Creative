@@ -58,7 +58,6 @@ import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -68,9 +67,6 @@ import org.bukkit.inventory.meta.ItemMeta;
  */
 @SuppressWarnings("deprecation")
 public class MenuUtil implements Listener {
-    private HashMap<UUID, Plot> adding = new HashMap<>();
-    private HashMap<UUID, Plot> trusting = new HashMap<>();
-    private HashMap<UUID, Plot> denying = new HashMap<>();
     private ItemStack bannerCreator = new ItemStack(Material.BANNER);
     private ItemStack plotTime = ItemUtil.create(Material.WATCH, ChatColor.GREEN + "Plot Settings");
     private ItemStack myPlots = ItemUtil.create(Material.GRASS, ChatColor.GREEN + "My Plots");
@@ -199,44 +195,49 @@ public class MenuUtil implements Listener {
         Menu menu = new Menu(Bukkit.createInventory(player, 54, ChatColor.BLUE + "Building Plots"), player, buttons);
         Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
             final List<Plot> plotList = new ArrayList<>(PS.get().getPlots("plotworld"));
-            int i = 0;
-            for (Plot plot : plotList) {
-                if (i >= 45) {
-                    menu.setButton(new MenuButton(45, more));
-                    menu.setButton(new MenuButton(46, more));
-                    menu.setButton(new MenuButton(47, more));
-                    menu.setButton(new MenuButton(48, more));
-                    menu.setButton(new MenuButton(49, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
-                    menu.setButton(new MenuButton(50, more));
-                    menu.setButton(new MenuButton(51, more));
-                    menu.setButton(new MenuButton(52, more));
-                    menu.setButton(new MenuButton(53, more));
-                    break;
-                }
-
-                Map<ClickType, Consumer<Player>> actions = ImmutableMap.of(ClickType.LEFT, p -> {
-                    if (plot == null) {
-                        player.sendMessage(ChatColor.RED + "There was a problem performing this action! (Error Code 110)");
-                        player.closeInventory();
-                        return;
+            Bukkit.getScheduler().runTask(Creative.getInstance(), () -> {
+                int i = 0;
+                for (Plot plot : plotList) {
+                    if (i >= 45) {
+                        menu.setButton(new MenuButton(45, more));
+                        menu.setButton(new MenuButton(46, more));
+                        menu.setButton(new MenuButton(47, more));
+                        menu.setButton(new MenuButton(48, more));
+                        menu.setButton(new MenuButton(49, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
+                        menu.setButton(new MenuButton(50, more));
+                        menu.setButton(new MenuButton(51, more));
+                        menu.setButton(new MenuButton(52, more));
+                        menu.setButton(new MenuButton(53, more));
+                        break;
                     }
 
-                    Location loc = getHome(plot);
-                    player.teleport(loc);
-                    player.sendMessage(ChatColor.GREEN + "Teleported to " + getOwner(plot) + "'s Plot");
-                });
-                if (plot.getMembers().contains(player.getUniqueId())) {
-                    menu.setButton(new MenuButton(i++, ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(plot) + "'s Plot " +
-                            plot.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
-                            ChatColor.YELLOW + "Member")), actions));
+                    Map<ClickType, Consumer<Player>> actions = ImmutableMap.of(ClickType.LEFT, p -> {
+                        if (plot == null) {
+                            player.sendMessage(ChatColor.RED + "There was a problem performing this action! (Error Code 110)");
+                            player.closeInventory();
+                            return;
+                        }
+
+                        Location loc = getHome(plot);
+                        player.teleport(loc);
+                        player.sendMessage(ChatColor.GREEN + "Teleported to " + getOwner(plot) + "'s Plot");
+                    });
+                    if (plot.getMembers().contains(player.getUniqueId())) {
+                        menu.setButton(new MenuButton(i++, ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(plot) + "'s Plot " +
+                                plot.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
+                                ChatColor.YELLOW + "Member")), actions));
+                    }
+
+                    if (plot.getTrusted().contains(player.getUniqueId())) {
+                        menu.setButton(new MenuButton(i++, ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(plot) + "'s Plot " +
+                                plot.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
+                                ChatColor.GOLD + "" + ChatColor.ITALIC + "Trusted")), actions));
+                    }
                 }
 
-                if (plot.getTrusted().contains(player.getUniqueId())) {
-                    menu.setButton(new MenuButton(i++, ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(plot) + "'s Plot " +
-                            plot.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
-                            ChatColor.GOLD + "" + ChatColor.ITALIC + "Trusted")), actions));
-                }
-            }
+                menu.getButton(22).filter(b -> b.getItemStack().getType() == Material.STAINED_CLAY).ifPresent(b -> menu.removeButton(22));
+                menu.setButton(new MenuButton(49, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
+            });
         });
     }
 
@@ -313,7 +314,7 @@ public class MenuUtil implements Listener {
         buttons.add(new MenuButton(3, ItemUtil.create(Material.DOUBLE_PLANT, ChatColor.GREEN + "Clear", weather.equals(PlotWeather.CLEAR) ? current : not), getWeatherAction(plot, PlotWeather.CLEAR)));
         buttons.add(new MenuButton(4, ItemUtil.create(Material.LONG_GRASS, 1, (byte) 1, ChatColor.DARK_GREEN + "Change Biome", new ArrayList<>()), ImmutableMap.of(ClickType.LEFT, p -> openChangeBiome(p, plot))));
         buttons.add(new MenuButton(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain", weather.equals(PlotWeather.RAIN) ? current : not), getWeatherAction(plot, PlotWeather.RAIN)));
-        buttons.add(new MenuButton(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? Collections.singletonList(ChatColor.YELLOW + "Visitors can fly.") : Collections.singletonList(ChatColor.GRAY + "Visitors can not fly.")), ImmutableMap.of(ClickType.LEFT, p -> {
+        buttons.add(new MenuButton(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? Collections.singletonList(ChatColor.GRAY + "Visitors can not fly.") : Collections.singletonList(ChatColor.YELLOW + "Visitors can fly.")), ImmutableMap.of(ClickType.LEFT, p -> {
             BooleanFlag flag = (BooleanFlag) FlagManager.getFlag("flight");
             boolean flight = plot.getFlag(flag, true);
             plot.setFlag(FlagManager.getFlag("flight"), !flight);
@@ -367,20 +368,20 @@ public class MenuUtil implements Listener {
         List<String> empty = new ArrayList<>();
         List<String> selected = Collections.singletonList(ChatColor.YELLOW + "Currently Selected");
         buttons.add(new MenuButton(10, ItemUtil.create(Material.LONG_GRASS, 1, (byte) 1, ChatColor.GREEN +
-                "Plains", biome.equalsIgnoreCase("plains") ? selected : empty), getBiomeAction(biome, plot)));
+                "Plains", biome.equalsIgnoreCase("plains") ? selected : empty), getBiomeAction("plains", plot)));
         buttons.add(new MenuButton(11, ItemUtil.create(Material.DEAD_BUSH, ChatColor.YELLOW + "Desert",
-                biome.equalsIgnoreCase("desert") ? selected : empty)));
+                biome.equalsIgnoreCase("desert") ? selected : empty), getBiomeAction("desert", plot)));
         buttons.add(new MenuButton(12, ItemUtil.create(Material.SAPLING, 1, (byte) 1, ChatColor.DARK_GREEN +
-                "Forest", biome.equalsIgnoreCase("forest") ? selected : empty)));
+                "Forest", biome.equalsIgnoreCase("forest") ? selected : empty), getBiomeAction("forest", plot)));
         buttons.add(new MenuButton(13, ItemUtil.create(Material.VINE, ChatColor.DARK_GREEN + "Swampland",
-                biome.equalsIgnoreCase("swampland") ? selected : empty)));
+                biome.equalsIgnoreCase("swampland") ? selected : empty), getBiomeAction("swampland", plot)));
         buttons.add(new MenuButton(14, ItemUtil.create(Material.SAPLING, 1, (byte) 3, ChatColor.DARK_GREEN +
-                "Jungle", biome.equalsIgnoreCase("jungle") ? selected : empty)));
+                "Jungle", biome.equalsIgnoreCase("jungle") ? selected : empty), getBiomeAction("jungle", plot)));
         buttons.add(new MenuButton(15, ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 1, ChatColor.GOLD +
-                "Mesa", biome.equalsIgnoreCase("mesa") ? selected : empty)));
+                "Mesa", biome.equalsIgnoreCase("mesa") ? selected : empty), getBiomeAction("mesa", plot)));
         buttons.add(new MenuButton(16, ItemUtil.create(Material.PACKED_ICE, ChatColor.AQUA + "Ice Plains (Snow)",
-                biome.equalsIgnoreCase("ice_flats") ? selected : empty)));
-        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
+                biome.equalsIgnoreCase("ice_flats") ? selected : empty), getBiomeAction("ice_flats", plot)));
+        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, p -> openManagePlot(p, plot))));
         new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Change Biome"), player, buttons);
     }
 
@@ -605,11 +606,87 @@ public class MenuUtil implements Listener {
     }
 
     private void openAddOrTrust(Player tp, Plot plot) {
-        Inventory inv = Bukkit.createInventory(tp, 27, ChatColor.BLUE + "Add Player to Plot " + plot.getId().toString());
-        inv.setItem(11, member);
-        inv.setItem(15, trusted);
-        inv.setItem(22, back);
-        tp.openInventory(inv);
+        List<MenuButton> buttons = new ArrayList<>();
+        buttons.add(new MenuButton(11, member, ImmutableMap.of(ClickType.LEFT, p -> {
+            p.closeInventory();
+            p.sendTitle(ChatColor.GREEN + "Add a Member", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
+            new TextInput(p, (ply, s) -> {
+                String owner = getOwner(plot);
+                if (s.equalsIgnoreCase(ply.getName()) && plot.getOwners().contains(ply.getUniqueId())) {
+                    ply.sendMessage(ChatColor.RED + "You're already added to this Plot!");
+                    return;
+                }
+                if (s.equals("*")) {
+                    ply.sendMessage(ChatColor.RED + "You should never add " + ChatColor.ITALIC + "everyone " +
+                            ChatColor.RED + "to your plot!");
+                    return;
+                }
+                Player op = getPlayer(s);
+                if (op == null) {
+                    ply.sendMessage(ChatColor.RED + "No player was found by that name! (They have to be online)");
+                    return;
+                }
+                if (plot.isDenied(op.getUniqueId())) {
+                    ply.sendMessage(ChatColor.RED + "This player is Denied from this Plot! You must un-deny them first.");
+                    return;
+                }
+                if ((plot.getMembers().size() + plot.getTrusted().size()) >= 18) {
+                    ply.sendMessage(ChatColor.RED + "You cannot add more than 18 people to your Plot!");
+                    return;
+                }
+                if (isAdded(plot, op)) {
+                    ply.sendMessage(ChatColor.RED + "This player is already added to this Plot!");
+                    return;
+                }
+                plot.addMember(op.getUniqueId());
+                EventUtil.manager.callMember(PlotPlayer.wrap(ply), plot, op.getUniqueId(), true);
+                ply.sendMessage(ChatColor.GREEN + "Successfully added " + op.getName() + " to Plot " +
+                        plot.getId().toString());
+                op.sendMessage(ChatColor.GREEN + "You were added to " + ChatColor.YELLOW + owner + "'s Plot! " +
+                        ChatColor.GREEN + "Use /menu to get to it.");
+            });
+        })));
+        buttons.add(new MenuButton(15, trusted, ImmutableMap.of(ClickType.LEFT, p -> {
+            p.closeInventory();
+            p.sendTitle(ChatColor.GREEN + "Add a Member", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
+            new TextInput(p, (ply, s) -> {
+                String owner = getOwner(plot);
+                if (s.equalsIgnoreCase(ply.getName()) && plot.getOwners().contains(ply.getUniqueId())) {
+                    ply.sendMessage(ChatColor.RED + "You're already added to this Plot!");
+                    return;
+                }
+                if (s.equals("*")) {
+                    ply.sendMessage(ChatColor.RED + "You should never add " + ChatColor.ITALIC + "everyone " +
+                            ChatColor.RED + "to your plot!");
+                    return;
+                }
+                Player op = getPlayer(s);
+                if (op == null) {
+                    ply.sendMessage(ChatColor.RED + "No player was found by that name! (They have to be online)");
+                    return;
+                }
+                if (plot.isDenied(op.getUniqueId())) {
+                    ply.sendMessage(ChatColor.RED + "This player is Denied from this Plot! You must un-deny them first.");
+                    return;
+                }
+                if ((plot.getMembers().size() + plot.getTrusted().size()) >= 18) {
+                    ply.sendMessage(ChatColor.RED + "You cannot add more than 18 people to your Plot!");
+                    return;
+                }
+                if (isAdded(plot, op)) {
+                    ply.sendMessage(ChatColor.RED + "This player is already added to this Plot!");
+                    return;
+                }
+                plot.addTrusted(op.getUniqueId());
+                EventUtil.manager.callTrusted(PlotPlayer.wrap(ply), plot, op.getUniqueId(), true);
+                ply.sendMessage(ChatColor.GREEN + "Successfully trusted " + op.getName() + " to Plot " +
+                        plot.getId().toString());
+                op.sendMessage(ChatColor.GREEN + "You were " + ChatColor.GOLD + ChatColor.ITALIC + "trusted " + ChatColor.GREEN
+                        + "to " + ChatColor.YELLOW + owner + "'s Plot! " + ChatColor.GREEN + "Use /menu to get to it.");
+            });
+        })));
+        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, p -> openManagePlot(p, plot))));
+        new Menu(Bukkit.createInventory(tp, 27, ChatColor.BLUE + "Add Player to Plot " + plot.getId().toString()), tp, buttons);
     }
 
     public void openManagePlot(Player player, Plot plot) {
@@ -630,21 +707,57 @@ public class MenuUtil implements Listener {
             return;
         }
 
-        new MenuButton(9, network.palace.core.utils.HeadUtil.getPlayerHead(cPlayer.getTextureValue(), ChatColor.GREEN + "Add a Player"), ImmutableMap.of(ClickType.LEFT, p -> openAddOrTrust(p, plot)));
-        new MenuButton(11, deny, ImmutableMap.of(ClickType.LEFT, p -> {
-            denying.put(p.getUniqueId(), plot);
+        buttons.add(new MenuButton(9, HeadUtil.getPlayerHead(cPlayer.getTextureValue(), ChatColor.GREEN + "Add a Player"), ImmutableMap.of(ClickType.LEFT, p -> openAddOrTrust(p, plot))));
+        buttons.add(new MenuButton(11, deny, ImmutableMap.of(ClickType.LEFT, p -> {
+            new TextInput(p, (ply, s) -> {
+                if (s.equalsIgnoreCase(player.getName()) && plot.getOwners().contains(player.getUniqueId())) {
+                    player.sendMessage(ChatColor.RED + "You cannot deny yourself, you'll never get on again!");
+                    return;
+                }
+                if (s.equals("*")) {
+                    player.sendMessage(ChatColor.RED + "You should never deny " + ChatColor.ITALIC + "everyone " +
+                            ChatColor.RED + "from your plot!");
+                    return;
+                }
+                Player tp = getPlayer(s);
+                if (tp == null) {
+                    player.sendMessage(ChatColor.RED + "No player was found by that name! (They have to be online)");
+                    return;
+                }
+                if (plot.getDenied().size() >= 18) {
+                    player.sendMessage(ChatColor.RED + "You cannot deny more than 18 people on your Plot!");
+                    return;
+                }
+                if (plot.getDenied().contains(tp.getUniqueId())) {
+                    player.sendMessage(ChatColor.RED + "This player is already denied on this Plot!");
+                    return;
+                }
+                if (api.getPlot(tp.getLocation()) != null) {
+                    if (api.getPlot(tp.getLocation()).getId().toString().equals(plot.getId().toString())) {
+                        denyTask.add(tp.getUniqueId());
+                        tp.sendMessage(ChatColor.RED + "You were denied from " + player.getName() + "'s Plot!");
+                    }
+                }
+                if (isAdded(plot, tp)) {
+                    plot.removeMember(tp.getUniqueId());
+                    plot.removeTrusted(tp.getUniqueId());
+                }
+                plot.addDenied(tp.getUniqueId());
+                player.sendMessage(ChatColor.GREEN + "Successfully denied " + tp.getName() + " from Plot " +
+                        plot.getId().toString());
+            });
             p.closeInventory();
             p.sendTitle(ChatColor.RED + "Deny a Player", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
-        }));
-        new MenuButton(13, teleport, ImmutableMap.of(ClickType.LEFT, p -> {
+        })));
+        buttons.add(new MenuButton(13, teleport, ImmutableMap.of(ClickType.LEFT, p -> {
             Location location = getHome(plot);
             p.teleport(location);
             p.sendMessage(ChatColor.GREEN + "Teleported to Plot " + plot.getId().toString());
             p.closeInventory();
-        }));
-        new MenuButton(15, members, ImmutableMap.of(ClickType.LEFT, p -> openAddedPlayers(p, plot)));
-        new MenuButton(17, denied, ImmutableMap.of(ClickType.LEFT, p -> openDeniedPlayers(p, plot)));
-        new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu));
+        })));
+        buttons.add(new MenuButton(15, members, ImmutableMap.of(ClickType.LEFT, p -> openAddedPlayers(p, plot))));
+        buttons.add(new MenuButton(17, denied, ImmutableMap.of(ClickType.LEFT, p -> openDeniedPlayers(p, plot))));
+        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMyPlots)));
         new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Manage Plot " + plot.getId().toString()), player, buttons);
     }
 
@@ -739,163 +852,44 @@ public class MenuUtil implements Listener {
             return;
         }
 
-        if (!trusting.containsKey(player.getUniqueId())) {
-            if (!adding.containsKey(player.getUniqueId())) {
-                if (!denying.containsKey(player.getUniqueId())) {
-                    event.setCancelled(true);
-                    RolePlay rp = Creative.getInstance().getRolePlayUtil().getRolePlay(player.getUniqueId());
-                    if (rp != null) {
-                        rp.chat(player, event.getMessage());
-                        return;
-                    }
-                    CPlayer cplayer = Core.getPlayerManager().getPlayer(player);
-                    if (cplayer == null) {
-                        player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
-                        return;
-                    }
-
-                    Rank rank = cplayer.getRank();
-                    SponsorTier tier = cplayer.getSponsorTier();
-                    if (isChatMuted() && rank.getRankId() < Rank.TRAINEE.getRankId()) {
-                        cplayer.sendMessage(ChatColor.RED + "Chat is muted right now! (You can still add/remove players and use Show Creator)");
-                        return;
-                    }
-                    PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
-                    String msg;
-                    if (rank.getRankId() >= Rank.TRAINEE.getRankId()) {
-                        msg = ChatColor.translateAlternateColorCodes('&', event.getMessage());
-                    } else {
-                        msg = event.getMessage();
-                    }
-                    String messageToSend = (data.hasCreatorTag() ? (ChatColor.WHITE + "[" + ChatColor.BLUE + "Creator"
-                            + ChatColor.WHITE + "] ") : "") + tier.getChatTag(true) + rank.getFormattedName() +
-                            " " + ChatColor.GRAY + player.getName() + ": " + rank.getChatColor() + msg;
-                    RolePlayUtil rolePlayUtil = Creative.getInstance().getRolePlayUtil();
-                    IgnoreUtil ignoreUtil = Creative.getInstance().getIgnoreUtil();
-                    for (CPlayer tp : Core.getPlayerManager().getOnlinePlayers()) {
-                        if (rolePlayUtil.getRolePlay(tp.getUniqueId()) != null ||
-                                (ignoreUtil.isIgnored(tp.getUniqueId(), player.getUniqueId()) &&
-                                        cplayer.getRank().getRankId() < Rank.TRAINEE.getRankId() &&
-                                        tp.getRank().getRankId() < Rank.TRAINEE.getRankId()))
-                            continue;
-                        tp.sendMessage(messageToSend);
-                    }
-                    return;
-                }
-                event.setCancelled(true);
-                String name = event.getMessage();
-                Plot plot = denying.remove(player.getUniqueId());
-                if (name.equalsIgnoreCase(player.getName()) && plot.getOwners().contains(player.getUniqueId())) {
-                    player.sendMessage(ChatColor.RED + "You cannot deny yourself, you'll never get on again!");
-                    return;
-                }
-                if (name.equals("*")) {
-                    player.sendMessage(ChatColor.RED + "You should never deny " + ChatColor.ITALIC + "everyone " +
-                            ChatColor.RED + "from your plot!");
-                    return;
-                }
-                Player tp = getPlayer(name);
-                if (tp == null) {
-                    player.sendMessage(ChatColor.RED + "No player was found by that name! (They have to be online)");
-                    return;
-                }
-                if (plot.getDenied().size() >= 18) {
-                    player.sendMessage(ChatColor.RED + "You cannot deny more than 18 people on your Plot!");
-                    return;
-                }
-                if (plot.getDenied().contains(tp.getUniqueId())) {
-                    player.sendMessage(ChatColor.RED + "This player is already denied on this Plot!");
-                    return;
-                }
-                if (api.getPlot(tp.getLocation()) != null) {
-                    if (api.getPlot(tp.getLocation()).getId().toString().equals(plot.getId().toString())) {
-                        denyTask.add(tp.getUniqueId());
-                        tp.sendMessage(ChatColor.RED + "You were denied from " + player.getName() + "'s Plot!");
-                    }
-                }
-                if (isAdded(plot, tp)) {
-                    plot.removeMember(tp.getUniqueId());
-                    plot.removeTrusted(tp.getUniqueId());
-                }
-                plot.addDenied(tp.getUniqueId());
-                player.sendMessage(ChatColor.GREEN + "Successfully denied " + tp.getName() + " from Plot " +
-                        plot.getId().toString());
-                return;
-            }
-            event.setCancelled(true);
-            String name = event.getMessage();
-            Plot plot = adding.remove(player.getUniqueId());
-            String owner = getOwner(plot);
-            if (name.equalsIgnoreCase(player.getName()) && plot.getOwners().contains(player.getUniqueId())) {
-                player.sendMessage(ChatColor.RED + "You're already added to this Plot!");
-                return;
-            }
-            if (name.equals("*")) {
-                player.sendMessage(ChatColor.RED + "You should never add " + ChatColor.ITALIC + "everyone " +
-                        ChatColor.RED + "to your plot!");
-                return;
-            }
-            Player tp = getPlayer(name);
-            if (tp == null) {
-                player.sendMessage(ChatColor.RED + "No player was found by that name! (They have to be online)");
-                return;
-            }
-            if (plot.isDenied(tp.getUniqueId())) {
-                player.sendMessage(ChatColor.RED + "This player is Denied from this Plot! You must un-deny them first.");
-                return;
-            }
-            if ((plot.getMembers().size() + plot.getTrusted().size()) >= 18) {
-                player.sendMessage(ChatColor.RED + "You cannot add more than 18 people to your Plot!");
-                return;
-            }
-            if (isAdded(plot, tp)) {
-                player.sendMessage(ChatColor.RED + "This player is already added to this Plot!");
-                return;
-            }
-            plot.addMember(tp.getUniqueId());
-            EventUtil.manager.callMember(PlotPlayer.wrap(player), plot, tp.getUniqueId(), true);
-            player.sendMessage(ChatColor.GREEN + "Successfully added " + tp.getName() + " to Plot " +
-                    plot.getId().toString());
-            tp.sendMessage(ChatColor.GREEN + "You were added to " + ChatColor.YELLOW + owner + "'s Plot! " +
-                    ChatColor.GREEN + "Use /menu to get to it.");
-            return;
-        }
         event.setCancelled(true);
-        String name = event.getMessage();
-        Plot plot = trusting.remove(player.getUniqueId());
-        String owner = getOwner(plot);
-        if (name.equalsIgnoreCase(player.getName()) && plot.getOwners().contains(player.getUniqueId())) {
-            player.sendMessage(ChatColor.RED + "You're already added to this Plot!");
+        RolePlay rp = Creative.getInstance().getRolePlayUtil().getRolePlay(player.getUniqueId());
+        if (rp != null) {
+            rp.chat(player, event.getMessage());
             return;
         }
-        if (name.equals("*")) {
-            player.sendMessage(ChatColor.RED + "You should never add " + ChatColor.ITALIC + "everyone " +
-                    ChatColor.RED + "to your plot!");
+        CPlayer cplayer = Core.getPlayerManager().getPlayer(player);
+        if (cplayer == null) {
+            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
             return;
         }
-        Player tp = getPlayer(name);
-        if (tp == null) {
-            player.sendMessage(ChatColor.RED + "No player was found by that name! (They have to be online)");
+
+        Rank rank = cplayer.getRank();
+        SponsorTier tier = cplayer.getSponsorTier();
+        if (isChatMuted() && rank.getRankId() < Rank.TRAINEE.getRankId()) {
+            cplayer.sendMessage(ChatColor.RED + "Chat is muted right now! (You can still add/remove players and use Show Creator)");
             return;
         }
-        if (plot.isDenied(tp.getUniqueId())) {
-            player.sendMessage(ChatColor.RED + "This player is Denied from this Plot! You must un-deny them first.");
-            return;
+        PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
+        String msg;
+        if (rank.getRankId() >= Rank.TRAINEE.getRankId()) {
+            msg = ChatColor.translateAlternateColorCodes('&', event.getMessage());
+        } else {
+            msg = event.getMessage();
         }
-        if ((plot.getMembers().size() + plot.getTrusted().size()) >= 18) {
-            player.sendMessage(ChatColor.RED + "You cannot add more than 18 people to your Plot!");
-            return;
+        String messageToSend = (data.hasCreatorTag() ? (ChatColor.WHITE + "[" + ChatColor.BLUE + "Creator"
+                + ChatColor.WHITE + "] ") : "") + tier.getChatTag(true) + rank.getFormattedName() +
+                " " + ChatColor.GRAY + player.getName() + ": " + rank.getChatColor() + msg;
+        RolePlayUtil rolePlayUtil = Creative.getInstance().getRolePlayUtil();
+        IgnoreUtil ignoreUtil = Creative.getInstance().getIgnoreUtil();
+        for (CPlayer tp : Core.getPlayerManager().getOnlinePlayers()) {
+            if (rolePlayUtil.getRolePlay(tp.getUniqueId()) != null ||
+                    (ignoreUtil.isIgnored(tp.getUniqueId(), player.getUniqueId()) &&
+                            cplayer.getRank().getRankId() < Rank.TRAINEE.getRankId() &&
+                            tp.getRank().getRankId() < Rank.TRAINEE.getRankId()))
+                continue;
+            tp.sendMessage(messageToSend);
         }
-        if (isAdded(plot, tp)) {
-            player.sendMessage(ChatColor.RED + "This player is already added to this Plot!");
-            return;
-        }
-        plot.addTrusted(tp.getUniqueId());
-        EventUtil.manager.callTrusted(PlotPlayer.wrap(player), plot, tp.getUniqueId(), true);
-        player.sendMessage(ChatColor.GREEN + "Successfully trusted " + tp.getName() + " to Plot " +
-                plot.getId().toString());
-        tp.sendMessage(ChatColor.GREEN + "You were " + ChatColor.GOLD + ChatColor.ITALIC + "trusted " + ChatColor.GREEN
-                + "to " + ChatColor.YELLOW + owner + "'s Plot! " + ChatColor.GREEN + "Use /menu to get to it.");
     }
 
     private boolean isAdded(Plot plot, Player tp) {

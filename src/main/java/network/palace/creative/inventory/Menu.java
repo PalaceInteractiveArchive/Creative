@@ -1,6 +1,7 @@
 package network.palace.creative.inventory;
 
 import java.util.List;
+import java.util.Optional;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -29,6 +30,10 @@ public class Menu implements Listener {
         open();
     }
 
+    public Optional<MenuButton> getButton(int slot) {
+        return menuButtons.stream().filter(b -> b.getSlot() == slot).findFirst();
+    }
+
     public void open() {
         Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> {
             inventory.clear();
@@ -36,6 +41,11 @@ public class Menu implements Listener {
             player.openInventory(inventory);
             Bukkit.getPluginManager().registerEvents(this, Creative.getInstance());
         });
+    }
+
+    public void removeButton(int slot) {
+        menuButtons.removeIf(b -> b.getSlot() == slot);
+        inventory.setItem(22, null);
     }
 
     public void setButton(MenuButton button) {
@@ -75,6 +85,14 @@ public class Menu implements Listener {
     }
 
     private boolean isSameInventory(Inventory inventory) {
+        if (inventory == null) {
+            return false;
+        }
+
+        if (this.inventory == null) {
+            return false;
+        }
+
         return inventory.getName().equals(this.inventory.getName()) && inventory.getViewers().stream().anyMatch(p -> p.getUniqueId().equals(player.getUniqueId()));
     }
 }

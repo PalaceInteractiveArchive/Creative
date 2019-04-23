@@ -102,7 +102,7 @@ public class BannerUtil {
 
     public void openMenu(Player player, BannerInventoryType type) {
         List<MenuButton> buttons = new ArrayList<>();
-        ItemStack banner = userBanners.get(player.getUniqueId());
+        ItemStack banner = userBanners.getOrDefault(player.getUniqueId(), new ItemStack(Material.BANNER));
         BannerMeta meta = (BannerMeta) banner.getItemMeta();
         buttons.add(new MenuButton(4, banner, ImmutableMap.of(ClickType.LEFT, p -> {
             p.getInventory().addItem(banner);
@@ -114,7 +114,7 @@ public class BannerUtil {
             int place = 9;
             for (ItemStack item : banners.values()) {
                 buttons.add(new MenuButton(place, item, ImmutableMap.of(ClickType.LEFT, p -> {
-                    PatternType pattern = meta.getPattern(0).getPattern();
+                    PatternType pattern = ((BannerMeta) item.getItemMeta()).getPattern(0).getPattern();
                     meta.addPattern(new Pattern(DyeColor.BLACK, pattern));
                     banner.setItemMeta(meta);
                     userBanners.put(p.getUniqueId(), banner);

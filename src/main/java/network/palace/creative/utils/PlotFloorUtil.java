@@ -189,39 +189,36 @@ public class PlotFloorUtil {
                     }
 
                     if (active.contains(plot.getId())) {
-                        if (active.contains(plot.getId())) {
-                            p.sendMessage(ChatColor.RED + "The floor of your plot is still being updated. Please wait until it is completed.");
-                            p.closeInventory();
-                            return;
-                        }
-
-                        Location minCorner = getFloorCorner(plot.getBottomAbs());
-                        Location maxCorner = getFloorCorner(plot.getTopAbs());
-                        List<Location> locations = new ArrayList<>();
-                        for (int x = minCorner.getBlockX(); x < maxCorner.getBlockX() + 1; x++) {
-                            for (int z = minCorner.getBlockZ(); z < maxCorner.getBlockZ() + 1; z++) {
-                                locations.add(new Location(p.getWorld(), x, 64, z));
-                            }
-                        }
-
-                        log(new LogSection(System.currentTimeMillis(), itemStack.getType(), p.getUniqueId()));
-                        List<List<Location>> lines = Lists.partition(locations, 10);
-                        IntStream.range(0, lines.size()).forEach(j -> Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> lines.get(j).forEach(location -> {
-                            Block original = location.getBlock();
-                            BlockState block = original.getState();
-                            block.setType(itemStack.getType());
-                            block.setData(itemStack.getData());
-                            block.update(true);
-                        }), j));
-                        Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> {
-                            p.sendMessage(ChatColor.GREEN + "Floor update complete.");
-                            active.remove(plot.getId());
-                        }, lines.size());
-                        active.add(plot.getId());
-                        p.removeMetadata("page", Creative.getInstance());
+                        p.sendMessage(ChatColor.RED + "The floor of your plot is still being updated. Please wait until it is completed.");
                         p.closeInventory();
-                        p.sendMessage(ChatColor.GREEN + "We are updating the floor to your plot. This may take a few moments.");
+                        return;
                     }
+
+                    Location minCorner = getFloorCorner(plot.getBottomAbs());
+                    Location maxCorner = getFloorCorner(plot.getTopAbs());
+                    List<Location> locations = new ArrayList<>();
+                    for (int x = minCorner.getBlockX(); x < maxCorner.getBlockX() + 1; x++) {
+                        for (int z = minCorner.getBlockZ(); z < maxCorner.getBlockZ() + 1; z++) {
+                            locations.add(new Location(p.getWorld(), x, 64, z));
+                        }
+                    }
+
+                    log(new LogSection(System.currentTimeMillis(), itemStack.getType(), p.getUniqueId()));
+                    List<List<Location>> lines = Lists.partition(locations, 10);
+                    IntStream.range(0, lines.size()).forEach(j -> Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> lines.get(j).forEach(location -> {
+                        Block original = location.getBlock();
+                        BlockState block = original.getState();
+                        block.setType(itemStack.getType());
+                        block.setData(itemStack.getData());
+                        block.update(true);
+                    }), j));
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> {
+                        p.sendMessage(ChatColor.GREEN + "Floor update complete.");
+                        active.remove(plot.getId());
+                    }, lines.size());
+                    active.add(plot.getId());
+                    p.closeInventory();
+                    p.sendMessage(ChatColor.GREEN + "We are updating the floor to your plot. This may take a few moments.");
                 })));
             }
             catch (IndexOutOfBoundsException ignored) {
@@ -230,17 +227,15 @@ public class PlotFloorUtil {
         }
 
         MenuUtil menuUtil = Creative.getInstance().getMenuUtil();
-        buttons.add(new MenuButton(45, menuUtil.last, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page - 1 > 0) {
-                open(p, page - 1);
-            }
-        })));
+        if (page - 1 > 0) {
+            buttons.add(new MenuButton(45, menuUtil.last, ImmutableMap.of(ClickType.LEFT, p -> open(p, page - 1))));
+        }
+
         buttons.add(new MenuButton(49, menuUtil.back, ImmutableMap.of(ClickType.LEFT, menuUtil::openMenu)));
-        buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page + 1 <= new Double(Math.ceil(materials.size() / 45D)).intValue()) {
-                open(p, page + 1);
-            }
-        })));
+        if (page + 1 <= new Double(Math.ceil(materials.size() / 45D)).intValue()) {
+            buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, p -> open(p, page + 1))));
+        }
+
         new Menu(Bukkit.createInventory(player, 54, ChatColor.BLUE + "Set the floor of your plot."), player, buttons);
     }
 

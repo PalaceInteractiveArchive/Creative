@@ -116,17 +116,13 @@ public class PlotWarpUtil {
         }
 
         MenuUtil menuUtil = Creative.getInstance().getMenuUtil();
-        buttons.add(new MenuButton(45, menuUtil.last, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page > 1) {
-                openWarpsMenu(p, page - 1);
-            }
-        })));
+        if (page > 1) {
+            buttons.add(new MenuButton(45, menuUtil.last, ImmutableMap.of(ClickType.LEFT, p -> openWarpsMenu(p, page - 1))));
+        }
         buttons.add(new MenuButton(49, menuUtil.back, ImmutableMap.of(ClickType.LEFT, Player::closeInventory)));
-        buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page <= new Double(Math.ceil(warps.size() / 45D)).intValue()) {
-                openWarpsMenu(p, page + 1);
-            }
-        })));
+        if (page <= new Double(Math.ceil(warps.size() / 45D)).intValue()) {
+            buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, p -> openWarpsMenu(p, page + 1))));
+        }
         new Menu(Bukkit.createInventory(player, 54, ChatColor.BLUE + "Plot Warps"), player, buttons);
     }
 
@@ -175,17 +171,15 @@ public class PlotWarpUtil {
         }
 
         MenuUtil menuUtil = Creative.getInstance().getMenuUtil();
-        buttons.add(new MenuButton(45, menuUtil.last, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page > 1) {
-                openWarpsReviewMenu(p, page - 1);
-            }
-        })));
+        if (page > 1) {
+            buttons.add(new MenuButton(45, menuUtil.last, ImmutableMap.of(ClickType.LEFT, p -> openWarpsReviewMenu(p, page - 1))));
+        }
+
         buttons.add(new MenuButton(49, menuUtil.back, ImmutableMap.of(ClickType.LEFT, p -> openWarpsMenu(p, 1))));
-        buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page <= new Double(Math.ceil(pendingWarps.size() / 45D)).intValue()) {
-                openWarpsReviewMenu(p, page + 1);
-            }
-        })));
+        if (page <= new Double(Math.ceil(pendingWarps.size() / 45D)).intValue()) {
+            buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, p -> openWarpsReviewMenu(p, page + 1))));
+        }
+
         new Menu(Bukkit.createInventory(player, 54, ChatColor.BLUE + "Pending Plot Warps"), player, buttons);
     }
 

@@ -271,6 +271,7 @@ public class ShowManager implements Listener {
 
                         File showFile = new File(userShowsDir, name + ".show");
                         if (!showFile.exists()) {
+                            ply.sendMessage(ChatColor.GREEN + "Show " + msg + ChatColor.RESET + " created.");
                             showFile.createNewFile();
                             return;
                         }
@@ -334,16 +335,12 @@ public class ShowManager implements Listener {
             }
         }
 
-        buttons.add(new MenuButton(48, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page - 1 > 0) {
-                editShow(p, page - 1, show);
-            }
-        })));
-        buttons.add(new MenuButton(50, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page + 1 <= new Double(Math.ceil(actions.size() / 45D)).intValue()) {
-                editShow(p, page + 1, show);
-            }
-        })));
+        if (page - 1 > 0) {
+            buttons.add(new MenuButton(48, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, page - 1, show))));
+        }
+        if (page + 1 <= new Double(Math.ceil(actions.size() / 45D)).intValue()) {
+            buttons.add(new MenuButton(50, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, page + 1, show))));
+        }
         buttons.add(new MenuButton(53, ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 5, ChatColor.GREEN + "Add Action",
                 Arrays.asList(ChatColor.GREEN + "Click to add a new Action!")), ImmutableMap.of(ClickType.LEFT, p -> openAddAction(p, show))));
         buttons.add(new MenuButton(49, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> {
@@ -407,17 +404,13 @@ public class ShowManager implements Listener {
             }
         }
 
-        buttons.add(new MenuButton(27, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page - 1 > 0) {
-                selectTrack(p, page - 1, show);
-            }
-        })));
+        if (page - 1 > 0) {
+            buttons.add(new MenuButton(27, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> selectTrack(p, page - 1, show))));
+        }
         buttons.add(new MenuButton(31, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, 1, show))));
-        buttons.add(new MenuButton(35, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page + 1 <= new Double(Math.ceil(audioTracks.size() / 27D)).intValue()) {
-                selectTrack(p, page + 1, show);
-            }
-        })));
+        if (page + 1 <= new Double(Math.ceil(audioTracks.size() / 27D)).intValue()) {
+            buttons.add(new MenuButton(35, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> selectTrack(p, page + 1, show))));
+        }
         new Menu(Bukkit.createInventory(player, 36, ChatColor.BLUE + "Select Track"), player, buttons);
     }
 

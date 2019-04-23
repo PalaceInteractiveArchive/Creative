@@ -126,17 +126,15 @@ public class HeadUtil {
             }
         }
 
-        buttons.add(new MenuButton(s - 9, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page - 1 > 0) {
-                openCategory(p, name, page - 1);
-            }
-        })));
-        buttons.add(new MenuButton(s - 5, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, Creative.getInstance().getMenuUtil()::openMenu)));
-        buttons.add(new MenuButton(s - 1, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page + 1 <= new Double(Math.ceil(map.get(name).size() / 45D)).intValue()) {
-                openCategory(p, name, page - 1);
-            }
-        })));
+        if (page - 1 > 0) {
+            buttons.add(new MenuButton(s - 9, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> openCategory(p, name, page - 1))));
+        }
+
+        buttons.add(new MenuButton(s - 5, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, Creative.getInstance().getMenuUtil()::openHeadShop)));
+        if (page + 1 <= new Double(Math.ceil(map.get(name).size() / 45D)).intValue()) {
+            buttons.add(new MenuButton(s - 1, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> openCategory(p, name, page + 1))));
+        }
+
         new Menu(Bukkit.createInventory(player, s, ChatColor.BLUE + "Heads - " + name + " - " + page), player, buttons);
     }
 }

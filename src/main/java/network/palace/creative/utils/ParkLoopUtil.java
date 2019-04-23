@@ -179,11 +179,10 @@ public class ParkLoopUtil {
             }
         }
 
-        buttons.add(new MenuButton(27, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page - 1 > 0) {
-                open(p, page - 1);
-            }
-        })));
+        if (page - 1 > 0) {
+            buttons.add(new MenuButton(27, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> open(p, page - 1))));
+        }
+
         buttons.add(new MenuButton(30, ItemUtil.create(Material.BARRIER, ChatColor. GREEN + "None"), ImmutableMap.of(ClickType.LEFT, p -> {
             Plot plot = new PlotAPI().getPlot(p);
             if (!plot.getOwners().contains(player.getUniqueId())) {
@@ -206,11 +205,9 @@ public class ParkLoopUtil {
             player.closeInventory();
         })));
         buttons.add(new MenuButton(32, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, Creative.getInstance().getMenuUtil()::openMenu)));
-        buttons.add(new MenuButton(35, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> {
-            if (page + 1 <= new Double(Math.ceil(loops.size() / 27D)).intValue()) {
-                open(p, page + 1);
-            }
-        })));
+        if (page + 1 <= new Double(Math.ceil(loops.size() / 27D)).intValue()) {
+            buttons.add(new MenuButton(35, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> open(p, page + 1))));
+        }
         new Menu(Bukkit.createInventory(player, 36, ChatColor.BLUE + "Select Park Loop"), player, buttons);
     }
 

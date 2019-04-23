@@ -27,7 +27,6 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 1/21/16
  */
-@SuppressWarnings("deprecation")
 @CommandMeta(description = "Creator Project", rank = Rank.SETTLER)
 public class CreatorCommand extends CoreCommand {
     private static FormattedMessage msg = new FormattedMessage("Learn how to join The Creator Project: ")

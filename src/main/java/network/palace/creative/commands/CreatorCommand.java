@@ -46,7 +46,7 @@ public class CreatorCommand extends CoreCommand {
             msg.send(player);
             return;
         }
-        //TODO Add achievements!
+
         switch (args.length) {
             case 1: {
                 switch (args[0].toLowerCase()) {

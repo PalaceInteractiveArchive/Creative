@@ -32,7 +32,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.8.4")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.8.5")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -92,7 +92,7 @@ public class Creative extends Plugin {
 
     @Override
     public void onPluginDisable() {
-        //itemExploitHandler.saveCaughtItems();
+        itemExploitHandler.saveCaughtItems();
         parkLoopUtil.serverShutdown();
         showManager.stopAllShows();
     }
@@ -189,7 +189,7 @@ public class Creative extends Plugin {
 
     private void registerCommands() {
         registerCommand(new BackCommand());
-        //registerCommand(new BannedItemCheckCommand());
+        registerCommand(new BannedItemCheckCommand());
         registerCommand(new BannerCommand());
         registerCommand(new BroadcastCommand());
         registerCommand(new CreatorCommand());
@@ -243,7 +243,7 @@ public class Creative extends Plugin {
         registerListener(new WorldListener());
         registerListener(showManager);
         registerListener(menuUtil);
-        //registerListener(itemExploitHandler = new ItemExploitHandler());
+        registerListener(itemExploitHandler = new ItemExploitHandler());
     }
 
     public static Creative getInstance() {

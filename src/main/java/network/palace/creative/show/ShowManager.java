@@ -692,7 +692,7 @@ public class ShowManager implements Listener {
         })));
         buttons.add(new MenuButton(16, ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Firework Action"), ImmutableMap.of(ClickType.LEFT, p -> {
             FireworkAction action = new FireworkAction(show, null, player.getLocation(),
-                    new ShowFireworkData(FireworkEffect.Type.BALL, Arrays.asList(ShowColor.BLACK), Arrays.asList(ShowColor.WHITE),
+                    new ShowFireworkData(FireworkEffect.Type.BALL, new ArrayList<>(Arrays.asList(ShowColor.BLACK)), new ArrayList<>(Arrays.asList(ShowColor.WHITE)),
                             false, true), 1);
             show.actions.add(action);
             editAction(p, show, action);

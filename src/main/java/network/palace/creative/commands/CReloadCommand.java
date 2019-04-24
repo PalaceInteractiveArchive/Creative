@@ -1,6 +1,5 @@
 package network.palace.creative.commands;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,7 +32,7 @@ public class CReloadCommand extends CoreCommand {
 
         String part = args[0].toLowerCase();
         switch (part) {
-            case "banneditems":
+            /*case "banneditems":
                 try {
                     plugin.getItemExploitHandler().loadBlockedItems();
                     sender.sendMessage(ChatColor.GREEN + "Blocked items reloaded successfully.");
@@ -41,7 +40,7 @@ public class CReloadCommand extends CoreCommand {
                 catch (IOException e) {
                     sender.sendMessage(ChatColor.RED + "An error has occurred while trying to read/load the blocked items.");
                 }
-                break;
+                break;*/
             case "config":
                 plugin.loadConfig();
                 sender.sendMessage(ChatColor.GREEN + "Config reloaded successfully.");

@@ -123,7 +123,7 @@ public class ShowCommand extends CoreCommand {
                     }
 
                     Plot plot = new PlotAPI().getPlot(player.getBukkitPlayer());
-                    if (plot == null || player.getUniqueId().equals(plot.getOwners().iterator().next())) {
+                    if (plot == null || !player.getUniqueId().equals(plot.getOwners().iterator().next())) {
                         player.sendMessage(ChatColor.RED + "You must be on your own plot to edit this show.");
                         return;
                     }

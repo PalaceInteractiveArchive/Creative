@@ -953,6 +953,7 @@ public class MenuUtil implements Listener {
                         meta.setLore(Arrays.asList(ChatColor.GREEN + "Left-Click to change this Player from,",
                                 ChatColor.YELLOW + "Trusted " + ChatColor.GREEN + "to " + ChatColor.GOLD + ChatColor.ITALIC + "Member",
                                 ChatColor.RED + "Right-Click to Remove this Player!", ChatColor.BLACK + "" + uuid));
+                        itemStack.setItemMeta(meta);
                         break;
                 }
 
@@ -1046,7 +1047,7 @@ public class MenuUtil implements Listener {
             }
         }
 
-        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
+        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, p -> openManagePlot(p, plot))));
         new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Denied Players " + plot.getId().toString()), player, buttons);
     }
 

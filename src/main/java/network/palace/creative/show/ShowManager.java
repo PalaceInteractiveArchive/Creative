@@ -523,11 +523,16 @@ public class ShowManager implements Listener {
     private void selectColors(Player player, Show show, FireworkAction action) {
         List<MenuButton> buttons = new ArrayList<>();
         Function<ShowColor, ImmutableMap<ClickType, Consumer<Player>>> colorAction = color -> ImmutableMap.of(ClickType.LEFT, p -> {
-            if (action.getShowData().getColors().size() >= 4) {
-                return;
+            List<ShowColor> colors = action.getShowData().getColors();
+            if (!colors.removeIf(c -> c == color)) {
+                if (colors.size() >= 4) {
+                    return;
+                }
+
+                colors.add(color);
             }
 
-            action.getShowData().getColors().add(color);
+            action.getShowData().setColors(colors);
             selectColors(p, show, action);
         });
         buttons.add(new MenuButton(0, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
@@ -573,11 +578,16 @@ public class ShowManager implements Listener {
     private void selectFadeColors(Player player, Show show, FireworkAction action) {
         List<MenuButton> buttons = new ArrayList<>();
         Function<ShowColor, ImmutableMap<ClickType, Consumer<Player>>> colorAction = color -> ImmutableMap.of(ClickType.LEFT, p -> {
-            if (action.getShowData().getFade().size() >= 4) {
-                return;
+            List<ShowColor> colors = action.getShowData().getFade();
+            if (!colors.removeIf(c -> c == color)) {
+                if (colors.size() >= 4) {
+                    return;
+                }
+
+                colors.add(color);
             }
 
-            action.getShowData().getFade().add(color);
+            action.getShowData().setFade(colors);
             selectFadeColors(p, show, action);
         });
         buttons.add(new MenuButton(0, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",

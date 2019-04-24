@@ -1,5 +1,6 @@
 package network.palace.creative.utils;
 
+import com.google.common.collect.ImmutableMap;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,20 +11,17 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
-import network.palace.creative.handlers.CreativeInventoryType;
+import network.palace.creative.inventory.Menu;
+import network.palace.creative.inventory.MenuButton;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -109,73 +107,34 @@ public class HeadUtil {
         return sb.toString();
     }
 
-    public void handleClick(InventoryClickEvent event) {
-        final Player player = (Player) event.getWhoClicked();
-        ItemStack item = event.getCurrentItem();
-        if (item == null) {
-            return;
-        }
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null || meta.getDisplayName() == null) {
-            return;
-        }
-
-        String invname = ChatColor.stripColor(event.getInventory().getName());
-        String name = ChatColor.stripColor(meta.getDisplayName());
-        Pattern pattern = Pattern.compile("Heads - (?<category>[A-Za-z0-9\\s]*) - (?<page>[0-9]*)");
-        Matcher matcher = pattern.matcher(invname);
-        if (!matcher.matches()) {
-            player.closeInventory();
-            player.sendMessage(ChatColor.RED + "An error has occurred! Please contact a developer.");
-            return;
-        }
-
-        String category = matcher.group("category");
-        int page = Integer.valueOf(matcher.group("page"));
-        boolean isBack = item.getType().equals(Material.ARROW) && name.equalsIgnoreCase("Back");
-        event.setCancelled(true);
-        int maxPages = new Double(Math.ceil(map.get(category).size() / 45D)).intValue();
-        if (isBack) {
-            Creative.getInstance().getMenuUtil().openMenu(player, CreativeInventoryType.HEADSHOP);
-            return;
-        }
-        else if (name.equals("Last Page")) {
-            if (page - 1 > 0) {
-                openCategory(player, category, page - 1);
-            }
-
-            return;
-        }
-        else if (name.equals("Next Page")) {
-            if (page + 1 <= maxPages) {
-                openCategory(player, category, page + 1);
-            }
-
-            return;
-        }
-
-        player.getInventory().addItem(item);
-        player.playSound(player.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1, 1);
-    }
-
     public void openCategory(Player player, String name, int page) {
+        List<MenuButton> buttons = new ArrayList<>();
         List<ItemStack> heads = map.get(name);
         int size = heads.size();
         int s = size > 18 ? (size > 27 ? (size > 36 ? 54 : 45) : 36) : 27;
         int itemsSize = s - 9;
-        Inventory inv = Bukkit.createInventory(player, s, ChatColor.BLUE + "Heads - " + name + " - " + page);
         for (int x = 0; x < itemsSize; x++) {
             try {
-                inv.setItem(x, heads.get(x + (page - 1) * itemsSize));
+                ItemStack head = heads.get(x + (page - 1) * itemsSize);
+                buttons.add(new MenuButton(x, head, ImmutableMap.of(ClickType.LEFT, p -> {
+                    player.getInventory().addItem(head);
+                    player.playSound(player.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1, 1);
+                })));
             }
             catch (IndexOutOfBoundsException ignored) {
 
             }
         }
 
-        inv.setItem(s - 9, Creative.getInstance().getMenuUtil().last);
-        inv.setItem(s - 5, Creative.getInstance().getMenuUtil().back);
-        inv.setItem(s - 1, Creative.getInstance().getMenuUtil().next);
-        player.openInventory(inv);
+        if (page - 1 > 0) {
+            buttons.add(new MenuButton(s - 9, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> openCategory(p, name, page - 1))));
+        }
+
+        buttons.add(new MenuButton(s - 5, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, Creative.getInstance().getMenuUtil()::openHeadShop)));
+        if (page + 1 <= new Double(Math.ceil(map.get(name).size() / 45D)).intValue()) {
+            buttons.add(new MenuButton(s - 1, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> openCategory(p, name, page + 1))));
+        }
+
+        new Menu(Bukkit.createInventory(player, s, ChatColor.BLUE + "Heads - " + name + " - " + page), player, buttons);
     }
 }

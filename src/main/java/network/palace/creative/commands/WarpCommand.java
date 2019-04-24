@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import network.palace.core.Core;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.message.FormattedMessage;
 import network.palace.core.player.CPlayer;
@@ -20,8 +19,7 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Warp to a location")
-@CommandPermission(rank = Rank.SETTLER)
+@CommandMeta(description = "Warp to a location", rank = Rank.SETTLER)
 public class WarpCommand extends CoreCommand {
 
     public WarpCommand() {

@@ -2,7 +2,6 @@ package network.palace.creative.commands;
 
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -12,8 +11,7 @@ import org.bukkit.ChatColor;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Delete a warp")
-@CommandPermission(rank = Rank.MOD)
+@CommandMeta(description = "Delete a warp", rank = Rank.MOD)
 public class DelWarpCommand extends CoreCommand {
 
     public DelWarpCommand() {

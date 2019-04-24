@@ -10,8 +10,8 @@ import org.bukkit.inventory.ItemStack;
 public class FireworkExplodeAction extends ShowAction {
     private final Firework fw;
 
-    public FireworkExplodeAction(Integer id, Show show, Long time, Firework fw) {
-        super(id, show, time == null ? 0 : time);
+    public FireworkExplodeAction(Show show, Long time, Firework fw) {
+        super(show, time == null ? 0 : time);
         this.fw = fw;
     }
 
@@ -28,10 +28,5 @@ public class FireworkExplodeAction extends ShowAction {
     @Override
     public String toString() {
         return "";
-    }
-
-    @Override
-    public String getDescription() {
-        return null;
     }
 }

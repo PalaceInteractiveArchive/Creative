@@ -8,18 +8,12 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 public abstract class ShowAction {
-    public Integer id;
     public Show show;
     public long time;
 
-    public ShowAction(Integer id, Show show, Long time) {
-        this.id = id;
+    public ShowAction(Show show, Long time) {
         this.show = show;
         this.time = time;
-    }
-
-    public Integer getId() {
-        return id;
     }
 
     public abstract void play();
@@ -46,6 +40,4 @@ public abstract class ShowAction {
         df.setRoundingMode(RoundingMode.CEILING);
         return df.format(x);
     }
-
-    public abstract String getDescription();
 }

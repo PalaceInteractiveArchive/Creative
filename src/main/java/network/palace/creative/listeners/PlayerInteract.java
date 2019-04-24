@@ -8,7 +8,6 @@ import java.util.UUID;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.creative.Creative;
-import network.palace.creative.handlers.CreativeInventoryType;
 import network.palace.creative.handlers.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -46,7 +45,7 @@ public class PlayerInteract implements Listener {
         if (player.getItemInMainHand().getType().equals(Material.NETHER_STAR) && player.getItemInMainHand().getItemMeta()
                 != null && player.getItemInMainHand().getItemMeta().getDisplayName() != null &&
                 player.getItemInMainHand().getItemMeta().getDisplayName().startsWith(ChatColor.AQUA + "Creative")) {
-            Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer(), CreativeInventoryType.MAIN);
+            Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer());
             event.setCancelled(true);
             return;
         }
@@ -58,13 +57,13 @@ public class PlayerInteract implements Listener {
         }
         Sign s = (Sign) event.getClickedBlock().getState();
         if (s.getLine(0).equals(ChatColor.BLUE + "[Show]")) {
-            PlotAPI api = new PlotAPI(Creative.getInstance());
+            PlotAPI api = new PlotAPI();
             Plot plot = api.getPlot(s.getLocation());
             if (plot != null) {
                 List<UUID> owners = new ArrayList<>(plot.getOwners());
                 Player owner = Bukkit.getPlayer(owners.get(0));
                 if (owner != null) {
-                    Creative.getInstance().getShowManager().syncMusic(player, plot, owner);
+                    Creative.getInstance().getShowManager().syncMusic(player, owner);
                 }
             }
             return;
@@ -76,7 +75,7 @@ public class PlayerInteract implements Listener {
         if (!player.getWorld().getName().equals("spawn")) {
             return;
         }
-        List<Plot> plots = new ArrayList<>(new PlotAPI(Creative.getInstance()).getPlayerPlots(player.getBukkitPlayer()));
+        List<Plot> plots = new ArrayList<>(new PlotAPI().getPlayerPlots(player.getBukkitPlayer()));
         for (Plot p : plots) {
             if (p.getArea().worldname.equalsIgnoreCase("plotworld")) {
                 player.sendMessage(ChatColor.RED +

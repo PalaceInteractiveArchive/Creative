@@ -4,7 +4,6 @@ import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -14,8 +13,7 @@ import org.bukkit.ChatColor;
 /**
  * Created by Marc on 8/7/15
  */
-@CommandMeta(description = "Manage another player's Plot")
-@CommandPermission(rank = Rank.DEVELOPER)
+@CommandMeta(description = "Manage another player's Plot", rank = Rank.DEVELOPER)
 public class ManageCommand extends CoreCommand {
 
     public ManageCommand() {
@@ -25,7 +23,7 @@ public class ManageCommand extends CoreCommand {
     @SuppressWarnings("deprecation")
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        Plot plot = new PlotAPI(Creative.getInstance()).getPlot(player.getLocation());
+        Plot plot = new PlotAPI().getPlot(player.getLocation());
         if (plot == null) {
             player.sendMessage(ChatColor.RED + "You're not standing on a Plot!");
             return;

@@ -40,7 +40,13 @@ public class RolePlay {
     }
 
     public String chat(Player player, String m) {
-        return chat(Core.getPlayerManager().getPlayer(player), m);
+        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+        if (cPlayer == null) {
+            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
+            return "";
+        }
+
+        return chat(cPlayer, m);
     }
 
     public String chat(CPlayer player, String m) {

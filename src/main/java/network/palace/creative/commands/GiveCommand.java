@@ -2,7 +2,6 @@ package network.palace.creative.commands;
 
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.Rank;
 import org.bukkit.Bukkit;
@@ -12,8 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-@CommandMeta(description = "Give yourself an item", aliases = {"item", "i"})
-@CommandPermission(rank = Rank.MOD)
+@CommandMeta(description = "Give yourself an item", aliases = {"item", "i"}, rank = Rank.MOD)
 public class GiveCommand extends CoreCommand {
 
     public GiveCommand() {

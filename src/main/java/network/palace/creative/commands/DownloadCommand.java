@@ -9,17 +9,12 @@ import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.RunnableVal;
 import com.intellectualcrafters.plot.util.TaskManager;
 import com.plotsquared.bukkit.util.BukkitSchematicHandler;
-import network.palace.core.command.CommandException;
-import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
-import network.palace.core.command.CoreCommand;
-import network.palace.core.message.FormattedMessage;
-import network.palace.core.player.CPlayer;
-import network.palace.core.player.Rank;
-import network.palace.creative.handlers.AbstractDelegateOutputStream;
-import org.bukkit.ChatColor;
-
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -27,12 +22,19 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
+import network.palace.core.command.CommandException;
+import network.palace.core.command.CommandMeta;
+import network.palace.core.command.CoreCommand;
+import network.palace.core.message.FormattedMessage;
+import network.palace.core.player.CPlayer;
+import network.palace.core.player.Rank;
+import network.palace.creative.handlers.AbstractDelegateOutputStream;
+import org.bukkit.ChatColor;
 
 /**
  * Created by Marc on 12/27/16.
  */
-@CommandMeta(description = "Download your Plot")
-@CommandPermission(rank = Rank.DEVELOPER)
+@CommandMeta(description = "Download your Plot", rank = Rank.DEVELOPER)
 public class DownloadCommand extends CoreCommand {
 
     public DownloadCommand() {

@@ -6,7 +6,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
@@ -15,8 +14,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-@CommandMeta(aliases = {"pfl"}, description = "Check the last time a person set the floor of their plot.")
-@CommandPermission(rank = Rank.MOD)
+@CommandMeta(aliases = {"pfl"}, description = "Check the last time a person set the floor of their plot.", rank = Rank.MOD)
 public class PlotFloorLogCommand extends CoreCommand {
 
     public PlotFloorLogCommand() {

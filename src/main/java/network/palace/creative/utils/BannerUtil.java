@@ -4,9 +4,18 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
+import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.BannerInventoryType;
+import network.palace.creative.inventory.Menu;
+import network.palace.creative.inventory.MenuButton;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
@@ -14,13 +23,10 @@ import org.bukkit.Material;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
-import org.bukkit.inventory.meta.ItemMeta;
-
-import java.util.*;
 
 /**
  * Created by Marc on 6/12/15
@@ -31,9 +37,7 @@ public class BannerUtil {
     private HashMap<UUID, ItemStack> userBanners = new HashMap<>();
 
     public BannerUtil() {
-        /**
-         *  --Colors--
-         */
+        //--Colors--
         List<String> empty = new ArrayList<>();
         colors.put("red", ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red", empty));
         colors.put("orange", ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange", empty));
@@ -51,9 +55,7 @@ public class BannerUtil {
         colors.put("darkgray", ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Dark Gray", empty));
         colors.put("white", ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White", empty));
         colors.put("black", ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black", empty));
-        /**
-         * --Banners--
-         */
+        //--Banners--
         PatternType[] types = new PatternType[]{PatternType.SQUARE_BOTTOM_LEFT, PatternType.SQUARE_BOTTOM_RIGHT,
                 PatternType.SQUARE_TOP_LEFT, PatternType.SQUARE_TOP_RIGHT, PatternType.STRIPE_BOTTOM, PatternType.STRIPE_TOP,
                 PatternType.STRIPE_LEFT, PatternType.STRIPE_RIGHT, PatternType.STRIPE_CENTER, PatternType.STRIPE_MIDDLE,
@@ -99,90 +101,57 @@ public class BannerUtil {
     }
 
     public void openMenu(Player player, BannerInventoryType type) {
-        ItemStack banner;
-        if (userBanners.containsKey(player.getUniqueId())) {
-            banner = userBanners.get(player.getUniqueId());
-        } else {
-            banner = ItemUtil.create(Material.BANNER, ChatColor.WHITE + "Your Banner");
-            userBanners.put(player.getUniqueId(), banner);
-        }
-        switch (type) {
-            case SELECT_BASE:
-                Inventory base = createInventory(player, new ArrayList<>(colors.values()), ChatColor.GREEN + "Select Base Color", false);
-                player.openInventory(base);
-                break;
-            case ADD_LAYER:
-                Inventory add = createInventory(player, new ArrayList<>(banners.values()), ChatColor.GREEN + "Add Layer", true);
-                player.openInventory(add);
-                break;
-            case LAYER_COLOR:
-                Inventory color = createInventory(player, new ArrayList<>(colors.values()), ChatColor.GREEN + "Choose Layer Color", false);
-                player.openInventory(color);
-                break;
-        }
-    }
+        List<MenuButton> buttons = new ArrayList<>();
+        ItemStack banner = userBanners.getOrDefault(player.getUniqueId(), new ItemStack(Material.BANNER));
+        BannerMeta meta = (BannerMeta) banner.getItemMeta();
+        buttons.add(new MenuButton(4, banner, ImmutableMap.of(ClickType.LEFT, p -> {
+            p.getInventory().addItem(banner);
+            p.closeInventory();
+            cancel(p.getUniqueId());
+        })));
 
-    public void handle(InventoryClickEvent event, BannerInventoryType type) {
-        Player player = (Player) event.getWhoClicked();
-        ItemStack item = event.getCurrentItem();
-        if (item == null) {
-            return;
+        if (type == BannerInventoryType.ADD_LAYER) {
+            int place = 9;
+            for (ItemStack item : banners.values()) {
+                buttons.add(new MenuButton(place, item, ImmutableMap.of(ClickType.LEFT, p -> {
+                    PatternType pattern = ((BannerMeta) item.getItemMeta()).getPattern(0).getPattern();
+                    meta.addPattern(new Pattern(DyeColor.BLACK, pattern));
+                    banner.setItemMeta(meta);
+                    userBanners.put(p.getUniqueId(), banner);
+                    openMenu(p, BannerInventoryType.LAYER_COLOR);
+                })));
+                place++;
+            }
         }
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null || meta.getDisplayName() == null) {
-            return;
-        }
-        String name = ChatColor.stripColor(meta.getDisplayName());
-        ItemStack banner = userBanners.get(player.getUniqueId());
-        if (banner == null) {
-            banner = ItemUtil.create(Material.BANNER, ChatColor.WHITE + "Your Banner");
-        }
-        event.setCancelled(true);
-        BannerMeta bm = (BannerMeta) banner.getItemMeta();
-        if (event.getSlot() == 4) {
-            player.getInventory().addItem(banner);
-            player.closeInventory();
-            cancel(player.getUniqueId());
-            return;
-        }
-        switch (type) {
-            case SELECT_BASE:
-                if (item.getType().equals(Material.WOOL)) {
-                    DyeColor color = colorFromString(name);
-                    bm.setBaseColor(color);
+        else {
+            int place = 10;
+            List<Integer> margin = Arrays.asList(16, 25, 34, 43);
+            for (ItemStack item : colors.values()) {
+                buttons.add(new MenuButton(place, item, ImmutableMap.of(ClickType.LEFT, p -> {
+                    if (type == BannerInventoryType.SELECT_BASE && item.getType() == Material.WOOL) {
+                        meta.setBaseColor(colorFromString(ChatColor.stripColor(item.getItemMeta().getDisplayName())));
+                    }
+                    else {
+                        DyeColor color = colorFromString(ChatColor.stripColor(item.getItemMeta().getDisplayName()));
+                        int current = meta.getPatterns().size() - 1;
+                        PatternType pattern = meta.getPattern(current).getPattern();
+                        meta.setPattern(current, new Pattern(color, pattern));
+                    }
+
+                    banner.setItemMeta(meta);
+                    userBanners.put(p.getUniqueId(), banner);
+                    openMenu(p, BannerInventoryType.ADD_LAYER);
+                })));
+                if (margin.contains(place)) {
+                    place += 3;
                 }
-                break;
-            case ADD_LAYER:
-                if (item.getType().equals(Material.BANNER)) {
-                    PatternType ptype = ((BannerMeta) item.getItemMeta()).getPattern(0).getPattern();
-                    bm.addPattern(new Pattern(DyeColor.BLACK, ptype));
+                else {
+                    place++;
                 }
-                break;
-            case LAYER_COLOR:
-                if (!item.getType().equals(Material.WOOL)) {
-                    return;
-                }
-                DyeColor c = colorFromString(name);
-                int current = bm.getPatterns().size() - 1;
-                PatternType pt = bm.getPattern(current).getPattern();
-                bm.removePattern(current);
-                bm.addPattern(new Pattern(c, pt));
-                break;
+            }
         }
-        banner.setItemMeta(bm);
-        userBanners.remove(player.getUniqueId());
-        userBanners.put(player.getUniqueId(), banner);
-        switch (type) {
-            case SELECT_BASE:
-                openMenu(player, BannerInventoryType.ADD_LAYER);
-                break;
-            case ADD_LAYER:
-                openMenu(player, BannerInventoryType.LAYER_COLOR);
-                break;
-            case LAYER_COLOR:
-                openMenu(player, BannerInventoryType.ADD_LAYER);
-                break;
-        }
+
+        new Menu(createInventory(type), player, buttons);
     }
 
     private ItemStack getExampleBanner(PatternType type, String name) {
@@ -195,38 +164,21 @@ public class BannerUtil {
         return banner;
     }
 
-    private ItemStack getBanner(String name, Pattern... patterns) {
-        ItemStack banner = ItemUtil.create(Material.BANNER, name);
-        BannerMeta bm = (BannerMeta) banner.getItemMeta();
-        bm.setPatterns(Arrays.asList(patterns));
-        bm.setLore(Collections.singletonList(ChatColor.GRAY + "Click to get this Banner!"));
-        return null;
-    }
+    private Inventory createInventory(BannerInventoryType type) {
+        String n = "";
+        switch (type) {
+            case SELECT_BASE:
+                n = "Select Base Color";
+                break;
+            case ADD_LAYER:
+                n = "Add Layer";
+                break;
+            case LAYER_COLOR:
+                n = "Choose Layer Color";
+                break;
+        }
 
-    private Inventory createInventory(Player player, List<ItemStack> items, String name, boolean isBanner) {
-        Inventory inv = Bukkit.createInventory(null, 54, name);
-        ItemStack banner = userBanners.get(player.getUniqueId());
-        inv.setItem(4, banner);
-        if (isBanner) {
-            int place = 9;
-            List<Integer> margin = Arrays.asList(16, 25, 34, 43);
-            for (ItemStack item : items) {
-                inv.setItem(place, item);
-                place++;
-            }
-            return inv;
-        }
-        int place = 10;
-        List<Integer> margin = Arrays.asList(16, 25, 34, 43);
-        for (ItemStack item : items) {
-            inv.setItem(place, item);
-            if (margin.contains(place)) {
-                place += 3;
-            } else {
-                place++;
-            }
-        }
-        return inv;
+        return Bukkit.createInventory(null, 54, ChatColor.GREEN + n);
     }
 
     private DyeColor colorFromString(String name) {

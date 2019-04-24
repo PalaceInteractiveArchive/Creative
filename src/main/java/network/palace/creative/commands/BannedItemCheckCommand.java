@@ -3,7 +3,6 @@ package network.palace.creative.commands;
 import java.util.Optional;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -13,8 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 
-@CommandMeta(description = "Check if a user has been caught with banned/hacked items.", aliases = "bic", usage = "/bic [player]")
-@CommandPermission(rank = Rank.MOD)
+@CommandMeta(description = "Check if a user has been caught with banned/hacked items.", aliases = "bic", usage = "/bic [player]", rank = Rank.SRMOD)
 public class BannedItemCheckCommand extends CoreCommand {
 
     public BannedItemCheckCommand() {

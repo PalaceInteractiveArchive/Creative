@@ -1,8 +1,13 @@
 package network.palace.creative.inventory;
 
 import java.util.List;
+import java.util.Optional;
+import network.palace.core.Core;
+import network.palace.core.player.CPlayer;
+import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -25,6 +30,10 @@ public class Menu implements Listener {
         open();
     }
 
+    public Optional<MenuButton> getButton(int slot) {
+        return menuButtons.stream().filter(b -> b.getSlot() == slot).findFirst();
+    }
+
     public void open() {
         Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> {
             inventory.clear();
@@ -32,6 +41,11 @@ public class Menu implements Listener {
             player.openInventory(inventory);
             Bukkit.getPluginManager().registerEvents(this, Creative.getInstance());
         });
+    }
+
+    public void removeButton(int slot) {
+        menuButtons.removeIf(b -> b.getSlot() == slot);
+        inventory.setItem(22, null);
     }
 
     public void setButton(MenuButton button) {
@@ -42,9 +56,24 @@ public class Menu implements Listener {
 
     @EventHandler
     public void click(InventoryClickEvent event) {
-        if (isSameInventory(inventory)) {
+        long t = System.currentTimeMillis();
+        Inventory inv = event.getClickedInventory();
+        if (isSameInventory(inv)) {
             event.setCancelled(true);
             menuButtons.stream().filter(button -> button.getSlot() == event.getRawSlot() && button.getActions().containsKey(event.getClick())).findFirst().map(menuButton -> menuButton.getActions().get(event.getClick())).ifPresent(action -> action.accept((Player) event.getWhoClicked()));
+
+            long t2 = System.currentTimeMillis();
+            long diff = t2 - t;
+            if (diff >= 500) {
+                for (CPlayer cp : Core.getPlayerManager().getOnlinePlayers()) {
+                    if (cp == null)
+                        continue;
+                    if (cp.getRank().getRankId() >= Rank.DEVELOPER.getRankId()) {
+                        cp.sendMessage(ChatColor.RED + "Click event took " + diff + "ms! " + ChatColor.GREEN +
+                                event.getWhoClicked().getName() + " " + ChatColor.stripColor(inv.getTitle()) + " ");
+                    }
+                }
+            }
         }
     }
 
@@ -56,6 +85,14 @@ public class Menu implements Listener {
     }
 
     private boolean isSameInventory(Inventory inventory) {
+        if (inventory == null) {
+            return false;
+        }
+
+        if (this.inventory == null) {
+            return false;
+        }
+
         return inventory.getName().equals(this.inventory.getName()) && inventory.getViewers().stream().anyMatch(p -> p.getUniqueId().equals(player.getUniqueId()));
     }
 }

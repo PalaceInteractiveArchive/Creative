@@ -1,9 +1,8 @@
 package network.palace.creative.show;
 
+import com.google.common.collect.ImmutableMap;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
-import com.intellectualcrafters.plot.object.PlotPlayer;
-import com.plotsquared.bukkit.util.BukkitUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,21 +13,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import network.palace.audio.Audio;
 import network.palace.audio.handlers.AudioArea;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
-import network.palace.creative.handlers.CreativeInventoryType;
 import network.palace.creative.handlers.ShowColor;
 import network.palace.creative.handlers.ShowFireworkData;
+import network.palace.creative.inventory.Menu;
+import network.palace.creative.inventory.MenuButton;
 import network.palace.creative.show.actions.FireworkAction;
 import network.palace.creative.show.actions.ParticleAction;
 import network.palace.creative.show.actions.ShowAction;
@@ -37,36 +37,28 @@ import network.palace.creative.show.handlers.AudioTrack;
 import network.palace.creative.show.handlers.PlotArea;
 import network.palace.creative.show.ticker.TickEvent;
 import network.palace.creative.show.ticker.Ticker;
-import network.palace.creative.utils.ParticleUtil;
+import network.palace.creative.utils.TextInput;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.FireworkEffect;
-import org.bukkit.Location;
+import org.bukkit.FireworkEffect.Type;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFlag;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
-import org.bukkit.util.Vector;
 
 /**
  * Created by Marc on 12/11/15
  */
 public class ShowManager implements Listener {
+    private final File showsDir = new File(Creative.getInstance().getDataFolder(), "shows");
     public HashMap<UUID, Show> shows = new HashMap<>();
-    private HashMap<UUID, Show> editSessions = new HashMap<>();
-    private HashMap<UUID, AddAction> actions = new HashMap<>();
     private TreeMap<String, AudioTrack> audioTracks = new TreeMap<>();
 
     public ShowManager() {
@@ -85,11 +77,13 @@ public class ShowManager implements Listener {
             }
             return;
         }
+
         YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
         if (config.getConfigurationSection("tracks") == null) {
             Core.logMessage("Creative", ChatColor.RED + "No audio tracks have been added!");
             return;
         }
+
         List<String> tracks = new ArrayList<>(config.getConfigurationSection("tracks").getKeys(false));
         Collections.sort(tracks);
         for (String s : tracks) {
@@ -103,22 +97,22 @@ public class ShowManager implements Listener {
     public void onTick(TickEvent event) {
         for (Map.Entry<UUID, Show> entry : new HashSet<>(shows.entrySet())) {
             Show show = entry.getValue();
-            if (show == null || show.getOwner() == null) {
-                continue;
-            }
-            try {
-                if (show.update()) {
-                    CPlayer player = Core.getPlayerManager().getPlayer(show.getOwner());
-                    if (player != null) {
-                        messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() + ChatColor.GREEN +
-                                " has ended!");
+            if (show != null && show.getOwner() != null) {
+                try {
+                    if (show.update()) {
+                        CPlayer player = Core.getPlayerManager().getPlayer(show.getOwner());
+                        if (player != null) {
+                            messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() + ChatColor.GREEN +
+                                    " has ended!");
+                        }
+
+                        stopAudio(show);
+                        shows.remove(entry.getKey());
+                        Creative.getInstance().getParkLoopUtil().enableRegion(show.getOwner());
                     }
-                    stopAudio(show);
-                    shows.remove(entry.getKey());
-                    Creative.getInstance().getParkLoopUtil().enableRegion(show.getOwner());
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }
     }
@@ -128,51 +122,27 @@ public class ShowManager implements Listener {
             tp.sendMessage(ChatColor.WHITE + "[" + ChatColor.BLUE + "Show" + ChatColor.WHITE + "] " + ChatColor.GREEN + msg);
     }
 
-    public Location strToLoc(String string) {
-        if (string.length() == 0) {
-            return null;
-        }
-        String[] tokens = string.split(",");
-        try {
-            for (World cur : Bukkit.getWorlds()) {
-                if (cur.getName().equalsIgnoreCase(tokens[0])) {
-                    return new Location(cur, Double.parseDouble(tokens[1]),
-                            Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3]));
-                }
-            }
-        } catch (Exception e) {
-            return null;
-        }
-        return null;
-    }
-
-    public double offset(Location a, Location b) {
-        return offset(a.toVector(), b.toVector());
-    }
-
-    public double offset(Vector a, Vector b) {
-        return a.subtract(b).length();
-    }
-
-    @SuppressWarnings("deprecation")
     public Show startShow(CPlayer player) {
         if (shows.containsKey(player.getUniqueId())) {
             messagePlayer(player, ChatColor.RED + "Your Show is already running!");
             return null;
         }
-        PlotAPI api = new PlotAPI(Creative.getInstance());
+
+        PlotAPI api = new PlotAPI();
         Plot plot = api.getPlot(player.getBukkitPlayer());
         boolean owns = false;
         if (plot == null) {
             messagePlayer(player, ChatColor.RED + "You must start shows on your own Plot!");
             return null;
         }
+
         for (Plot pl : api.getPlayerPlots(Bukkit.getWorld("plotworld"), player.getBukkitPlayer())) {
             if (plot.getId().equals(pl.getId())) {
                 owns = true;
                 break;
             }
         }
+
         if (!owns) {
             messagePlayer(player, ChatColor.RED + "You must start shows on your own Plot!");
             return null;
@@ -190,14 +160,16 @@ public class ShowManager implements Listener {
         if (!showFile.exists()) {
             return null;
         }
+
         Show show = new Show(showFile, player, plot);
         if (show.getActions().isEmpty()) {
             return null;
         }
+
         if (!show.getAudioTrack().equals("none")) {
             PlotArea area;
             AudioArea temp = Audio.getInstance().getByName(player.getUniqueId().toString());
-            if (temp != null && temp instanceof AudioArea) {
+            if (temp != null) {
                 area = (PlotArea) temp;
             } else {
                 Audio.getInstance().removeArea(temp);
@@ -215,6 +187,7 @@ public class ShowManager implements Listener {
                 }
             }
         }
+
         shows.put(player.getUniqueId(), show);
         player.removeMetadata("showname", Creative.getInstance());
         Creative.getInstance().getParkLoopUtil().disableRegion(plot);
@@ -223,77 +196,97 @@ public class ShowManager implements Listener {
 
     public boolean stopShow(UUID uuid) {
         Show show = shows.remove(uuid);
-        if (show == null) return true;
+        if (show == null) return false;
         stopAudio(show);
         Creative.getInstance().getParkLoopUtil().enableRegion(show.getOwner());
-        return show != null;
+        return true;
     }
 
     public void stopAllShows() {
-        for (Show show : new ArrayList<>(shows.values())) {
-            stopAudio(show);
-        }
+        shows.values().forEach(this::stopAudio);
         shows.clear();
     }
 
     private void stopAudio(Show show) {
-        for (AudioArea area : Audio.getInstance().getAudioAreas()) {
-            if (area == null) continue;
-            if (area.getAreaName().equals(show.getOwner().toString())) {
-                area.removeAllPlayers(true);
-                Audio.getInstance().removeArea(area);
-                break;
-            }
-        }
+        Audio.getInstance().getAudioAreas().stream().filter(Objects::nonNull).filter(area -> area.getAreaName().equals(show.getOwner().toString())).forEach(area -> {
+            area.removeAllPlayers(true);
+            Audio.getInstance().removeArea(area);
+        });
     }
 
     public void selectShow(Player player) {
-        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
-        if (!player.getLocation().getWorld().getName().equalsIgnoreCase("plotworld")) {
-            messagePlayer(cPlayer, ChatColor.RED + "You must edit shows on your own Plot!");
-            return;
-        }
-
-        PlotAPI api = new PlotAPI(Creative.getInstance());
+        PlotAPI api = new PlotAPI();
         Plot plot = api.getPlot(player);
-        if (plot == null) {
+        if (plot == null || !plot.getOwners().contains(player.getUniqueId())) {
             player.closeInventory();
-            messagePlayer(cPlayer, ChatColor.RED + "You must edit shows on your own Plot!");
+            player.sendMessage(ChatColor.RED + "You must edit shows on your own Plot!");
             return;
         }
 
-        Optional<Plot> owns = api.getPlayerPlots(Bukkit.getWorld("plotworld"), player).stream().filter(pl -> plot.getId().equals(pl.getId())).findFirst();
-        if (!owns.isPresent()) {
-            player.closeInventory();
-            messagePlayer(cPlayer, ChatColor.RED + "You must edit shows on your own Plot!");
-            return;
-        }
-
-        File userShowsDir = new File("plugins/Creative/shows/" + player.getUniqueId().toString());
+        File userShowsDir = new File(showsDir, player.getUniqueId().toString());
         userShowsDir.mkdirs();
         File[] showFiles = userShowsDir.listFiles();
-        Inventory inv = Bukkit.createInventory(player, 9, ChatColor.BLUE + "Select A Show To Edit");
+        List<MenuButton> buttons = new ArrayList<>();
+        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+        if (cPlayer == null) {
+            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
+            return;
+        }
+
         int maxShows = getMaxShowAmount(cPlayer);
         int showCount = 0;
         if (showFiles != null) {
-            for (File showFile : showFiles) {
-                if (showCount >= maxShows) {
-                    break;
+            for (int x = 0; x < maxShows; x++) {
+                try {
+                    File file = showFiles[x];
+                    Show show = new Show(showFiles[x], cPlayer, plot);
+                    buttons.add(new MenuButton(x, ItemUtil.create(Material.FIREWORK, ChatColor.RESET + show.getNameColored(),
+                            Arrays.asList(ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN + "to Edit this Show!",
+                                    ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Show!")),
+                            ImmutableMap.of(ClickType.LEFT, p -> editShow(p, 1, show), ClickType.RIGHT, p -> {
+                                file.delete();
+                                p.closeInventory();
+                                p.sendMessage(ChatColor.GREEN + "Show successfully deleted.");
+                            })));
                 }
+                catch (IndexOutOfBoundsException ignored) {
 
-                inv.setItem(showCount, ItemUtil.create(Material.FIREWORK, ChatColor.RESET + new Show(showFile, cPlayer, plot).getNameColored(),
-                        Arrays.asList(ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN + "to Edit this Show!",
-                                ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Show!")));
-                showCount++;
+                }
             }
         }
 
         if (showCount <= maxShows) {
-            inv.setItem(7, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "New Show"));
+            buttons.add(new MenuButton(7, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "New Show"), ImmutableMap.of(ClickType.LEFT, p -> {
+                p.closeInventory();
+                p.sendTitle(ChatColor.GREEN + "Set Show Name", ChatColor.GREEN + "Type the name you want for your show.", 0, 0, 200);
+                new TextInput(p, (ply, msg) -> {
+                    try {
+                        String name = ChatColor.stripColor(msg);
+                        Pattern pattern = Pattern.compile("[^a-zA-Z0-9_ ]");
+                        Matcher matcher = pattern.matcher(name);
+                        if (matcher.find()) {
+                            player.sendMessage(ChatColor.RED + "Show names can only contain letters, numbers, spaces and underscores (_).");
+                            return;
+                        }
+
+                        File showFile = new File(userShowsDir, name + ".show");
+                        if (!showFile.exists()) {
+                            ply.sendMessage(ChatColor.GREEN + "Show " + msg + ChatColor.RESET + " created.");
+                            showFile.createNewFile();
+                            return;
+                        }
+
+                        ply.sendMessage(ChatColor.RED + " A show named " + name + " already exists.");
+                    }
+                    catch (IOException e) {
+                        ply.sendMessage(ChatColor.RED + "There was an error! Please try again.");
+                    }
+                });
+            })));
         }
 
-        inv.setItem(8, Creative.getInstance().getMenuUtil().back);
-        player.openInventory(inv);
+        buttons.add(new MenuButton(8, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, Creative.getInstance().getMenuUtil()::openMenu)));
+        new Menu(Bukkit.createInventory(player, 9, ChatColor.BLUE + "Select A Show To Edit"), player, buttons);
     }
 
     public int getMaxShowAmount(CPlayer player) {
@@ -316,974 +309,64 @@ public class ShowManager implements Listener {
         return files == null ? 0 : files.length;
     }
 
-    public void editShow(Player player) throws IOException {
-        editShow(Core.getPlayerManager().getPlayer(player), 1);
-    }
+    public void editShow(Player player, int page, Show show) {
+        List<ShowAction> actions = show.getActions();
+        actions.removeIf(action -> action.getItem() == null);
+        List<MenuButton> buttons = new ArrayList<>();
+        for (int x = 0; x < 45; x++) {
+            try {
+                int i = x + (page - 1) * 45;
+                ShowAction action = actions.get(i);
+                ItemStack itemStack = action.getItem();
+                ItemMeta meta = itemStack.getItemMeta();
+                List<String> lore = meta.getLore();
+                lore.add(ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN + "to Edit this Action!");
+                lore.add(ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Action!");
+                meta.setLore(lore);
+                itemStack.setItemMeta(meta);
+                buttons.add(new MenuButton(x, itemStack, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action), ClickType.RIGHT, p -> {
+                    show.actions.remove(i);
+                    show.saveFile();
+                    editShow(p, page, show);
+                })));
+            }
+            catch (IndexOutOfBoundsException ignored) {
 
-    public void editShow(Player player, int page) throws IOException {
-        editShow(Core.getPlayerManager().getPlayer(player), page);
-    }
+            }
+        }
 
-    public void editShow(CPlayer player) throws IOException {
-        editShow(player, 1);
-    }
-
-    public void editShow(final CPlayer player, int page) throws IOException {
-        Show show = createSession(player);
-        if (show == null) {
-            return;
+        if (page - 1 > 0) {
+            buttons.add(new MenuButton(48, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, page - 1, show))));
         }
-        if (show.getActions().size() < (45 * (page - 1) + 1)) {
-            page -= 1;
+        if (page + 1 <= new Double(Math.ceil(actions.size() / 45D)).intValue()) {
+            buttons.add(new MenuButton(50, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, page + 1, show))));
         }
-        if (show.getActions().size() <= 1) {
-            page = 1;
-        }
-        List<ShowAction> actions = show.getActions().subList(page > 1 ? (45 * (page - 1)) : 0, (show.getActions().size() - (45 * (page - 1))) > 45 ? (45 * page) : show.getActions().size());
-        Inventory inv = Bukkit.createInventory(player.getBukkitPlayer(), 54, ChatColor.BLUE + "Edit Show File Page " + page);
-        int place = 0;
-        for (ShowAction action : actions) {
-            if (action.getItem() == null) {
-                continue;
-            }
-            if (place >= 45) {
-                break;
-            }
-            ItemStack item = new ItemStack(action.getItem());
-            ItemMeta meta = item.getItemMeta();
-            if (action.getDescription().contains("BREAK")) {
-                List<String> list = new ArrayList<>(Arrays.asList(action.getDescription().split("BREAK")));
-                list.add(" ");
-                list.add(ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN + "to Edit this Action!");
-                list.add(ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Action!");
-                meta.setLore(list);
-            } else {
-                meta.setLore(Arrays.asList(action.getDescription(), " ", ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN +
-                        "to Edit this Action!", ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Action!"));
-            }
-            item.setItemMeta(meta);
-            inv.setItem(place, item);
-            place++;
-        }
-        if (page > 1) {
-            inv.setItem(48, Creative.getInstance().getMenuUtil().last);
-        }
-        int maxPage = 1;
-        int n = show.getActions().size();
-        while (true) {
-            if (n - 45 > 0) {
-                n -= 45;
-                maxPage += 1;
-            } else {
-                break;
-            }
-        }
-        if (show.getActions().size() > 45 && page < maxPage) {
-            inv.setItem(50, Creative.getInstance().getMenuUtil().next);
-        }
-        inv.setItem(53, ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 5, ChatColor.GREEN + "Add Action",
-                Arrays.asList(ChatColor.GREEN + "Click to add a new Action!")));
-        inv.setItem(49, Creative.getInstance().getMenuUtil().back);
-        inv.setItem(45, ItemUtil.create(Material.BARRIER, 1, (byte) 0, ChatColor.RED + "Delete All Actions", Collections.emptyList()));
-        player.openInventory(inv);
-    }
-
-    @SuppressWarnings("deprecation")
-    private Show createSession(CPlayer player) throws IOException {
-        if (!player.getLocation().getWorld().getName().equalsIgnoreCase("plotworld")) {
-            messagePlayer(player, ChatColor.RED + "You must edit shows on your own Plot!");
-            return null;
-        }
-        Show show;
-        if (!editSessions.containsKey(player.getUniqueId())) {
-            List<MetadataValue> metadataValues = player.getMetadata("showname");
-            if (metadataValues.isEmpty()) {
-                messagePlayer(player, ChatColor.RED + "You must select a show to edit before you can open the editor.");
-                return null;
-            }
-
-            String name = player.getMetadata("showname").get(0).asString();
-            final File showFile = new File("plugins/Creative/shows/" + player.getUniqueId().toString() + "/" + name + ".show");
-            PlotAPI api = new PlotAPI(Creative.getInstance());
-            Plot plot = api.getPlot(player.getBukkitPlayer());
-            boolean owns = false;
-            if (plot != null) {
-                for (Plot pl : api.getPlayerPlots(Bukkit.getWorld("plotworld"), player.getBukkitPlayer())) {
-                    if (plot.getId().equals(pl.getId())) {
-                        owns = true;
-                        break;
-                    }
-                }
-            }
-            if (!owns) {
-                player.closeInventory();
-                messagePlayer(player, ChatColor.RED + "You must edit shows on your own Plot!");
-                return null;
-            }
-            if (!showFile.exists()) {
-                showFile.getParentFile().mkdirs();
-                showFile.createNewFile();
-                show = new Show(null, player, plot);
-            } else {
-                show = new Show(showFile, player, plot);
-            }
-            editSessions.put(player.getUniqueId(), show);
-        } else {
-            show = editSessions.get(player.getUniqueId());
-        }
-        return show;
+        buttons.add(new MenuButton(53, ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 5, ChatColor.GREEN + "Add Action",
+                Arrays.asList(ChatColor.GREEN + "Click to add a new Action!")), ImmutableMap.of(ClickType.LEFT, p -> openAddAction(p, show))));
+        buttons.add(new MenuButton(49, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> {
+            cancelEdit(p, false);
+            selectShow(p);
+        })));
+        buttons.add(new MenuButton(45, ItemUtil.create(Material.BARRIER, 1, (byte) 0, ChatColor.RED + "Delete All Actions", Collections.emptyList()),
+                ImmutableMap.of(ClickType.LEFT, p -> {
+                    show.actions.clear();
+                    show.saveFile();
+                    p.closeInventory();
+                })));
+        new Menu(Bukkit.createInventory(player, 54, ChatColor.BLUE + "Edit Show File"), player, buttons);
     }
 
     public void cancelEdit(Player player) {
-        cancelEdit(Core.getPlayerManager().getPlayer(player), false);
+        cancelEdit(player, true);
     }
 
-    public void cancelEdit(CPlayer player) {
-        cancelEdit(player, false);
-    }
-
-    public void cancelEdit(CPlayer player, boolean silent) {
+    public void cancelEdit(Player player, boolean silent) {
         if (player == null) {
             return;
         }
 
-        if (editSessions.remove(player.getUniqueId()) != null && !silent) {
-            messagePlayer(player, ChatColor.RED + "Your Show edit session has ended!");
-        }
-
-        player.removeMetadata("page", Creative.getInstance());
-        player.removeMetadata("showname", Creative.getInstance());
-    }
-
-    @SuppressWarnings("deprecation")
-    public void handle(InventoryClickEvent event) throws IOException {
-        final Player player = (Player) event.getWhoClicked();
-        final PlotPlayer tp = BukkitUtil.getPlayer(player);
-        ItemStack item = event.getCurrentItem();
-        if (item == null) {
-            return;
-        }
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null || meta.getDisplayName() == null) {
-            return;
-        }
-        String invname = ChatColor.stripColor(event.getInventory().getName());
-        String name = ChatColor.stripColor(meta.getDisplayName());
-        boolean isBack = item.getType().equals(Material.ARROW) && name.equalsIgnoreCase("back");
-        boolean right = event.isRightClick();
-        CPlayer cplayer = Core.getPlayerManager().getPlayer(player);
-        event.setCancelled(true);
-        if (invname.startsWith("Edit Show File Page ")) {
-            int page = Integer.parseInt(invname.toLowerCase().replace("edit show file page ", ""));
-            player.setMetadata("page", new FixedMetadataValue(Creative.getInstance(), page));
-            if (name.contains("Next")) {
-                editShow(player, page + 1);
-                return;
-            }
-            if (name.contains("Last")) {
-                editShow(player, page - 1);
-                return;
-            }
-            if (isBack) {
-                cancelEdit(player);
-                selectShow(player);
-                return;
-            }
-            switch (name) {
-                case "Add Action": {
-                    openAddAction(player);
-                    break;
-                }
-                case "Text Action":
-                case "Set Music":
-                case "Firework Action":
-                case "Particle Action": {
-                    if (right) {
-                        Show show = editSessions.get(player.getUniqueId());
-                        show.actions.remove(event.getSlot() + (45 * (page - 1)));
-                        show.saveFile();
-                        editShow(player, page);
-                        return;
-                    }
-                    editAction(player, event.getSlot() + (45 * (page - 1)));
-                    break;
-                }
-                case "Delete All Actions": {
-                    Show show = editSessions.get(player.getUniqueId());
-                    show.actions.clear();
-                    show.saveFile();
-                    editSessions.remove(player.getUniqueId());
-                    player.closeInventory();
-                    break;
-                }
-            }
-            return;
-        }
-
-        Predicate<ItemStack> colorPickerPredicate = itemStack -> itemStack != null && itemStack.getType() == Material.WOOL && !itemStack.getEnchantments().isEmpty();
-        switch (invname) {
-            case "Select A Show To Edit": {
-                if (isBack) {
-                    Creative.getInstance().getMenuUtil().openMenu(player, CreativeInventoryType.MAIN);
-                    return;
-                }
-
-                boolean isNewShow = name.equalsIgnoreCase("New Show") && item.getType() == Material.EMERALD_BLOCK;
-                if (right && !isNewShow) {
-                    new File("plugins/Creative/shows/" + player.getUniqueId().toString() + "/" + name + ".show").delete();
-                    player.closeInventory();
-                    messagePlayer(cplayer, ChatColor.GREEN + "Show successfully deleted.");
-                    return;
-                }
-
-                if (isNewShow) {
-                    player.closeInventory();
-                    CPlayer p = Core.getPlayerManager().getPlayer(player);
-                    p.getTitle().show(ChatColor.GREEN + " Set Show Name", ChatColor.GREEN + "Type the name you want for your show.", 0, 0, 200);
-                    actions.put(player.getUniqueId(), new AddAction(-1, Action.NAME));
-                    player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), "New Show"));
-                    createSession(cplayer);
-                    player.closeInventory();
-                    return;
-                }
-
-                player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), name));
-                editShow(player);
-                break;
-            }
-            case "Add Action": {
-                if (isBack) {
-                    int page;
-                    if (player.hasMetadata("page")) {
-                        page = player.getMetadata("page").get(0).asInt();
-                    } else {
-                        page = 1;
-                    }
-                    editShow(player, page);
-                    return;
-                }
-                ItemStack setTime = ItemUtil.create(Material.WATCH, ChatColor.GREEN + "Set Time",
-                        Arrays.asList(ChatColor.YELLOW + "Time in seconds after start of", ChatColor.YELLOW +
-                                "Show for an Action to execute."));
-                switch (name) {
-                    case "Text Action": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Add Text Action");
-                        inv.setItem(11, setTime);
-                        inv.setItem(15, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Set Text",
-                                Arrays.asList(ChatColor.YELLOW + "Supports Color Codes!")));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        player.openInventory(inv);
-                        break;
-                    }
-                    case "Set Music": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Set Music");
-                        inv.setItem(13, ItemUtil.create(Material.RECORD_4, ChatColor.GREEN + "Select Track"));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        player.openInventory(inv);
-                        break;
-                    }
-                    case "Particle Action": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Add Particle Action");
-                        inv.setItem(11, setTime);
-                        inv.setItem(15, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Set Particle",
-                                Arrays.asList(ChatColor.YELLOW + "Some Minecraft Particles are not allowed")));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        player.openInventory(inv);
-                        break;
-                    }
-                    case "Firework Action": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Add Firework Action");
-                        inv.setItem(11, setTime);
-                        inv.setItem(12, ItemUtil.create(Material.FIREWORK_CHARGE, ChatColor.GREEN + "Select Type",
-                                Arrays.asList(ChatColor.YELLOW + "Choose shape of the Firework!")));
-                        inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.GREEN + "Select Colors",
-                                Arrays.asList(ChatColor.YELLOW + "The first colors of the Firework")));
-                        inv.setItem(14, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.GREEN + "Select Fade Colors",
-                                Arrays.asList(ChatColor.YELLOW + "The color the Firework fades to")));
-                        inv.setItem(15, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Set Power",
-                                Arrays.asList(ChatColor.YELLOW + "The power of the Firework")));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        player.openInventory(inv);
-                        break;
-                    }
-                }
-            }
-            case "Add Firework Action": {
-                if (isBack) {
-                    int page;
-                    if (player.hasMetadata("page")) {
-                        page = player.getMetadata("page").get(0).asInt();
-                    } else {
-                        page = 1;
-                    }
-                    editShow(player, page);
-                    return;
-                }
-                switch (name) {
-                    case "Set Time": {
-                        player.closeInventory();
-                        cplayer.getTitle().show(ChatColor.GREEN + "Set a Time", ChatColor.GREEN +
-                                "Enter a number for the action to execute at", 0, 0, 200);
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        actions.put(player.getUniqueId(), new AddAction(id, Action.TIME));
-                        Show show = editSessions.get(player.getUniqueId());
-                        show.actions.add(new FireworkAction(id, show, null, player.getLocation(),
-                                new ShowFireworkData(FireworkEffect.Type.BALL, Arrays.asList(ShowColor.BLACK), Arrays.asList(ShowColor.WHITE),
-                                        false, true), 1));
-                        break;
-                    }
-                    case "Select Type": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Type");
-                        inv.setItem(9, ItemUtil.create(Material.CLAY_BALL, ChatColor.GREEN + "Ball",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(11, ItemUtil.create(Material.SNOW_BALL, ChatColor.GREEN + "Large Ball",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(13, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Star",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(15, ItemUtil.create(Material.CLAY_BALL, ChatColor.GREEN + "Burst",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(17, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 4, ChatColor.GREEN + "Creeper",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        player.openInventory(inv);
-                        break;
-                    }
-                    case "Select Colors": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Colors");
-                        inv.setItem(0, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(1, ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(2, ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(3, ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(4, ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(5, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Aqua",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(6, ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(7, ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(8, ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(10, ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(11, ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(12, ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Silver",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(14, ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Gray",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(15, ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(16, ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        inv.setItem(26, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "Confirm Colors"));
-                        player.openInventory(inv);
-                        break;
-                    }
-                    case "Select Fade Colors": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Fade Colors");
-                        inv.setItem(0, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(1, ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(2, ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(3, ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(4, ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(5, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Aqua",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(6, ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(7, ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(8, ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(10, ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(11, ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(12, ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Silver",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(14, ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Gray",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(15, ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(16, ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        inv.setItem(26, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "Confirm Colors"));
-                        List<String> colors = ((FireworkAction) editSessions.get(player.getUniqueId()).getActions().get(player.getMetadata("actionid")
-                                .get(0).asInt())).getShowData().getFade().stream().map(ShowColor::name).map(String::toLowerCase).collect(Collectors.toList());
-                        Stream.of(inv.getContents()).filter(Objects::nonNull).filter(itemStack -> itemStack.getType() == Material.WOOL)
-                                .filter(itemStack -> colors.contains(ChatColor.stripColor(itemStack.getItemMeta().getDisplayName()).toLowerCase())).forEach(itemStack -> {
-                            ItemMeta itemMeta = itemStack.getItemMeta();
-                            itemMeta.addEnchant(Enchantment.ARROW_DAMAGE, 1, false);
-                            itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                            itemStack.setItemMeta(itemMeta);
-                        });
-                        player.openInventory(inv);
-                        break;
-                    }
-                    case "Set Power": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Set Power");
-                        inv.setItem(10, ItemUtil.create(Material.FIREWORK, 1,
-                                ChatColor.GREEN + "Power 0", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(12, ItemUtil.create(Material.FIREWORK, 1,
-                                ChatColor.GREEN + "Power 1", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(14, ItemUtil.create(Material.FIREWORK, 2,
-                                ChatColor.GREEN + "Power 2", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(16, ItemUtil.create(Material.FIREWORK, 3,
-                                ChatColor.GREEN + "Power 3", Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        player.openInventory(inv);
-                        break;
-                    }
-                }
-                break;
-            }
-            case "Select Type": {
-                int id = player.getMetadata("actionid").get(0).asInt();
-                if (isBack) {
-                    editAction(player, id);
-                    return;
-                }
-                Show show = editSessions.get(player.getUniqueId());
-                FireworkEffect.Type type = getType(name);
-                if (show.getActions().size() <= id) {
-                    show.actions.add(new FireworkAction(id, show, null, player.getLocation(),
-                            new ShowFireworkData(type, Arrays.asList(ShowColor.BLACK), Arrays.asList(ShowColor.WHITE), false, true), 1));
-                } else {
-                    FireworkAction action = (FireworkAction) show.actions.get(id);
-                    action.setType(type);
-                }
-                show.saveFile();
-                editAction(player, id);
-                break;
-            }
-            case "Select Colors": {
-                int id = player.getMetadata("actionid").get(0).asInt();
-                if (isBack) {
-                    editAction(player, id);
-                    return;
-                }
-
-                Show show = editSessions.get(player.getUniqueId());
-                if (name.equalsIgnoreCase("Confirm Colors")) {
-                    List<ShowColor> colors = Stream.of(event.getClickedInventory().getContents()).filter(colorPickerPredicate)
-                            .map(itemStack -> ShowColor.fromString(ChatColor.stripColor(itemStack.getItemMeta().getDisplayName())))
-                            .collect(Collectors.toList());
-                    if (show.getActions().size() <= id) {
-                        show.actions.add(new FireworkAction(id, show, null, player.getLocation(),
-                              new ShowFireworkData(FireworkEffect.Type.BALL, colors, Arrays.asList(ShowColor.WHITE), false, true), 1));
-                    }
-                    else {
-                        FireworkAction action = (FireworkAction) show.actions.get(id);
-                        action.setColors(colors);
-                    }
-
-                    show.saveFile();
-                    editAction(player, id);
-                    return;
-                }
-
-                if (meta.getEnchants().isEmpty()) {
-                    long colorCount = Stream.of(event.getClickedInventory().getContents()).filter(colorPickerPredicate).count();
-                    if (colorCount >= 4) {
-                        return;
-                    }
-
-                    meta.addEnchant(Enchantment.ARROW_DAMAGE, 1, false);
-                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                }
-                else {
-                    meta.removeEnchant(Enchantment.ARROW_DAMAGE);
-                }
-
-                item.setItemMeta(meta);
-                break;
-            }
-            case "Select Fade Colors": {
-                int id = player.getMetadata("actionid").get(0).asInt();
-                if (isBack) {
-                    editAction(player, id);
-                    return;
-                }
-
-                Show show = editSessions.get(player.getUniqueId());
-                if (name.equalsIgnoreCase("Confirm Colors")) {
-                    List<ShowColor> fade = Stream.of(event.getClickedInventory().getContents()).filter(colorPickerPredicate)
-                            .map(itemStack -> ShowColor.fromString(ChatColor.stripColor(itemStack.getItemMeta().getDisplayName())))
-                            .collect(Collectors.toList());
-                    if (show.getActions().size() <= id) {
-                        show.actions.add(new FireworkAction(id, show, null, player.getLocation(),
-                                new ShowFireworkData(FireworkEffect.Type.BALL, Arrays.asList(ShowColor.BLACK), fade, false, true), 1));
-                    } else {
-                        FireworkAction action = (FireworkAction) show.actions.get(id);
-                        action.setFade(fade);
-                    }
-
-                    show.saveFile();
-                    editAction(player, id);
-                    return;
-                }
-
-                if (meta.getEnchants().isEmpty()) {
-                    long colorCount = Stream.of(event.getClickedInventory().getContents()).filter(colorPickerPredicate).count();
-                    if (colorCount >= 4) {
-                        return;
-                    }
-
-                    meta.addEnchant(Enchantment.ARROW_DAMAGE, 1, false);
-                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                }
-                else {
-                    meta.removeEnchant(Enchantment.ARROW_DAMAGE);
-                }
-
-                item.setItemMeta(meta);
-                break;
-            }
-            case "Set Power": {
-                int id = player.getMetadata("actionid").get(0).asInt();
-                if (isBack) {
-                    editAction(player, id);
-                    return;
-                }
-                Show show = editSessions.get(player.getUniqueId());
-                int power = Integer.parseInt(name.replace("Power ", ""));
-                if (show.getActions().size() <= id) {
-                    show.actions.add(new FireworkAction(id, show, null, player.getLocation(),
-                            new ShowFireworkData(FireworkEffect.Type.BALL, Arrays.asList(ShowColor.BLACK), Arrays.asList(ShowColor.WHITE), false, true), power));
-                } else {
-                    FireworkAction action = (FireworkAction) show.actions.get(id);
-                    action.setPower(power);
-                }
-                show.saveFile();
-                editAction(player, id);
-                break;
-            }
-            case "Add Text Action": {
-                if (isBack) {
-                    int page;
-                    if (player.hasMetadata("page")) {
-                        page = player.getMetadata("page").get(0).asInt();
-                    } else {
-                        page = 1;
-                    }
-                    editShow(player, page);
-                    return;
-                }
-                switch (name) {
-                    case "Set Time": {
-                        player.closeInventory();
-                        CPlayer p = Core.getPlayerManager().getPlayer(player);
-                        p.getTitle().show(ChatColor.GREEN + "Set a Time", ChatColor.GREEN +
-                                "Enter a number for the action to execute at", 0, 0, 200);
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        actions.put(player.getUniqueId(), new AddAction(id, Action.TIME));
-                        Show show = editSessions.get(player.getUniqueId());
-                        show.actions.add(new TextAction(id, show, null, null));
-                        break;
-                    }
-                    case "Set Text": {
-                        player.closeInventory();
-                        CPlayer p = Core.getPlayerManager().getPlayer(player);
-                        p.getTitle().show(ChatColor.GREEN + "Set Text Message", ChatColor.GREEN +
-                                "Type a message to be displayed (Color Codes work!)", 0, 0, 200);
-                        Show show = editSessions.get(player.getUniqueId());
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        actions.put(player.getUniqueId(), new AddAction(id, Action.TEXT));
-                        show.actions.add(new TextAction(id, show, null, null));
-                        break;
-                    }
-                }
-                break;
-            }
-            case "Set Music": {
-                if (isBack) {
-                    int page;
-                    if (player.hasMetadata("page")) {
-                        page = player.getMetadata("page").get(0).asInt();
-                    } else {
-                        page = 1;
-                    }
-                    editShow(player, page);
-                    return;
-                }
-                switch (name) {
-                    case "Select Track": {
-                        selectTrack(player);
-                        break;
-                    }
-                }
-                break;
-            }
-            case "Add Particle Action": {
-                if (isBack) {
-                    int page;
-                    if (player.hasMetadata("page")) {
-                        page = player.getMetadata("page").get(0).asInt();
-                    } else {
-                        page = 1;
-                    }
-                    editShow(player, page);
-                    return;
-                }
-                switch (name) {
-                    case "Set Time": {
-                        player.closeInventory();
-                        CPlayer p = Core.getPlayerManager().getPlayer(player);
-                        p.getTitle().show(ChatColor.GREEN + "Set a Time", ChatColor.GREEN +
-                                "Enter a number for the action to execute at", 0, 0, 200);
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        actions.put(player.getUniqueId(), new AddAction(id, Action.TIME));
-                        Show show = editSessions.get(player.getUniqueId());
-                        show.actions.add(new ParticleAction(id, show, null, null, player.getLocation(),
-                                .75f, .5f, .75f, 0, 20));
-                        break;
-                    }
-                    case "Set Particle": {
-                        Show show = editSessions.get(player.getUniqueId());
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Particle");
-                        ChatColor c = ChatColor.GREEN;
-                        inv.setItem(9, ItemUtil.create(Material.POTION, 1, (byte) 16419, c + "Heart", new ArrayList<>()));
-                        inv.setItem(10, ItemUtil.create(Material.SNOW_BALL, 1, c + "Snow Shovel", new ArrayList<>()));
-                        inv.setItem(11, ItemUtil.create(Material.TNT, 1, c + "Explode", new ArrayList<>()));
-                        inv.setItem(12, ItemUtil.create(Material.NOTE_BLOCK, 1, c + "Note", new ArrayList<>()));
-                        inv.setItem(13, ItemUtil.create(Material.SNOW, 1, c + "Cloud", new ArrayList<>()));
-                        inv.setItem(14, ItemUtil.create(Material.FLINT_AND_STEEL, 1, c + "Flame", new ArrayList<>()));
-                        inv.setItem(15, ItemUtil.create(Material.REDSTONE, 1, c + "Red Dust", new ArrayList<>()));
-                        inv.setItem(16, ItemUtil.create(Material.LAVA_BUCKET, 1, c + "Lava", new ArrayList<>()));
-                        inv.setItem(17, ItemUtil.create(Material.FIREWORK, 1, (byte) 0, c + "Fireworks Spark",
-                                new ArrayList<>()));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        player.openInventory(inv);
-                        break;
-                    }
-                }
-                break;
-            }
-            case "Select Particle": {
-                int id = player.getMetadata("actionid").get(0).asInt();
-                if (isBack) {
-                    editAction(player, id);
-                    return;
-                }
-                Show show = editSessions.get(player.getUniqueId());
-                CPlayer p = Core.getPlayerManager().getPlayer(player);
-                Particle effect = ParticleUtil.getParticle(ChatColor.stripColor(item.getItemMeta().getDisplayName().replace(" ", "").toLowerCase()));
-                if (show.getActions().size() <= id) {
-                    show.actions.add(new ParticleAction(id, show, null, effect, player.getLocation(),
-                            .75f, .5f, .75f, 0, 20));
-                } else {
-                    ParticleAction action = (ParticleAction) show.actions.get(id);
-                    action.setParticle(effect);
-                }
-                show.saveFile();
-                editAction(player, id);
-                break;
-            }
-            case "Select Track": {
-                int id = player.getMetadata("actionid").get(0).asInt();
-                if (isBack) {
-                    editAction(player, id);
-                    return;
-                }
-
-                int maxPages = new Double(Math.ceil(audioTracks.size() / 27D)).intValue();
-                int page = 1;
-                if (player.hasMetadata("page")) {
-                    page = player.getMetadata("page").get(0).asInt();
-                }
-
-                switch (name) {
-                    case "Next Page": {
-                        if (page + 1 <= maxPages) {
-                            player.setMetadata("page", new FixedMetadataValue(Creative.getInstance(), page + 1));
-                            selectTrack(player);
-                        }
-                        break;
-                    }
-                    case "Last Page": {
-                        if (page - 1 > 0) {
-                            player.setMetadata("page", new FixedMetadataValue(Creative.getInstance(), page - 1));
-                            selectTrack(player);
-                        }
-                        break;
-                    }
-                    default: {
-                        Show show = editSessions.get(player.getUniqueId());
-                        audioTracks.values().stream().filter(track -> track.getName().equalsIgnoreCase(name)).findFirst().ifPresent(track -> {
-                            show.setAudioTrack(track.getAudioPath());
-                            show.saveFile();
-                            editAction(player, id);
-                            player.removeMetadata("page", Creative.getInstance());
-                        });
-                    }
-                }
-
-                break;
-            }
-            case "Edit Text Action": {
-                if (isBack) {
-                    int page;
-                    if (player.hasMetadata("page")) {
-                        page = player.getMetadata("page").get(0).asInt();
-                    } else {
-                        page = 1;
-                    }
-                    editShow(player, page);
-                    return;
-                }
-                switch (name) {
-                    case "Set Time": {
-                        Show show = editSessions.get(player.getUniqueId());
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        player.closeInventory();
-                        CPlayer p = Core.getPlayerManager().getPlayer(player);
-                        p.getTitle().show(ChatColor.GREEN + "Set a Time", ChatColor.GREEN +
-                                "Enter a number for the action to execute at", 0, 0, 200);
-                        actions.put(player.getUniqueId(), new AddAction(id, Action.TIME));
-                        break;
-                    }
-                    case "Set Text": {
-                        Show show = editSessions.get(player.getUniqueId());
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        player.closeInventory();
-                        CPlayer p = Core.getPlayerManager().getPlayer(player);
-                        p.getTitle().show(ChatColor.GREEN + "Set Text Message", ChatColor.GREEN +
-                                "Type a message to be displayed (Color Codes work!)", 0, 0, 200);
-                        actions.put(player.getUniqueId(), new AddAction(id, Action.TEXT));
-                        break;
-                    }
-                }
-                break;
-            }
-            case "Edit Particle Action": {
-                if (isBack) {
-                    int page;
-                    if (player.hasMetadata("page")) {
-                        page = player.getMetadata("page").get(0).asInt();
-                    } else {
-                        page = 1;
-                    }
-                    editShow(player, page);
-                    return;
-                }
-                switch (name) {
-                    case "Set Time": {
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        player.closeInventory();
-                        CPlayer p = Core.getPlayerManager().getPlayer(player);
-                        p.getTitle().show(ChatColor.GREEN + "Set a Time", ChatColor.GREEN +
-                                "Enter a number for the action to execute at", 0, 0, 200);
-                        actions.put(player.getUniqueId(), new AddAction(id, Action.TIME));
-                        break;
-                    }
-                    case "Set Particle": {
-                        Show show = editSessions.get(player.getUniqueId());
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Particle");
-                        ChatColor c = ChatColor.GREEN;
-                        inv.setItem(9, ItemUtil.create(Material.POTION, 1, (byte) 16419, c + "Heart",
-                                new ArrayList<>()));
-                        inv.setItem(10, ItemUtil.create(Material.SNOW_BALL, 1, c + "Snow Shovel", new ArrayList<>()));
-                        inv.setItem(11, ItemUtil.create(Material.TNT, 1, c + "Explode", new ArrayList<>()));
-                        inv.setItem(12, ItemUtil.create(Material.NOTE_BLOCK, 1, c + "Note", new ArrayList<>()));
-                        inv.setItem(13, ItemUtil.create(Material.SNOW, 1, c + "Cloud", new ArrayList<>()));
-                        inv.setItem(14, ItemUtil.create(Material.FLINT_AND_STEEL, 1, c + "Flame",
-                                new ArrayList<>()));
-                        inv.setItem(15, ItemUtil.create(Material.REDSTONE, 1, c + "Red Dust", new ArrayList<>()));
-                        inv.setItem(16, ItemUtil.create(Material.LAVA_BUCKET, 1, c + "Lava", new ArrayList<>()));
-                        inv.setItem(17, ItemUtil.create(Material.FIREWORK, 1, (byte) 0, c + "Fireworks Spark",
-                                new ArrayList<>()));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        player.openInventory(inv);
-                        break;
-                    }
-                }
-                break;
-            }
-            case "Edit Firework Action": {
-                if (isBack) {
-                    int page;
-                    if (player.hasMetadata("page")) {
-                        page = player.getMetadata("page").get(0).asInt();
-                    } else {
-                        page = 1;
-                    }
-                    editShow(player, page);
-                    return;
-                }
-                switch (name) {
-                    case "Set Time": {
-                        player.closeInventory();
-                        CPlayer p = Core.getPlayerManager().getPlayer(player);
-                        p.getTitle().show(ChatColor.GREEN + "Set a Time", ChatColor.GREEN +
-                                "Enter a number for the action to execute at", 0, 0, 200);
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        actions.put(player.getUniqueId(), new AddAction(id, Action.TIME));
-                        break;
-                    }
-                    case "Select Type": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Type");
-                        inv.setItem(9, ItemUtil.create(Material.CLAY_BALL, ChatColor.GREEN + "Ball",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(11, ItemUtil.create(Material.SNOW_BALL, ChatColor.GREEN + "Large Ball",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(13, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Star",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(15, ItemUtil.create(Material.CLAY_BALL, ChatColor.GREEN + "Burst",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(17, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 4, ChatColor.GREEN + "Creeper",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        player.openInventory(inv);
-                        break;
-                    }
-                    case "Select Colors": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Colors");
-                        inv.setItem(0, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(1, ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(2, ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(3, ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(4, ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(5, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Aqua",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(6, ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(7, ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(8, ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(10, ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(11, ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(12, ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Silver",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(14, ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Gray",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(15, ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(16, ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        inv.setItem(26, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "Confirm Colors"));
-                        List<String> colors = ((FireworkAction) editSessions.get(player.getUniqueId()).getActions().get(player.getMetadata("actionid")
-                                .get(0).asInt())).getShowData().getColors().stream().map(ShowColor::name).map(String::toLowerCase).collect(Collectors.toList());
-                        Stream.of(inv.getContents()).filter(Objects::nonNull).filter(itemStack -> itemStack.getType() == Material.WOOL)
-                                .filter(itemStack -> colors.contains(ChatColor.stripColor(itemStack.getItemMeta().getDisplayName()).toLowerCase())).forEach(itemStack -> {
-                            ItemMeta itemMeta = itemStack.getItemMeta();
-                            itemMeta.addEnchant(Enchantment.ARROW_DAMAGE, 1, false);
-                            itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                            itemStack.setItemMeta(itemMeta);
-                        });
-                        player.openInventory(inv);
-                        break;
-                    }
-                    case "Select Fade Colors": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Fade Colors");
-                        inv.setItem(0, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(1, ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(2, ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(3, ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(4, ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(5, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Aqua",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(6, ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(7, ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(8, ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(10, ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(11, ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(12, ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Silver",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(14, ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Gray",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(15, ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(16, ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        inv.setItem(26, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "Confirm Colors"));
-                        List<String> colors = ((FireworkAction) editSessions.get(player.getUniqueId()).getActions().get(player.getMetadata("actionid")
-                                .get(0).asInt())).getShowData().getFade().stream().map(ShowColor::name).map(String::toLowerCase).collect(Collectors.toList());
-                        Stream.of(inv.getContents()).filter(Objects::nonNull).filter(itemStack -> itemStack.getType() == Material.WOOL)
-                                .filter(itemStack -> colors.contains(ChatColor.stripColor(itemStack.getItemMeta().getDisplayName()).toLowerCase())).forEach(itemStack -> {
-                            ItemMeta itemMeta = itemStack.getItemMeta();
-                            itemMeta.addEnchant(Enchantment.ARROW_DAMAGE, 1, false);
-                            itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                            itemStack.setItemMeta(itemMeta);
-                        });
-                        player.openInventory(inv);
-                        break;
-                    }
-                    case "Set Power": {
-                        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Set Power");
-                        inv.setItem(10, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Power 0",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(12, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Power 1",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(14, ItemUtil.create(Material.FIREWORK, 2, ChatColor.GREEN + "Power 2",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(16, ItemUtil.create(Material.FIREWORK, 3, ChatColor.GREEN + "Power 3",
-                                Arrays.asList(ChatColor.GRAY + "Click to Select!")));
-                        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-                        player.openInventory(inv);
-                        break;
-                    }
-                    case "Flicker": {
-                        Show show = editSessions.get(player.getUniqueId());
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        FireworkAction action = (FireworkAction) show.actions.get(id);
-                        action.getShowData().setFlicker(!action.isFlicker());
-                        show.saveFile();
-                        editAction(player, id);
-                        break;
-                    }
-                    case "Trail": {
-                        Show show = editSessions.get(player.getUniqueId());
-                        int id = player.getMetadata("actionid").get(0).asInt();
-                        FireworkAction action = (FireworkAction) show.actions.get(id);
-                        action.getShowData().setTrail(!action.isTrail());
-                        show.saveFile();
-                        editAction(player, id);
-                        break;
-                    }
-                }
-                break;
-            }
+        if (!silent) {
+            player.sendMessage(ChatColor.RED + "Your Show edit session has ended!");
         }
     }
 
@@ -1304,196 +387,311 @@ public class ShowManager implements Listener {
         return FireworkEffect.Type.BALL;
     }
 
-    private void selectTrack(Player player) {
-        int page = 1;
-        if (player.hasMetadata("page")) {
-            page = player.getMetadata("page").get(0).asInt();
-        }
-
-        Inventory inv = Bukkit.createInventory(player, 36, ChatColor.BLUE + "Select Track");
+    private void selectTrack(Player player, int page, Show show) {
+        List<MenuButton> buttons = new ArrayList<>();
         List<AudioTrack> audioTracks = new ArrayList<>(this.audioTracks.values());
         for (int x = 0; x < 27; x++) {
             try {
                 AudioTrack track = audioTracks.get(x + (page - 1) * 27);
-                inv.setItem(x, ItemUtil.create(track.getItem(), ChatColor.GREEN + track.getName()));
+                buttons.add(new MenuButton(x, ItemUtil.create(track.getItem(), ChatColor.GREEN + track.getName()), ImmutableMap.of(ClickType.LEFT, p -> {
+                    show.setAudioTrack(track.getAudioPath());
+                    show.saveFile();
+                    editShow(p, 1, show);
+                })));
             }
             catch (IndexOutOfBoundsException ignored) {
 
             }
         }
 
-        inv.setItem(27, Creative.getInstance().getMenuUtil().last);
-        inv.setItem(31, Creative.getInstance().getMenuUtil().back);
-        inv.setItem(35, Creative.getInstance().getMenuUtil().next);
-        player.openInventory(inv);
+        if (page - 1 > 0) {
+            buttons.add(new MenuButton(27, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> selectTrack(p, page - 1, show))));
+        }
+        buttons.add(new MenuButton(31, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, 1, show))));
+        if (page + 1 <= new Double(Math.ceil(audioTracks.size() / 27D)).intValue()) {
+            buttons.add(new MenuButton(35, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> selectTrack(p, page + 1, show))));
+        }
+        new Menu(Bukkit.createInventory(player, 36, ChatColor.BLUE + "Select Track"), player, buttons);
     }
 
-    private void editAction(Player player, int slot) {
-        Show show = editSessions.get(player.getUniqueId());
-        if (show.getActions().size() <= slot) {
-            openAddAction(player);
-            return;
-        }
-        ShowAction action = show.getActions().get(slot);
-        ItemStack setTime = ItemUtil.create(Material.WATCH, ChatColor.GREEN + "Set Time",
+    private void editAction(Player player, Show show, ShowAction action) {
+        ItemStack setTimeItem = ItemUtil.create(Material.WATCH, ChatColor.GREEN + "Set Time",
                 Arrays.asList(ChatColor.YELLOW + "Time in seconds after start of", ChatColor.YELLOW +
                         "Show for an Action to execute."));
+        Map<ClickType, Consumer<Player>> setTimeActions = ImmutableMap.of(ClickType.LEFT, p -> {
+            p.closeInventory();
+            p.sendTitle(ChatColor.GREEN + "Set a Time", ChatColor.GREEN + "Enter a number for the action to execute at", 0, 0, 200);
+            new TextInput(p, (ply, msg) -> {
+                Double time;
+                try {
+                    time = Double.parseDouble(msg);
+                }
+                catch (NumberFormatException e) {
+                    ply.sendMessage(ChatColor.RED + msg + " is not a number! Please specify a number for the action to execute at.");
+                    return;
+                }
+
+                if (time > 1200) {
+                    ply.sendMessage(ChatColor.RED + "Shows cannot be longer than 20 Minutes!");
+                    time = 1200D;
+                }
+
+                action.setTime(time);
+                show.saveFile();
+                cancelEdit(ply, true);
+            });
+        });
+        List<MenuButton> buttons = new ArrayList<>();
+        buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, 1, show))));
         if (action instanceof TextAction) {
-            Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Edit Text Action");
-            inv.setItem(11, setTime);
-            inv.setItem(15, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Set Text",
-                    Arrays.asList(ChatColor.YELLOW + "Supports Color Codes!")));
-            inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-            player.removeMetadata("actionid", Creative.getInstance());
-            player.setMetadata("actionid", new FixedMetadataValue(Creative.getInstance(), slot));
-            player.openInventory(inv);
+            buttons.add(new MenuButton(11, setTimeItem, setTimeActions));
+            buttons.add(new MenuButton(15, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Set Text",
+                    Arrays.asList(ChatColor.YELLOW + "Supports Color Codes!")), ImmutableMap.of(ClickType.LEFT, p -> {
+                        p.closeInventory();
+                p.sendTitle(ChatColor.GREEN + "Set Text Message", ChatColor.GREEN +
+                        "Type a message to be displayed (Color Codes work!)", 0, 0, 200);
+                new TextInput(p, (ply, msg) -> {
+                    ((TextAction) action).setText(msg);
+                    show.saveFile();
+                    cancelEdit(ply, true);
+                    ply.sendMessage(ChatColor.GREEN + "Set Text Message to " + ChatColor.YELLOW +
+                            ChatColor.translateAlternateColorCodes('&', msg) + ChatColor.YELLOW + "!");
+                });
+            })));
+            new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Edit Text Action"), player, buttons);
         } else if (action instanceof ParticleAction) {
-            Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Edit Particle Action");
-            inv.setItem(11, setTime);
-            inv.setItem(15, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Set Particle",
-                    Arrays.asList(ChatColor.YELLOW + "Some Minecraft Particles are not allowed")));
-            inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-            player.removeMetadata("actionid", Creative.getInstance());
-            player.setMetadata("actionid", new FixedMetadataValue(Creative.getInstance(), slot));
-            player.openInventory(inv);
+            buttons.add(new MenuButton(11, setTimeItem, setTimeActions));
+            buttons.add(new MenuButton(15, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Set Particle",
+                    Arrays.asList(ChatColor.YELLOW + "Some Minecraft Particles are not allowed")), ImmutableMap.of(ClickType.LEFT, p -> setParticle(p, show, (ParticleAction) action))));
+            new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Edit Particle Action"), player, buttons);
         } else if (action instanceof FireworkAction) {
             FireworkAction a = (FireworkAction) action;
-            Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Edit Firework Action");
-            inv.setItem(10, setTime);
-            inv.setItem(11, ItemUtil.create(Material.FIREWORK_CHARGE, ChatColor.GREEN + "Select Type",
-                    Arrays.asList(ChatColor.YELLOW + "Choose shape of the Firework!")));
-            inv.setItem(12, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.GREEN + "Select Colors",
-                    Arrays.asList(ChatColor.YELLOW + "The first colors of the Firework")));
-            inv.setItem(13, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.GREEN + "Select Fade Colors",
-                    Arrays.asList(ChatColor.YELLOW + "The color the Firework fades to")));
-            inv.setItem(14, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Set Power",
-                    Arrays.asList(ChatColor.YELLOW + "The power of the Firework")));
-            inv.setItem(15, ItemUtil.create(Material.GLOWSTONE_DUST, 1, ChatColor.GREEN + "Flicker",
+            buttons.add(new MenuButton(10, setTimeItem, setTimeActions));
+            buttons.add(new MenuButton(11, ItemUtil.create(Material.FIREWORK_CHARGE, ChatColor.GREEN + "Select Type",
+                    Arrays.asList(ChatColor.YELLOW + "Choose shape of the Firework!")), ImmutableMap.of(ClickType.LEFT, p -> selectType(p, show, (FireworkAction) action))));
+            buttons.add(new MenuButton(12, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.GREEN + "Select Colors",
+                    Arrays.asList(ChatColor.YELLOW + "The first colors of the Firework")), ImmutableMap.of(ClickType.LEFT, p -> selectColors(p, show, (FireworkAction) action))));
+            buttons.add(new MenuButton(13, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.GREEN + "Select Fade Colors",
+                    Arrays.asList(ChatColor.YELLOW + "The color the Firework fades to")), ImmutableMap.of(ClickType.LEFT, p -> selectFadeColors(p, show, (FireworkAction) action))));
+            buttons.add(new MenuButton(14, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Set Power",
+                    Arrays.asList(ChatColor.YELLOW + "The power of the Firework")), ImmutableMap.of(ClickType.LEFT, p -> setPower(p, show, (FireworkAction) action))));
+            buttons.add(new MenuButton(15, ItemUtil.create(Material.GLOWSTONE_DUST, 1, ChatColor.GREEN + "Flicker",
                     Arrays.asList(a.isFlicker() ? ChatColor.GREEN + "True" : ChatColor.RED + "False",
-                            ChatColor.YELLOW + "Click to cycle options")));
-            inv.setItem(16, ItemUtil.create(Material.FEATHER, 1, ChatColor.GREEN + "Trail",
+                            ChatColor.YELLOW + "Click to cycle options")), ImmutableMap.of(ClickType.LEFT, p -> {
+                                FireworkAction fa = (FireworkAction) action;
+                                fa.getShowData().setFlicker(!fa.isFlicker());
+                                show.saveFile();
+                                editAction(p, show, action);
+            })));
+            buttons.add(new MenuButton(16, ItemUtil.create(Material.FEATHER, 1, ChatColor.GREEN + "Trail",
                     Arrays.asList(a.isTrail() ? ChatColor.GREEN + "True" : ChatColor.RED + "False",
-                            ChatColor.YELLOW + "Click to cycle options")));
-            inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-            player.removeMetadata("actionid", Creative.getInstance());
-            player.setMetadata("actionid", new FixedMetadataValue(Creative.getInstance(), slot));
-            player.openInventory(inv);
+                            ChatColor.YELLOW + "Click to cycle options")), ImmutableMap.of(ClickType.LEFT, p -> {
+                            FireworkAction fa = (FireworkAction) action;
+                            fa.getShowData().setTrail(!fa.isTrail());
+                            show.saveFile();
+                            editAction(p, show, action);
+            })));
+            new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Edit Firework Action"), player, buttons);
         }
     }
 
-    private void openAddAction(Player player) {
-        Inventory inv = Bukkit.createInventory(player, 27, ChatColor.BLUE + "Add Action");
+    private void setPower(Player player, Show show, FireworkAction action) {
+        List<MenuButton> buttons = new ArrayList<>();
+        Function<Integer, ImmutableMap<ClickType, Consumer<Player>>> powerAction = power -> ImmutableMap.of(ClickType.LEFT, p -> {
+            action.setPower(power);
+            show.saveFile();
+            editAction(p, show, action);
+        });
+        buttons.add(new MenuButton(10, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Power 0",
+                Arrays.asList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(0)));
+        buttons.add(new MenuButton(12, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Power 1",
+                Arrays.asList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(1)));
+        buttons.add(new MenuButton(14, ItemUtil.create(Material.FIREWORK, 2, ChatColor.GREEN + "Power 2",
+                Arrays.asList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(2)));
+        buttons.add(new MenuButton(16, ItemUtil.create(Material.FIREWORK, 3, ChatColor.GREEN + "Power 3",
+                Arrays.asList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(3)));
+        buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Set Power"), player, buttons);
+    }
+
+    private ItemStack addGlow(ItemStack itemStack, List<ShowColor> colors) {
+        return colors.stream().map(ShowColor::name).map(String::toLowerCase)
+                .filter(name -> name.equalsIgnoreCase(ChatColor.stripColor(itemStack.getItemMeta().getDisplayName())))
+                .findFirst().map(name -> ItemUtil.addGlow(itemStack)).orElse(itemStack);
+    }
+
+    private void selectColors(Player player, Show show, FireworkAction action) {
+        List<MenuButton> buttons = new ArrayList<>();
+        Function<ShowColor, ImmutableMap<ClickType, Consumer<Player>>> colorAction = color -> ImmutableMap.of(ClickType.LEFT, p -> {
+            if (action.getShowData().getColors().size() >= 4) {
+                return;
+            }
+
+            action.getShowData().getColors().add(color);
+            selectColors(p, show, action);
+        });
+        buttons.add(new MenuButton(0, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.RED)));
+        buttons.add(new MenuButton(1, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.ORANGE)));
+        buttons.add(new MenuButton(2, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.YELLOW)));
+        buttons.add(new MenuButton(3, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.LIME)));
+        buttons.add(new MenuButton(4, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.GREEN)));
+        buttons.add(new MenuButton(5, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Aqua",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.AQUA)));
+        buttons.add(new MenuButton(6, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.CYAN)));
+        buttons.add(new MenuButton(7, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.BLUE)));
+        buttons.add(new MenuButton(8, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.PURPLE)));
+        buttons.add(new MenuButton(10, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.MAGENTA)));
+        buttons.add(new MenuButton(11, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.PINK)));
+        buttons.add(new MenuButton(12, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.WHITE)));
+        buttons.add(new MenuButton(13, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Silver",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.SILVER)));
+        buttons.add(new MenuButton(14, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Gray",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.GRAY)));
+        buttons.add(new MenuButton(15, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.BLACK)));
+        buttons.add(new MenuButton(16, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.BROWN)));
+        buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
+        buttons.add(new MenuButton(26, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "Confirm Colors"), ImmutableMap.of(ClickType.LEFT, p -> {
+            show.saveFile();
+            editAction(p, show, action);
+        })));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Colors"), player, buttons);
+    }
+
+    private void selectFadeColors(Player player, Show show, FireworkAction action) {
+        List<MenuButton> buttons = new ArrayList<>();
+        Function<ShowColor, ImmutableMap<ClickType, Consumer<Player>>> colorAction = color -> ImmutableMap.of(ClickType.LEFT, p -> {
+            if (action.getShowData().getFade().size() >= 4) {
+                return;
+            }
+
+            action.getShowData().getFade().add(color);
+            selectFadeColors(p, show, action);
+        });
+        buttons.add(new MenuButton(0, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.RED)));
+        buttons.add(new MenuButton(1, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.ORANGE)));
+        buttons.add(new MenuButton(2, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.YELLOW)));
+        buttons.add(new MenuButton(3, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.LIME)));
+        buttons.add(new MenuButton(4, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.GREEN)));
+        buttons.add(new MenuButton(5, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Aqua",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.AQUA)));
+        buttons.add(new MenuButton(6, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.CYAN)));
+        buttons.add(new MenuButton(7, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.BLUE)));
+        buttons.add(new MenuButton(8, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.PURPLE)));
+        buttons.add(new MenuButton(10, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.MAGENTA)));
+        buttons.add(new MenuButton(11, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.PINK)));
+        buttons.add(new MenuButton(12, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.WHITE)));
+        buttons.add(new MenuButton(13, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Silver",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.SILVER)));
+        buttons.add(new MenuButton(14, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Gray",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.GRAY)));
+        buttons.add(new MenuButton(15, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.BLACK)));
+        buttons.add(new MenuButton(16, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
+                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.BROWN)));
+        buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
+        buttons.add(new MenuButton(26, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "Confirm Colors"), ImmutableMap.of(ClickType.LEFT, p -> {
+            show.saveFile();
+            editAction(p, show, action);
+        })));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Fade Colors"), player, buttons);
+    }
+
+    private void selectType(Player player, Show show, FireworkAction action) {
+        List<MenuButton> buttons = new ArrayList<>();
+        Function<Type, ImmutableMap<ClickType, Consumer<Player>>> typeAction = type -> ImmutableMap.of(ClickType.LEFT, p -> {
+            action.setType(type);
+            show.saveFile();
+            editAction(p, show, action);
+        });
+        buttons.add(new MenuButton(9, ItemUtil.create(Material.CLAY_BALL, ChatColor.GREEN + "Ball",
+                Arrays.asList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.BALL)));
+        buttons.add(new MenuButton(11, ItemUtil.create(Material.SNOW_BALL, ChatColor.GREEN + "Large Ball",
+                Arrays.asList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.BALL_LARGE)));
+        buttons.add(new MenuButton(13, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Star",
+                Arrays.asList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.STAR)));
+        buttons.add(new MenuButton(15, ItemUtil.create(Material.CLAY_BALL, ChatColor.GREEN + "Burst",
+                Arrays.asList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.BURST)));
+        buttons.add(new MenuButton(17, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 4, ChatColor.GREEN + "Creeper",
+                Arrays.asList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.CREEPER)));
+        buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Type"), player, buttons);
+    }
+
+    private void setParticle(Player player, Show show, ParticleAction action) {
+        List<MenuButton> buttons = new ArrayList<>();
+        ChatColor c = ChatColor.GREEN;
+        Function<Particle, ImmutableMap<ClickType, Consumer<Player>>> particleAction = particle -> ImmutableMap.of(ClickType.LEFT, p -> {
+            action.setParticle(particle);
+            show.saveFile();
+            editAction(p, show, action);
+        });
+        buttons.add(new MenuButton(9, ItemUtil.create(Material.POTION, 1, (byte) 16419, c + "Heart", new ArrayList<>()), particleAction.apply(Particle.HEART)));
+        buttons.add(new MenuButton(10, ItemUtil.create(Material.SNOW_BALL, 1, c + "Snow Shovel", new ArrayList<>()), particleAction.apply(Particle.SNOW_SHOVEL)));
+        buttons.add(new MenuButton(11, ItemUtil.create(Material.TNT, 1, c + "Explode", new ArrayList<>()), particleAction.apply(Particle.EXPLOSION_NORMAL)));
+        buttons.add(new MenuButton(12, ItemUtil.create(Material.NOTE_BLOCK, 1, c + "Note", new ArrayList<>()), particleAction.apply(Particle.NOTE)));
+        buttons.add(new MenuButton(13, ItemUtil.create(Material.SNOW, 1, c + "Cloud", new ArrayList<>()), particleAction.apply(Particle.CLOUD)));
+        buttons.add(new MenuButton(14, ItemUtil.create(Material.FLINT_AND_STEEL, 1, c + "Flame", new ArrayList<>()), particleAction.apply(Particle.FLAME)));
+        buttons.add(new MenuButton(15, ItemUtil.create(Material.REDSTONE, 1, c + "Red Dust", new ArrayList<>()), particleAction.apply(Particle.REDSTONE)));
+        buttons.add(new MenuButton(16, ItemUtil.create(Material.LAVA_BUCKET, 1, c + "Lava", new ArrayList<>()), particleAction.apply(Particle.LAVA)));
+        buttons.add(new MenuButton(17, ItemUtil.create(Material.FIREWORK, 1, (byte) 0, c + "Fireworks Spark", new ArrayList<>()), particleAction.apply(Particle.FIREWORKS_SPARK)));
+        buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Particle"), player, buttons);
+    }
+
+    private void openAddAction(Player player, Show show) {
+        List<MenuButton> buttons = new ArrayList<>();
         ItemStack text = ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Text Action");
         ItemStack music = ItemUtil.create(Material.RECORD_4, ChatColor.GREEN + "Set Music");
         ItemStack particle = ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Particle Action");
         ItemStack fw = ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Firework Action");
-        inv.setItem(10, text);
-        inv.setItem(12, music);
-        inv.setItem(14, particle);
-        inv.setItem(16, fw);
-        inv.setItem(22, Creative.getInstance().getMenuUtil().back);
-        player.removeMetadata("actionid", Creative.getInstance());
-        player.setMetadata("actionid", new FixedMetadataValue(Creative.getInstance(),
-                editSessions.get(player.getUniqueId()).getActions().size()));
-        player.openInventory(inv);
+        buttons.add(new MenuButton(10, text, ImmutableMap.of(ClickType.LEFT, p -> {
+            TextAction action = new TextAction(show, null, null);
+            show.actions.add(action);
+            editAction(p, show, action);
+        })));
+        buttons.add(new MenuButton(12, music, ImmutableMap.of(ClickType.LEFT, p -> selectTrack(p, 1, show))));
+        buttons.add(new MenuButton(14, particle, ImmutableMap.of(ClickType.LEFT, p -> {
+            ParticleAction action = new ParticleAction(show, null, null, player.getLocation(),
+                    .75f, .5f, .75f, 0, 20);
+            show.actions.add(action);
+            editAction(p, show, action);
+        })));
+        buttons.add(new MenuButton(16, ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Firework Action"), ImmutableMap.of(ClickType.LEFT, p -> {
+            FireworkAction action = new FireworkAction(show, null, player.getLocation(),
+                    new ShowFireworkData(FireworkEffect.Type.BALL, Arrays.asList(ShowColor.BLACK), Arrays.asList(ShowColor.WHITE),
+                            false, true), 1);
+            show.actions.add(action);
+            editAction(p, show, action);
+        })));
+        buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, 1, show))));
+        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Add Action"), player, buttons);
     }
 
-    public boolean isEditing(UUID uuid) {
-        return editSessions.containsKey(uuid);
-    }
-
-    public void handleChat(AsyncPlayerChatEvent event, CPlayer player) {
-        if (player == null) {
-            return;
-        }
-
-        AddAction action = actions.remove(player.getUniqueId());
-        if (action == null) {
-            return;
-        }
-
-        switch (action.getAction()) {
-            case TIME: {
-                Show show = editSessions.get(player.getUniqueId());
-                ShowAction act = show.actions.get(action.getId());
-                try {
-                    Double time = Double.parseDouble(event.getMessage());
-                    if (time > 1200) {
-                        messagePlayer(player, ChatColor.RED + "Shows cannot be longer than 20 Minutes!");
-                        time = 1200.0;
-                    }
-                    try {
-                        act.setTime(time);
-                        show.saveFile();
-                        cancelEdit(player, true);
-                        messagePlayer(player, ChatColor.GREEN + "Set Time to " + ChatColor.YELLOW + time + "!");
-                    } catch (Exception ignored) {
-                        ignored.printStackTrace();
-                        messagePlayer(player, ChatColor.RED + "There was an error! Please try again.");
-                    }
-                } catch (Exception ignored) {
-                    show.actions.remove(action.getId());
-                    messagePlayer(player, ChatColor.RED + event.getMessage() +
-                            " is not a number! Please specify a number for the Action to execute at.");
-                }
-                break;
-            }
-            case TEXT: {
-                try {
-                    Show show = editSessions.get(player.getUniqueId());
-                    TextAction act = (TextAction) show.actions.get(action.getId());
-                    act.setText(event.getMessage());
-                    show.saveFile();
-                    cancelEdit(player, true);
-                    messagePlayer(player, ChatColor.GREEN + "Set Text Message to " + ChatColor.YELLOW +
-                            ChatColor.translateAlternateColorCodes('&', event.getMessage()) + ChatColor.YELLOW + "!");
-                } catch (Exception ignored) {
-                    ignored.printStackTrace();
-                    messagePlayer(player, ChatColor.RED + "There was an error! Please try again.");
-                }
-                break;
-            }
-            case NAME: {
-                try {
-                    Show show = editSessions.get(player.getUniqueId());
-                    if (show == null) {
-                        messagePlayer(player, ChatColor.RED + "There was an error! please try again.");
-                        return;
-                    }
-
-                    File userShows = new File("plugins/Creative/shows/" + player.getUniqueId().toString());
-                    if (new File(userShows, ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', event.getMessage())) + ".show").exists()) {
-                        messagePlayer(player, ChatColor.RED + "A show with that name already exists.");
-                    }
-                    else {
-                        show.setName(event.getMessage());
-                        show.saveFile();
-                        messagePlayer(player, ChatColor.GREEN + "Show " + ChatColor.RESET +
-                                ChatColor.translateAlternateColorCodes('&', event.getMessage()) + ChatColor.GREEN + " successfully created.");
-                    }
-
-                    cancelEdit(player, true);
-                }
-                catch (Exception e) {
-                    messagePlayer(player, ChatColor.RED + "There was an error! please try again.");
-                }
-
-                break;
-            }
-        }
-    }
-
-    public void setShowName(CPlayer player, String name) {
-        try {
-            Show show = createSession(player);
-            show.setName(name);
-            show.saveFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public HashMap<String, AudioTrack> getAudioTracks() {
+    public Map<String, AudioTrack> getAudioTracks() {
         return new HashMap<>(audioTracks);
     }
 
@@ -1504,34 +702,12 @@ public class ShowManager implements Listener {
         }
     }
 
-    public void syncMusic(CPlayer player, Plot plot, Player owner) {
+    public void syncMusic(CPlayer player, Player owner) {
         for (Show s : shows.values()) {
             if (s.getOwner().equals(owner.getUniqueId())) {
                 s.syncAudioForPlayer(player);
                 break;
             }
         }
-    }
-
-    private class AddAction {
-        private final Integer id;
-        private final Action action;
-
-        public AddAction(Integer id, Action action) {
-            this.id = id;
-            this.action = action;
-        }
-
-        public Integer getId() {
-            return id;
-        }
-
-        public Action getAction() {
-            return action;
-        }
-    }
-
-    private enum Action {
-        NAME, TIME, TEXT, POWER
     }
 }

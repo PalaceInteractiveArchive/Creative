@@ -1,5 +1,6 @@
 package network.palace.creative.inventory;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
@@ -17,4 +18,8 @@ public class MenuButton {
     private final ItemStack itemStack;
     @Getter
     private final Map<ClickType, Consumer<Player>> actions;
+
+    public MenuButton(int slot, ItemStack itemStack) {
+        this(slot, itemStack, ImmutableMap.of());
+    }
 }

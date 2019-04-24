@@ -59,7 +59,6 @@ public class Show {
     public long musicTime = 0;
     @Getter @Setter private boolean saving = false;
 
-    @SuppressWarnings("deprecation")
     public Show(File file, CPlayer player, Plot plot) {
         owner = player.getUniqueId();
         world = player.getLocation().getWorld();
@@ -79,11 +78,29 @@ public class Show {
         startTime = System.currentTimeMillis();
         this.plotId = plot.getId();
         for (Player tp : Bukkit.getOnlinePlayers()) {
-            Plot p = new PlotAPI(Creative.getInstance()).getPlot(tp.getLocation());
+            Plot p = new PlotAPI().getPlot(tp.getLocation());
             if (p != null && p.getId().equals(plot.getId())) {
                 nearbyPlayers.add(tp.getUniqueId());
             }
         }
+    }
+
+    private Location strToLoc(String string) {
+        if (string.length() == 0) {
+            return null;
+        }
+        String[] tokens = string.split(",");
+        try {
+            for (World cur : Bukkit.getWorlds()) {
+                if (cur.getName().equalsIgnoreCase(tokens[0])) {
+                    return new Location(cur, Double.parseDouble(tokens[1]),
+                            Double.parseDouble(tokens[2]), Double.parseDouble(tokens[3]));
+                }
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return null;
     }
 
     private void loadActions(File file) {
@@ -143,12 +160,12 @@ public class Show {
                     if (text.length() > 1) {
                         text = new StringBuilder(text.substring(0, text.length() - 1));
                     }
-                    actions.add(new TextAction(id, this, time, text.toString()));
+                    actions.add(new TextAction(this, time, text.toString()));
                     continue;
                 }
                 if (tokens[1].startsWith("Firework")) {
                     // Location
-                    Location loc = Creative.getInstance().getShowManager().strToLoc(world.getName() + "," + tokens[2]);
+                    Location loc = strToLoc(world.getName() + "," + tokens[2]);
                     if (loc == null) {
                         invalidLines.put(strLine, "Invalid Location");
                         continue;
@@ -171,19 +188,19 @@ public class Show {
                     boolean flicker = tokens[7].equalsIgnoreCase("true");
                     boolean trail = tokens[8].equalsIgnoreCase("true");
                     ShowFireworkData data = new ShowFireworkData(type, colors, fade, flicker, trail);
-                    actions.add(new FireworkAction(id, this, time, loc, data, power));
+                    actions.add(new FireworkAction(this, time, loc, data, power));
                     continue;
                 }
                 if (tokens[1].contains("Particle")) {
                     // 0 Particle type x,y,z oX oY oZ speed amount
                     Particle effect = ParticleUtil.getParticle(tokens[2]);
-                    Location location = Creative.getInstance().getShowManager().strToLoc(world.getName() + "," + tokens[3]);
+                    Location location = strToLoc(world.getName() + "," + tokens[3]);
                     double offsetX = Float.parseFloat(tokens[4]);
                     double offsetY = Float.parseFloat(tokens[5]);
                     double offsetZ = Float.parseFloat(tokens[6]);
                     float speed = Float.parseFloat(tokens[7]);
                     int amount = Integer.parseInt(tokens[8]);
-                    actions.add(new ParticleAction(id, this, time, effect, location, offsetX, offsetY, offsetZ,
+                    actions.add(new ParticleAction(this, time, effect, location, offsetX, offsetY, offsetZ,
                             speed, amount));
                 }
             }
@@ -206,7 +223,7 @@ public class Show {
         }
         List<UUID> list = new ArrayList<>();
         for (Player tp : Bukkit.getOnlinePlayers()) {
-            Plot p = new PlotAPI(Creative.getInstance()).getPlot(tp.getLocation());
+            Plot p = new PlotAPI().getPlot(tp.getLocation());
             if (p != null && p.getId().equals(plotId)) {
                 list.add(tp.getUniqueId());
             }

@@ -3,6 +3,7 @@ package network.palace.creative.utils;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -16,7 +17,13 @@ public class TeleportUtil {
     private HashMap<UUID, Location> locations = new HashMap<>();
 
     public void log(Player player, Location location) {
-        if (Core.getPlayerManager().getPlayer(player).getRank().getRankId() < Rank.MOD.getRankId()) {
+        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+        if (cPlayer == null) {
+            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
+            return;
+        }
+
+        if (cPlayer.getRank().getRankId() < Rank.MOD.getRankId()) {
             return;
         }
         if (locations.containsKey(player.getUniqueId())) {

@@ -2,7 +2,6 @@ package network.palace.creative.commands;
 
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
-import network.palace.core.command.CommandPermission;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -14,8 +13,7 @@ import org.bukkit.inventory.PlayerInventory;
 /**
  * Created by Marc on 6/27/16
  */
-@CommandMeta(description = "Replace the Creative Star")
-@CommandPermission(rank = Rank.SETTLER)
+@CommandMeta(description = "Replace the Creative Star", rank = Rank.SETTLER)
 public class StarCommand extends CoreCommand {
 
     public StarCommand() {

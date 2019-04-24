@@ -381,7 +381,7 @@ public class MenuUtil implements Listener {
                 "Mesa", biome.equalsIgnoreCase("mesa") ? selected : empty), getBiomeAction("mesa", plot)));
         buttons.add(new MenuButton(16, ItemUtil.create(Material.PACKED_ICE, ChatColor.AQUA + "Ice Plains (Snow)",
                 biome.equalsIgnoreCase("ice_flats") ? selected : empty), getBiomeAction("ice_flats", plot)));
-        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, p -> openManagePlot(p, plot))));
+        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openPlotSettings)));
         new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Change Biome"), player, buttons);
     }
 

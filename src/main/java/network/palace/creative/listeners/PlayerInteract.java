@@ -26,7 +26,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
  */
 public class PlayerInteract implements Listener {
 
-    @SuppressWarnings("deprecation")
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         CPlayer player = Core.getPlayerManager().getPlayer(event.getPlayer());

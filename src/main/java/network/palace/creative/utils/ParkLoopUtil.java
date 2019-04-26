@@ -238,36 +238,32 @@ public class ParkLoopUtil {
             audioArea.removeAllPlayers(true);
             audio.removeArea(audioArea);
             PlotAPI plotAPI = new PlotAPI();
-            plotAPI.getPlotAreas(Bukkit.getWorld("plotworld")).stream().map(plot -> plot.getPlot(plotId)).filter(Objects::nonNull).findFirst().ifPresent(plot -> {
-                loops.values().stream().filter(audioTrack -> audioTrack.getAudioPath().equals(audioArea.getPath())).map(AudioTrack::getAudioPath).findFirst().ifPresent(path -> {
-                    audioTable.put(plot.getOwners().iterator().next(), plotId, path);
-                });
-            });
+            plotAPI.getPlotAreas(Bukkit.getWorld("plotworld")).stream().map(plot -> plot.getPlot(plotId)).filter(Objects::nonNull)
+                    .findFirst().ifPresent(plot -> loops.values().stream().filter(audioTrack -> audioTrack.getAudioPath().equals(audioArea.getPath()))
+                    .map(AudioTrack::getAudioPath).findFirst().ifPresent(path -> audioTable.put(plot.getOwners().iterator().next(), plotId, path)));
         });
-        audioTable.rowKeySet().forEach(uuid -> {
-            audioTable.columnKeySet().forEach(plotId -> {
-                String track = audioTable.get(uuid, plotId);
-                if (track == null) {
-                    return;
+        audioTable.rowKeySet().forEach(uuid -> audioTable.columnKeySet().forEach(plotId -> {
+            String track = audioTable.get(uuid, plotId);
+            if (track == null) {
+                return;
+            }
+
+            File loopRegions = new File(Creative.getInstance().getDataFolder(), "parkloop_regions");
+            loopRegions.mkdirs();
+            File file = new File(loopRegions, uuid.toString() + ".yml");
+            try {
+                if (!file.exists()) {
+                    file.createNewFile();
                 }
 
-                File loopRegions = new File(Creative.getInstance().getDataFolder(), "parkloop_regions");
-                loopRegions.mkdirs();
-                File file = new File(loopRegions, uuid.toString() + ".yml");
-                try {
-                    if (!file.exists()) {
-                        file.createNewFile();
-                    }
-
-                    YamlConfiguration yaml = new YamlConfiguration();
-                    yaml.set(plotId.toString(), track);
-                    yaml.save(file);
-                }
-                catch (IOException e) {
-                    Creative.getInstance().getLogger().warning("Failed to save plot audio for " + uuid.toString() + " at plot " + plotId.toString());
-                    return;
-                }
-            });
-        });
+                YamlConfiguration yaml = new YamlConfiguration();
+                yaml.set(plotId.toString(), track);
+                yaml.save(file);
+            }
+            catch (IOException e) {
+                Creative.getInstance().getLogger().warning("Failed to save plot audio for " + uuid.toString() + " at plot " + plotId.toString());
+                return;
+            }
+        }));
     }
 }

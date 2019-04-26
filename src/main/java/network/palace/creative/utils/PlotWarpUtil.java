@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +94,7 @@ public class PlotWarpUtil {
             try {
                 Entry<UUID, Warp> warp = warps.get(x + (page - 1) * 45);
                 Warp w = warp.getValue();
-                ItemStack itemStack = ItemUtil.create(Material.EYE_OF_ENDER, w.getName(), Arrays.asList(ChatColor.YELLOW + "Submitted by " + Bukkit.getOfflinePlayer(warp.getKey()).getName()));
+                ItemStack itemStack = ItemUtil.create(Material.ENDER_EYE, w.getName(), Collections.singletonList(ChatColor.YELLOW + "Submitted by " + Bukkit.getOfflinePlayer(warp.getKey()).getName()));
                 buttons.add(new MenuButton(x, itemStack, ImmutableMap.of(ClickType.LEFT, p -> {
                     p.closeInventory();
                     p.teleport(w.getLocation());
@@ -134,7 +135,7 @@ public class PlotWarpUtil {
                 Entry<UUID, Warp> pendingWarp = pending.get(x + (page - 1) * 45);
                 UUID uuid = pendingWarp.getKey();
                 Warp warp = pendingWarp.getValue();
-                ItemStack itemStack = ItemUtil.create(Material.EYE_OF_ENDER, ChatColor.GREEN + warp.getName(), Arrays.asList(ChatColor.YELLOW + "Submitted by " + Bukkit.getOfflinePlayer(uuid).getName(),
+                ItemStack itemStack = ItemUtil.create(Material.ENDER_EYE, ChatColor.GREEN + warp.getName(), Arrays.asList(ChatColor.YELLOW + "Submitted by " + Bukkit.getOfflinePlayer(uuid).getName(),
                         ChatColor.GREEN + "Left-Click" + ChatColor.YELLOW + " to approve.", ChatColor.RED + "Right-Click" + ChatColor.YELLOW + " to deny."));
                 buttons.add(new MenuButton(x, itemStack, ImmutableMap.of(ClickType.LEFT, p -> {
                     p.sendMessage(ChatColor.GREEN + "Warp approved!");

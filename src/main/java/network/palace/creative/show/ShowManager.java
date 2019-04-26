@@ -51,7 +51,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 
 /**
  * Created by Marc on 12/11/15
@@ -240,7 +243,7 @@ public class ShowManager implements Listener {
                 try {
                     File file = showFiles[x];
                     Show show = new Show(showFiles[x], cPlayer, plot);
-                    buttons.add(new MenuButton(x, ItemUtil.create(Material.FIREWORK, ChatColor.RESET + show.getNameColored(),
+                    buttons.add(new MenuButton(x, ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.RESET + show.getNameColored(),
                             Arrays.asList(ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN + "to Edit this Show!",
                                     ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Show!")),
                             ImmutableMap.of(ClickType.LEFT, p -> editShow(p, 1, show), ClickType.RIGHT, p -> {
@@ -341,13 +344,12 @@ public class ShowManager implements Listener {
         if (page + 1 <= new Double(Math.ceil(actions.size() / 45D)).intValue()) {
             buttons.add(new MenuButton(50, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, page + 1, show))));
         }
-        buttons.add(new MenuButton(53, ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 5, ChatColor.GREEN + "Add Action",
-                Arrays.asList(ChatColor.GREEN + "Click to add a new Action!")), ImmutableMap.of(ClickType.LEFT, p -> openAddAction(p, show))));
+        buttons.add(new MenuButton(53, ItemUtil.create(Material.LIME_TERRACOTTA, 1, ChatColor.GREEN + "Add Action", Collections.singletonList(ChatColor.GREEN + "Click to add a new Action!")), ImmutableMap.of(ClickType.LEFT, p -> openAddAction(p, show))));
         buttons.add(new MenuButton(49, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> {
             cancelEdit(p, false);
             selectShow(p);
         })));
-        buttons.add(new MenuButton(45, ItemUtil.create(Material.BARRIER, 1, (byte) 0, ChatColor.RED + "Delete All Actions", Collections.emptyList()),
+        buttons.add(new MenuButton(45, ItemUtil.create(Material.BARRIER, 1, ChatColor.RED + "Delete All Actions", Collections.emptyList()),
                 ImmutableMap.of(ClickType.LEFT, p -> {
                     show.actions.clear();
                     show.saveFile();
@@ -415,14 +417,14 @@ public class ShowManager implements Listener {
     }
 
     private void editAction(Player player, Show show, ShowAction action) {
-        ItemStack setTimeItem = ItemUtil.create(Material.WATCH, ChatColor.GREEN + "Set Time",
+        ItemStack setTimeItem = ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "Set Time",
                 Arrays.asList(ChatColor.YELLOW + "Time in seconds after start of", ChatColor.YELLOW +
                         "Show for an Action to execute."));
         Map<ClickType, Consumer<Player>> setTimeActions = ImmutableMap.of(ClickType.LEFT, p -> {
             p.closeInventory();
             p.sendTitle(ChatColor.GREEN + "Set a Time", ChatColor.GREEN + "Enter a number for the action to execute at", 0, 0, 200);
             new TextInput(p, (ply, msg) -> {
-                Double time;
+                double time;
                 try {
                     time = Double.parseDouble(msg);
                 }
@@ -445,8 +447,7 @@ public class ShowManager implements Listener {
         buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, 1, show))));
         if (action instanceof TextAction) {
             buttons.add(new MenuButton(11, setTimeItem, setTimeActions));
-            buttons.add(new MenuButton(15, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Set Text",
-                    Arrays.asList(ChatColor.YELLOW + "Supports Color Codes!")), ImmutableMap.of(ClickType.LEFT, p -> {
+            buttons.add(new MenuButton(15, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Set Text", Collections.singletonList(ChatColor.YELLOW + "Supports Color Codes!")), ImmutableMap.of(ClickType.LEFT, p -> {
                         p.closeInventory();
                 p.sendTitle(ChatColor.GREEN + "Set Text Message", ChatColor.GREEN +
                         "Type a message to be displayed (Color Codes work!)", 0, 0, 200);
@@ -461,20 +462,15 @@ public class ShowManager implements Listener {
             new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Edit Text Action"), player, buttons);
         } else if (action instanceof ParticleAction) {
             buttons.add(new MenuButton(11, setTimeItem, setTimeActions));
-            buttons.add(new MenuButton(15, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Set Particle",
-                    Arrays.asList(ChatColor.YELLOW + "Some Minecraft Particles are not allowed")), ImmutableMap.of(ClickType.LEFT, p -> setParticle(p, show, (ParticleAction) action))));
+            buttons.add(new MenuButton(15, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Set Particle", Collections.singletonList(ChatColor.YELLOW + "Some Minecraft Particles are not allowed")), ImmutableMap.of(ClickType.LEFT, p -> setParticle(p, show, (ParticleAction) action))));
             new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Edit Particle Action"), player, buttons);
         } else if (action instanceof FireworkAction) {
             FireworkAction a = (FireworkAction) action;
             buttons.add(new MenuButton(10, setTimeItem, setTimeActions));
-            buttons.add(new MenuButton(11, ItemUtil.create(Material.FIREWORK_CHARGE, ChatColor.GREEN + "Select Type",
-                    Arrays.asList(ChatColor.YELLOW + "Choose shape of the Firework!")), ImmutableMap.of(ClickType.LEFT, p -> selectType(p, show, (FireworkAction) action))));
-            buttons.add(new MenuButton(12, ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.GREEN + "Select Colors",
-                    Arrays.asList(ChatColor.YELLOW + "The first colors of the Firework")), ImmutableMap.of(ClickType.LEFT, p -> selectColors(p, show, (FireworkAction) action))));
-            buttons.add(new MenuButton(13, ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.GREEN + "Select Fade Colors",
-                    Arrays.asList(ChatColor.YELLOW + "The color the Firework fades to")), ImmutableMap.of(ClickType.LEFT, p -> selectFadeColors(p, show, (FireworkAction) action))));
-            buttons.add(new MenuButton(14, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Set Power",
-                    Arrays.asList(ChatColor.YELLOW + "The power of the Firework")), ImmutableMap.of(ClickType.LEFT, p -> setPower(p, show, (FireworkAction) action))));
+            buttons.add(new MenuButton(11, ItemUtil.create(Material.FIREWORK_STAR, ChatColor.GREEN + "Select Type", Collections.singletonList(ChatColor.YELLOW + "Choose shape of the Firework!")), ImmutableMap.of(ClickType.LEFT, p -> selectType(p, show, (FireworkAction) action))));
+            buttons.add(new MenuButton(12, ItemUtil.create(Material.LIGHT_BLUE_WOOL, 1, ChatColor.GREEN + "Select Colors", Collections.singletonList(ChatColor.YELLOW + "The first colors of the Firework")), ImmutableMap.of(ClickType.LEFT, p -> selectColors(p, show, (FireworkAction) action))));
+            buttons.add(new MenuButton(13, ItemUtil.create(Material.RED_WOOL, 1, ChatColor.GREEN + "Select Fade Colors", Collections.singletonList(ChatColor.YELLOW + "The color the Firework fades to")), ImmutableMap.of(ClickType.LEFT, p -> selectFadeColors(p, show, (FireworkAction) action))));
+            buttons.add(new MenuButton(14, ItemUtil.create(Material.FIREWORK_ROCKET, 1, ChatColor.GREEN + "Set Power", Collections.singletonList(ChatColor.YELLOW + "The power of the Firework")), ImmutableMap.of(ClickType.LEFT, p -> setPower(p, show, (FireworkAction) action))));
             buttons.add(new MenuButton(15, ItemUtil.create(Material.GLOWSTONE_DUST, 1, ChatColor.GREEN + "Flicker",
                     Arrays.asList(a.isFlicker() ? ChatColor.GREEN + "True" : ChatColor.RED + "False",
                             ChatColor.YELLOW + "Click to cycle options")), ImmutableMap.of(ClickType.LEFT, p -> {
@@ -502,14 +498,10 @@ public class ShowManager implements Listener {
             show.saveFile();
             editAction(p, show, action);
         });
-        buttons.add(new MenuButton(10, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Power 0",
-                Arrays.asList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(0)));
-        buttons.add(new MenuButton(12, ItemUtil.create(Material.FIREWORK, 1, ChatColor.GREEN + "Power 1",
-                Arrays.asList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(1)));
-        buttons.add(new MenuButton(14, ItemUtil.create(Material.FIREWORK, 2, ChatColor.GREEN + "Power 2",
-                Arrays.asList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(2)));
-        buttons.add(new MenuButton(16, ItemUtil.create(Material.FIREWORK, 3, ChatColor.GREEN + "Power 3",
-                Arrays.asList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(3)));
+        buttons.add(new MenuButton(10, ItemUtil.create(Material.FIREWORK_ROCKET, 1, ChatColor.GREEN + "Power 0", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(0)));
+        buttons.add(new MenuButton(12, ItemUtil.create(Material.FIREWORK_ROCKET, 1, ChatColor.GREEN + "Power 1", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(1)));
+        buttons.add(new MenuButton(14, ItemUtil.create(Material.FIREWORK_ROCKET, 2, ChatColor.GREEN + "Power 2", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(2)));
+        buttons.add(new MenuButton(16, ItemUtil.create(Material.FIREWORK_ROCKET, 3, ChatColor.GREEN + "Power 3", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(3)));
         buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
         new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Set Power"), player, buttons);
     }
@@ -535,38 +527,22 @@ public class ShowManager implements Listener {
             action.getShowData().setColors(colors);
             selectColors(p, show, action);
         });
-        buttons.add(new MenuButton(0, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.RED)));
-        buttons.add(new MenuButton(1, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.ORANGE)));
-        buttons.add(new MenuButton(2, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.YELLOW)));
-        buttons.add(new MenuButton(3, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.LIME)));
-        buttons.add(new MenuButton(4, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.GREEN)));
-        buttons.add(new MenuButton(5, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Aqua",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.AQUA)));
-        buttons.add(new MenuButton(6, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.CYAN)));
-        buttons.add(new MenuButton(7, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.BLUE)));
-        buttons.add(new MenuButton(8, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.PURPLE)));
-        buttons.add(new MenuButton(10, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.MAGENTA)));
-        buttons.add(new MenuButton(11, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.PINK)));
-        buttons.add(new MenuButton(12, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.WHITE)));
-        buttons.add(new MenuButton(13, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Silver",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.SILVER)));
-        buttons.add(new MenuButton(14, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Gray",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.GRAY)));
-        buttons.add(new MenuButton(15, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.BLACK)));
-        buttons.add(new MenuButton(16, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.BROWN)));
+        buttons.add(new MenuButton(0, addGlow(ItemUtil.create(Material.RED_WOOL, 1, ChatColor.DARK_RED + "Red", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.RED)));
+        buttons.add(new MenuButton(1, addGlow(ItemUtil.create(Material.ORANGE_WOOL, 1, ChatColor.GOLD + "Orange", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.ORANGE)));
+        buttons.add(new MenuButton(2, addGlow(ItemUtil.create(Material.YELLOW_WOOL, 1, ChatColor.YELLOW + "Yellow", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.YELLOW)));
+        buttons.add(new MenuButton(3, addGlow(ItemUtil.create(Material.LIME_WOOL, 1, ChatColor.GREEN + "Lime", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.LIME)));
+        buttons.add(new MenuButton(4, addGlow(ItemUtil.create(Material.GREEN_WOOL, 1, ChatColor.DARK_GREEN + "Green", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.GREEN)));
+        buttons.add(new MenuButton(5, addGlow(ItemUtil.create(Material.LIGHT_BLUE_BANNER, 1, ChatColor.AQUA + "Aqua", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.AQUA)));
+        buttons.add(new MenuButton(6, addGlow(ItemUtil.create(Material.CYAN_WOOL, 1, ChatColor.DARK_AQUA + "Cyan", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.CYAN)));
+        buttons.add(new MenuButton(7, addGlow(ItemUtil.create(Material.BLUE_WOOL, 1, ChatColor.BLUE + "Blue", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.BLUE)));
+        buttons.add(new MenuButton(8, addGlow(ItemUtil.create(Material.PURPLE_WOOL, 1, ChatColor.DARK_PURPLE + "Purple", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.PURPLE)));
+        buttons.add(new MenuButton(10, addGlow(ItemUtil.create(Material.MAGENTA_WOOL, 1, ChatColor.LIGHT_PURPLE + "Magenta", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.MAGENTA)));
+        buttons.add(new MenuButton(11, addGlow(ItemUtil.create(Material.PINK_WOOL, 1, ChatColor.RED + "Pink", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.PINK)));
+        buttons.add(new MenuButton(12, addGlow(ItemUtil.create(Material.WHITE_WOOL, 1, ChatColor.WHITE + "White", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.WHITE)));
+        buttons.add(new MenuButton(13, addGlow(ItemUtil.create(Material.LIGHT_GRAY_WOOL, 1, ChatColor.GRAY + "Silver", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.SILVER)));
+        buttons.add(new MenuButton(14, addGlow(ItemUtil.create(Material.GRAY_WOOL, 1, ChatColor.DARK_GRAY + "Gray", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.GRAY)));
+        buttons.add(new MenuButton(15, addGlow(ItemUtil.create(Material.BLACK_WOOL, 1, ChatColor.DARK_GRAY + "Black", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.BLACK)));
+        buttons.add(new MenuButton(16, addGlow(ItemUtil.create(Material.BROWN_WOOL, 1, ChatColor.DARK_GRAY + "Brown", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getColors()), colorAction.apply(ShowColor.BROWN)));
         buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
         buttons.add(new MenuButton(26, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "Confirm Colors"), ImmutableMap.of(ClickType.LEFT, p -> {
             show.saveFile();
@@ -590,38 +566,22 @@ public class ShowManager implements Listener {
             action.getShowData().setFade(colors);
             selectFadeColors(p, show, action);
         });
-        buttons.add(new MenuButton(0, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.RED)));
-        buttons.add(new MenuButton(1, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.ORANGE)));
-        buttons.add(new MenuButton(2, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.YELLOW)));
-        buttons.add(new MenuButton(3, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.LIME)));
-        buttons.add(new MenuButton(4, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.GREEN)));
-        buttons.add(new MenuButton(5, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Aqua",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.AQUA)));
-        buttons.add(new MenuButton(6, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.CYAN)));
-        buttons.add(new MenuButton(7, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.BLUE)));
-        buttons.add(new MenuButton(8, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.PURPLE)));
-        buttons.add(new MenuButton(10, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.MAGENTA)));
-        buttons.add(new MenuButton(11, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.PINK)));
-        buttons.add(new MenuButton(12, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.WHITE)));
-        buttons.add(new MenuButton(13, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Silver",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.SILVER)));
-        buttons.add(new MenuButton(14, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Gray",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.GRAY)));
-        buttons.add(new MenuButton(15, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.BLACK)));
-        buttons.add(new MenuButton(16, addGlow(ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown",
-                Arrays.asList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.BROWN)));
+        buttons.add(new MenuButton(0, addGlow(ItemUtil.create(Material.RED_WOOL, 1, ChatColor.DARK_RED + "Red", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.RED)));
+        buttons.add(new MenuButton(1, addGlow(ItemUtil.create(Material.ORANGE_WOOL, 1, ChatColor.GOLD + "Orange", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.ORANGE)));
+        buttons.add(new MenuButton(2, addGlow(ItemUtil.create(Material.YELLOW_WOOL, 1, ChatColor.YELLOW + "Yellow", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.YELLOW)));
+        buttons.add(new MenuButton(3, addGlow(ItemUtil.create(Material.LIME_WOOL, 1, ChatColor.GREEN + "Lime", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.LIME)));
+        buttons.add(new MenuButton(4, addGlow(ItemUtil.create(Material.GREEN_WOOL, 1, ChatColor.DARK_GREEN + "Green", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.GREEN)));
+        buttons.add(new MenuButton(5, addGlow(ItemUtil.create(Material.LIGHT_BLUE_WOOL, 1, ChatColor.AQUA + "Aqua", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.AQUA)));
+        buttons.add(new MenuButton(6, addGlow(ItemUtil.create(Material.CYAN_WOOL, 1, ChatColor.DARK_AQUA + "Cyan", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.CYAN)));
+        buttons.add(new MenuButton(7, addGlow(ItemUtil.create(Material.BLUE_WOOL, 1, ChatColor.BLUE + "Blue", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.BLUE)));
+        buttons.add(new MenuButton(8, addGlow(ItemUtil.create(Material.PURPLE_WOOL, 1, ChatColor.DARK_PURPLE + "Purple", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.PURPLE)));
+        buttons.add(new MenuButton(10, addGlow(ItemUtil.create(Material.MAGENTA_WOOL, 1, ChatColor.LIGHT_PURPLE + "Magenta", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.MAGENTA)));
+        buttons.add(new MenuButton(11, addGlow(ItemUtil.create(Material.PINK_WOOL, 1, ChatColor.RED + "Pink", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.PINK)));
+        buttons.add(new MenuButton(12, addGlow(ItemUtil.create(Material.WHITE_WOOL, 1, ChatColor.WHITE + "White", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.WHITE)));
+        buttons.add(new MenuButton(13, addGlow(ItemUtil.create(Material.LIGHT_GRAY_WOOL, 1, ChatColor.GRAY + "Silver", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.SILVER)));
+        buttons.add(new MenuButton(14, addGlow(ItemUtil.create(Material.GRAY_WOOL, 1, ChatColor.DARK_GRAY + "Gray", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.GRAY)));
+        buttons.add(new MenuButton(15, addGlow(ItemUtil.create(Material.BLACK_WOOL, 1, ChatColor.DARK_GRAY + "Black", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.BLACK)));
+        buttons.add(new MenuButton(16, addGlow(ItemUtil.create(Material.BROWN_WOOL, 1, ChatColor.DARK_GRAY + "Brown", Collections.singletonList(ChatColor.GRAY + "Click to Select/Deselect!")), action.getShowData().getFade()), colorAction.apply(ShowColor.BROWN)));
         buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
         buttons.add(new MenuButton(26, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "Confirm Colors"), ImmutableMap.of(ClickType.LEFT, p -> {
             show.saveFile();
@@ -637,16 +597,11 @@ public class ShowManager implements Listener {
             show.saveFile();
             editAction(p, show, action);
         });
-        buttons.add(new MenuButton(9, ItemUtil.create(Material.CLAY_BALL, ChatColor.GREEN + "Ball",
-                Arrays.asList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.BALL)));
-        buttons.add(new MenuButton(11, ItemUtil.create(Material.SNOW_BALL, ChatColor.GREEN + "Large Ball",
-                Arrays.asList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.BALL_LARGE)));
-        buttons.add(new MenuButton(13, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Star",
-                Arrays.asList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.STAR)));
-        buttons.add(new MenuButton(15, ItemUtil.create(Material.CLAY_BALL, ChatColor.GREEN + "Burst",
-                Arrays.asList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.BURST)));
-        buttons.add(new MenuButton(17, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 4, ChatColor.GREEN + "Creeper",
-                Arrays.asList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.CREEPER)));
+        buttons.add(new MenuButton(9, ItemUtil.create(Material.CLAY_BALL, ChatColor.GREEN + "Ball", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.BALL)));
+        buttons.add(new MenuButton(11, ItemUtil.create(Material.SNOWBALL, ChatColor.GREEN + "Large Ball", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.BALL_LARGE)));
+        buttons.add(new MenuButton(13, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Star", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.STAR)));
+        buttons.add(new MenuButton(15, ItemUtil.create(Material.CLAY_BALL, ChatColor.GREEN + "Burst", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.BURST)));
+        buttons.add(new MenuButton(17, ItemUtil.create(Material.CREEPER_HEAD, 1, ChatColor.GREEN + "Creeper", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.CREEPER)));
         buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
         new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Type"), player, buttons);
     }
@@ -659,15 +614,19 @@ public class ShowManager implements Listener {
             show.saveFile();
             editAction(p, show, action);
         });
-        buttons.add(new MenuButton(9, ItemUtil.create(Material.POTION, 1, (byte) 16419, c + "Heart", new ArrayList<>()), particleAction.apply(Particle.HEART)));
-        buttons.add(new MenuButton(10, ItemUtil.create(Material.SNOW_BALL, 1, c + "Snow Shovel", new ArrayList<>()), particleAction.apply(Particle.SNOW_SHOVEL)));
+        ItemStack potion = ItemUtil.create(Material.POTION, 1, c + "Heart", new ArrayList<>());
+        PotionMeta pm = (PotionMeta) potion.getItemMeta();
+        pm.setBasePotionData(new PotionData(PotionType.INSTANT_HEAL));
+        potion.setItemMeta(pm);
+        buttons.add(new MenuButton(9, potion, particleAction.apply(Particle.HEART)));
+        buttons.add(new MenuButton(10, ItemUtil.create(Material.SNOWBALL, 1, c + "Snow Shovel", new ArrayList<>()), particleAction.apply(Particle.SNOW_SHOVEL)));
         buttons.add(new MenuButton(11, ItemUtil.create(Material.TNT, 1, c + "Explode", new ArrayList<>()), particleAction.apply(Particle.EXPLOSION_NORMAL)));
         buttons.add(new MenuButton(12, ItemUtil.create(Material.NOTE_BLOCK, 1, c + "Note", new ArrayList<>()), particleAction.apply(Particle.NOTE)));
         buttons.add(new MenuButton(13, ItemUtil.create(Material.SNOW, 1, c + "Cloud", new ArrayList<>()), particleAction.apply(Particle.CLOUD)));
         buttons.add(new MenuButton(14, ItemUtil.create(Material.FLINT_AND_STEEL, 1, c + "Flame", new ArrayList<>()), particleAction.apply(Particle.FLAME)));
         buttons.add(new MenuButton(15, ItemUtil.create(Material.REDSTONE, 1, c + "Red Dust", new ArrayList<>()), particleAction.apply(Particle.REDSTONE)));
         buttons.add(new MenuButton(16, ItemUtil.create(Material.LAVA_BUCKET, 1, c + "Lava", new ArrayList<>()), particleAction.apply(Particle.LAVA)));
-        buttons.add(new MenuButton(17, ItemUtil.create(Material.FIREWORK, 1, (byte) 0, c + "Fireworks Spark", new ArrayList<>()), particleAction.apply(Particle.FIREWORKS_SPARK)));
+        buttons.add(new MenuButton(17, ItemUtil.create(Material.FIREWORK_ROCKET, 1, c + "Fireworks Spark", new ArrayList<>()), particleAction.apply(Particle.FIREWORKS_SPARK)));
         buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
         new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Particle"), player, buttons);
     }
@@ -675,9 +634,9 @@ public class ShowManager implements Listener {
     private void openAddAction(Player player, Show show) {
         List<MenuButton> buttons = new ArrayList<>();
         ItemStack text = ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Text Action");
-        ItemStack music = ItemUtil.create(Material.RECORD_4, ChatColor.GREEN + "Set Music");
+        ItemStack music = ItemUtil.create(Material.MUSIC_DISC_CHIRP, ChatColor.GREEN + "Set Music");
         ItemStack particle = ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Particle Action");
-        ItemStack fw = ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Firework Action");
+        ItemStack fw = ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Firework Action");
         buttons.add(new MenuButton(10, text, ImmutableMap.of(ClickType.LEFT, p -> {
             TextAction action = new TextAction(show, null, null);
             show.actions.add(action);
@@ -690,9 +649,9 @@ public class ShowManager implements Listener {
             show.actions.add(action);
             editAction(p, show, action);
         })));
-        buttons.add(new MenuButton(16, ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Firework Action"), ImmutableMap.of(ClickType.LEFT, p -> {
+        buttons.add(new MenuButton(16, ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Firework Action"), ImmutableMap.of(ClickType.LEFT, p -> {
             FireworkAction action = new FireworkAction(show, null, player.getLocation(),
-                    new ShowFireworkData(FireworkEffect.Type.BALL, new ArrayList<>(Arrays.asList(ShowColor.BLACK)), new ArrayList<>(Arrays.asList(ShowColor.WHITE)),
+                    new ShowFireworkData(FireworkEffect.Type.BALL, new ArrayList<>(Collections.singletonList(ShowColor.BLACK)), new ArrayList<>(Collections.singletonList(ShowColor.WHITE)),
                             false, true), 1);
             show.actions.add(action);
             editAction(p, show, action);

@@ -26,9 +26,7 @@ public class TeleportUtil {
         if (cPlayer.getRank().getRankId() < Rank.MOD.getRankId()) {
             return;
         }
-        if (locations.containsKey(player.getUniqueId())) {
-            locations.remove(player.getUniqueId());
-        }
+
         locations.put(player.getUniqueId(), location);
     }
 

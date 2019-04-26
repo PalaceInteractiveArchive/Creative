@@ -61,19 +61,22 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 
 /**
  * Created by Marc on 7/29/15
  */
 @SuppressWarnings("deprecation")
 public class MenuUtil implements Listener {
-    private ItemStack bannerCreator = new ItemStack(Material.BANNER);
-    private ItemStack plotTime = ItemUtil.create(Material.WATCH, ChatColor.GREEN + "Plot Settings");
+    private ItemStack bannerCreator = new ItemStack(Material.BLUE_BANNER);
+    private ItemStack plotTime = ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "Plot Settings");
     private ItemStack myPlots = ItemUtil.create(Material.GRASS, ChatColor.GREEN + "My Plots");
     private ItemStack spawn = ItemUtil.create(Material.ENDER_PEARL, ChatColor.GREEN + "Spawn");
     private ItemStack buildingPlots = ItemUtil.create(Material.DIRT, ChatColor.GREEN + "Building Plots");
     private ItemStack headShop;
-    private ItemStack showCreator = ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Show Creator");
+    private ItemStack showCreator = ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Show Creator");
     private ItemStack teleport = ItemUtil.create(Material.ENDER_PEARL, ChatColor.GREEN + "Teleport to Plot");
     private ItemStack deny = ItemUtil.create(Material.BARRIER, ChatColor.GREEN + "Deny a Player");
     private ItemStack members = ItemUtil.create(Material.BOOK, ChatColor.GREEN + "Added Players");
@@ -85,15 +88,14 @@ public class MenuUtil implements Listener {
     public ItemStack next = ItemUtil.create(Material.ARROW, ChatColor.GREEN + "Next Page");
     public ItemStack back = ItemUtil.create(Material.ARROW, ChatColor.GREEN + "Back");
     public ItemStack last = ItemUtil.create(Material.ARROW, ChatColor.GREEN + "Last Page");
-    private ItemStack loading = ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 9,
-            ChatColor.AQUA + "Loading...", new ArrayList<>());
-    private ItemStack more = ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 4, ChatColor.RED + "Too many!",
+    private ItemStack loading = ItemUtil.create(Material.CYAN_TERRACOTTA, 1, ChatColor.AQUA + "Loading...", new ArrayList<>());
+    private ItemStack more = ItemUtil.create(Material.YELLOW_TERRACOTTA, 1, ChatColor.RED + "Too many!",
             Arrays.asList(ChatColor.RED + "We can only list up to", ChatColor.RED +
                             "45 Plots here. You're added", ChatColor.RED + "to more than 45 Plots. To",
                     ChatColor.RED + "get to a Plot you're added to", ChatColor.RED +
                             "that isn't listed here, you have", ChatColor.RED + "to send a /tpa request to the",
                     ChatColor.RED + "Plot Owner"));
-    private ItemStack member = ItemUtil.create(Material.REDSTONE_TORCH_ON, ChatColor.GREEN + "Member",
+    private ItemStack member = ItemUtil.create(Material.REDSTONE_TORCH, ChatColor.GREEN + "Member",
             Arrays.asList(ChatColor.YELLOW + "This type of Member can only", ChatColor.YELLOW +
                     "build when you are online."));
     private ItemStack trusted = ItemUtil.create(Material.TORCH, ChatColor.GOLD + "Trusted",
@@ -101,11 +103,11 @@ public class MenuUtil implements Listener {
                     "even if you're not online."));
     private ItemStack note = ItemUtil.create(Material.NOTE_BLOCK, ChatColor.GREEN + "Notes",
             new ArrayList<>());
-    private ItemStack spark = ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Firework Spark",
+    private ItemStack spark = ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Firework Spark",
             new ArrayList<>());
     private ItemStack mickey = ItemUtil.create(Material.APPLE, ChatColor.GREEN + "Mickey Head",
             new ArrayList<>());
-    private ItemStack enchant = ItemUtil.create(Material.ENCHANTMENT_TABLE, ChatColor.GREEN + "Enchantment",
+    private ItemStack enchant = ItemUtil.create(Material.ENCHANTING_TABLE, ChatColor.GREEN + "Enchantment",
             new ArrayList<>());
     private ItemStack flame = ItemUtil.create(Material.FLINT_AND_STEEL, ChatColor.GREEN + "Flame",
             new ArrayList<>());
@@ -115,9 +117,8 @@ public class MenuUtil implements Listener {
             new ArrayList<>());
     private ItemStack lava = ItemUtil.create(Material.LAVA_BUCKET, ChatColor.GREEN + "Lava",
             new ArrayList<>());
-    private ItemStack witch = ItemUtil.create(Material.POTION, 1, (byte) 8196, ChatColor.GREEN + "Witch Magic",
-            new ArrayList<>());
-    private ItemStack none = ItemUtil.create(Material.STAINED_GLASS_PANE, ChatColor.RED + "Clear Particle",
+    private ItemStack witch = new ItemStack(Material.POTION);
+    private ItemStack none = ItemUtil.create(Material.WHITE_STAINED_GLASS, ChatColor.RED + "Clear Particle",
             new ArrayList<>());
     private PlotAPI api;
     private List<UUID> denyTask = new ArrayList<>();
@@ -132,6 +133,9 @@ public class MenuUtil implements Listener {
         bm.addPattern(new Pattern(DyeColor.ORANGE, PatternType.CIRCLE_MIDDLE));
         bm.setDisplayName(ChatColor.GREEN + "Banner Creator");
         bannerCreator.setItemMeta(bm);
+        PotionMeta pm = (PotionMeta) witch.getItemMeta();
+        pm.setBasePotionData(new PotionData(PotionType.POISON));
+        witch.setItemMeta(pm);
         String hash = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUv" +
                 "Y2RhZGYxNzQ0NDMzZTFjNzlkMWQ1OWQyNzc3ZDkzOWRlMTU5YTI0Y2Y1N2U4YTYxYzgyYmM0ZmUzNzc3NTUzYyJ9fX0=";
         headShop = network.palace.core.utils.HeadUtil.getPlayerHead(hash, ChatColor.GREEN + "Headshop");
@@ -235,7 +239,7 @@ public class MenuUtil implements Listener {
                     }
                 }
 
-                menu.getButton(22).filter(b -> b.getItemStack().getType() == Material.STAINED_CLAY).ifPresent(b -> menu.removeButton(22));
+                menu.getButton(22).filter(b -> b.getItemStack().getType() == Material.CYAN_TERRACOTTA).ifPresent(b -> menu.removeButton(22));
                 menu.setButton(new MenuButton(49, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
             });
         });
@@ -270,7 +274,7 @@ public class MenuUtil implements Listener {
         List<MenuButton> buttons = new ArrayList<>();
         List<Plot> plots = new ArrayList<>(api.getPlayerPlots(Bukkit.getWorld("plotworld"), player));
         if (plots.isEmpty()) {
-            ItemStack empty = ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.RED +
+            ItemStack empty = ItemUtil.create(Material.RED_WOOL, 1, ChatColor.RED +
                     "You don't have any plots!", Arrays.asList(ChatColor.GREEN + "Click here to get",
                     ChatColor.GREEN + "your own plot!"));
             buttons.add(new MenuButton(13, empty));
@@ -311,8 +315,8 @@ public class MenuUtil implements Listener {
         List<String> not = Collections.singletonList(ChatColor.GRAY + "Click to Select!");
         List<MenuButton> buttons = new ArrayList<>();
         buttons.add(new MenuButton(2, ItemUtil.create(Material.GRASS, ChatColor.GREEN + "Set the floor of your plot."), ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getPlotFloorUtil().open(p, 1))));
-        buttons.add(new MenuButton(3, ItemUtil.create(Material.DOUBLE_PLANT, ChatColor.GREEN + "Clear", weather.equals(PlotWeather.CLEAR) ? current : not), getWeatherAction(plot, PlotWeather.CLEAR)));
-        buttons.add(new MenuButton(4, ItemUtil.create(Material.LONG_GRASS, 1, (byte) 1, ChatColor.DARK_GREEN + "Change Biome", new ArrayList<>()), ImmutableMap.of(ClickType.LEFT, p -> openChangeBiome(p, plot))));
+        buttons.add(new MenuButton(3, ItemUtil.create(Material.SUNFLOWER, ChatColor.GREEN + "Clear", weather.equals(PlotWeather.CLEAR) ? current : not), getWeatherAction(plot, PlotWeather.CLEAR)));
+        buttons.add(new MenuButton(4, ItemUtil.create(Material.DEAD_BUSH, 1, ChatColor.DARK_GREEN + "Change Biome", new ArrayList<>()), ImmutableMap.of(ClickType.LEFT, p -> openChangeBiome(p, plot))));
         buttons.add(new MenuButton(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain", weather.equals(PlotWeather.RAIN) ? current : not), getWeatherAction(plot, PlotWeather.RAIN)));
         buttons.add(new MenuButton(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? Collections.singletonList(ChatColor.GRAY + "Visitors can not fly.") : Collections.singletonList(ChatColor.YELLOW + "Visitors can fly.")), ImmutableMap.of(ClickType.LEFT, p -> {
             BooleanFlag flag = (BooleanFlag) FlagManager.getFlag("flight");
@@ -334,24 +338,24 @@ public class MenuUtil implements Listener {
         }
 
         if (cPlayer.getRank() != Rank.SETTLER) {
-            buttons.add(new MenuButton(13, ItemUtil.create(Material.GREEN_RECORD, ChatColor.GREEN + "Set park loop music."), ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParkLoopUtil().open(p, 1))));
+            buttons.add(new MenuButton(13, ItemUtil.create(Material.MUSIC_DISC_CAT, ChatColor.GREEN + "Set park loop music."), ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParkLoopUtil().open(p, 1))));
         }
 
-        buttons.add(new MenuButton(9, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "6AM", time == 0 ? current : not), getTimeAction(plot, 0)));
-        buttons.add(new MenuButton(10, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "9AM", time == 3000 ? current : not), getTimeAction(plot, 3000)));
-        buttons.add(new MenuButton(11, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "12PM", time == 6000 ? current : not), getTimeAction(plot, 6000)));
-        buttons.add(new MenuButton(12, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "3PM", time == 9000 ? current : not), getTimeAction(plot, 9000)));
-        buttons.add(new MenuButton(14, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "6PM", time == 12000 ? current : not), getTimeAction(plot, 12000)));
-        buttons.add(new MenuButton(15, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "9PM", time == 15000 ? current : not), getTimeAction(plot, 15000)));
-        buttons.add(new MenuButton(16, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "12AM", time == 18000 ? current : not), getTimeAction(plot, 18000)));
-        buttons.add(new MenuButton(17, ItemUtil.create(Material.WATCH, ChatColor.GREEN + "3AM", time == 21000 ? current : not), getTimeAction(plot, 21000)));
+        buttons.add(new MenuButton(9, ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "6AM", time == 0 ? current : not), getTimeAction(plot, 0)));
+        buttons.add(new MenuButton(10, ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "9AM", time == 3000 ? current : not), getTimeAction(plot, 3000)));
+        buttons.add(new MenuButton(11, ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "12PM", time == 6000 ? current : not), getTimeAction(plot, 6000)));
+        buttons.add(new MenuButton(12, ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "3PM", time == 9000 ? current : not), getTimeAction(plot, 9000)));
+        buttons.add(new MenuButton(14, ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "6PM", time == 12000 ? current : not), getTimeAction(plot, 12000)));
+        buttons.add(new MenuButton(15, ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "9PM", time == 15000 ? current : not), getTimeAction(plot, 15000)));
+        buttons.add(new MenuButton(16, ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "12AM", time == 18000 ? current : not), getTimeAction(plot, 18000)));
+        buttons.add(new MenuButton(17, ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "3AM", time == 21000 ? current : not), getTimeAction(plot, 21000)));
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
         new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Plot Settings"), player, buttons);
     }
 
     private Map<ClickType, Consumer<Player>> getTimeAction(Plot plot, long time) {
         return ImmutableMap.of(ClickType.LEFT, p -> {
-            final Flag flag = FlagManager.getFlag("time");//new Flag(FlagManager.getFlag("time", true), time);
+            Flag flag = FlagManager.getFlag("time");//new Flag(FlagManager.getFlag("time", true), time);
             Object parsed = flag.parseValue(String.valueOf(time));
             if (plot.setFlag(flag, parsed)) {
                 p.sendMessage(ChatColor.GREEN + "Set Plot Time to " + time + "!");
@@ -367,17 +371,17 @@ public class MenuUtil implements Listener {
         String biome = plot.getBiome();
         List<String> empty = new ArrayList<>();
         List<String> selected = Collections.singletonList(ChatColor.YELLOW + "Currently Selected");
-        buttons.add(new MenuButton(10, ItemUtil.create(Material.LONG_GRASS, 1, (byte) 1, ChatColor.GREEN +
+        buttons.add(new MenuButton(10, ItemUtil.create(Material.DEAD_BUSH, 1, ChatColor.GREEN +
                 "Plains", biome.equalsIgnoreCase("plains") ? selected : empty), getBiomeAction("plains", plot)));
         buttons.add(new MenuButton(11, ItemUtil.create(Material.DEAD_BUSH, ChatColor.YELLOW + "Desert",
                 biome.equalsIgnoreCase("desert") ? selected : empty), getBiomeAction("desert", plot)));
-        buttons.add(new MenuButton(12, ItemUtil.create(Material.SAPLING, 1, (byte) 1, ChatColor.DARK_GREEN +
+        buttons.add(new MenuButton(12, ItemUtil.create(Material.SPRUCE_SAPLING, 1, ChatColor.DARK_GREEN +
                 "Forest", biome.equalsIgnoreCase("forest") ? selected : empty), getBiomeAction("forest", plot)));
         buttons.add(new MenuButton(13, ItemUtil.create(Material.VINE, ChatColor.DARK_GREEN + "Swampland",
                 biome.equalsIgnoreCase("swampland") ? selected : empty), getBiomeAction("swampland", plot)));
-        buttons.add(new MenuButton(14, ItemUtil.create(Material.SAPLING, 1, (byte) 3, ChatColor.DARK_GREEN +
+        buttons.add(new MenuButton(14, ItemUtil.create(Material.JUNGLE_SAPLING, 1, ChatColor.DARK_GREEN +
                 "Jungle", biome.equalsIgnoreCase("jungle") ? selected : empty), getBiomeAction("jungle", plot)));
-        buttons.add(new MenuButton(15, ItemUtil.create(Material.STAINED_CLAY, 1, (byte) 1, ChatColor.GOLD +
+        buttons.add(new MenuButton(15, ItemUtil.create(Material.ORANGE_TERRACOTTA, 1, ChatColor.GOLD +
                 "Mesa", biome.equalsIgnoreCase("mesa") ? selected : empty), getBiomeAction("mesa", plot)));
         buttons.add(new MenuButton(16, ItemUtil.create(Material.PACKED_ICE, ChatColor.AQUA + "Ice Plains (Snow)",
                 biome.equalsIgnoreCase("ice_flats") ? selected : empty), getBiomeAction("ice_flats", plot)));
@@ -423,10 +427,10 @@ public class MenuUtil implements Listener {
         int limit = data.getRPLimit();
         int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
         if (limit >= 10) {
-            buttons.add(new MenuButton(1, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
+            buttons.add(new MenuButton(1, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
                     "Role Play Expansion (10 Player)", Collections.singletonList(ChatColor.GREEN + "You own this!"))));
         } else {
-            buttons.add(new MenuButton(1, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
+            buttons.add(new MenuButton(1, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
                     "Role Play Expansion (10 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
                     ChatColor.GREEN + "$250", ChatColor.RED + "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
                 if (balance < 250) {
@@ -435,7 +439,7 @@ public class MenuUtil implements Listener {
                     return;
                 }
 
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 5, 2);
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 5, 2);
                 p.closeInventory();
                 purchaseParticle(p);
 
@@ -443,10 +447,10 @@ public class MenuUtil implements Listener {
         }
 
         if (limit >= 15) {
-            buttons.add(new MenuButton(2, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
+            buttons.add(new MenuButton(2, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
                     "Role Play Expansion (15 Player)", Collections.singletonList(ChatColor.GREEN + "You own this!"))));
         } else {
-            buttons.add(new MenuButton(2, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
+            buttons.add(new MenuButton(2, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
                     "Role Play Expansion (15 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
                     ChatColor.GREEN + "$300", ChatColor.RED + "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
                 if (limit < 10) {
@@ -461,7 +465,7 @@ public class MenuUtil implements Listener {
                     return;
                 }
 
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 5f, 2f);
                 p.closeInventory();
                 purchaseParticle(p);
                 Core.getMongoHandler().changeAmount(p.getUniqueId(), -300, "role play expansion (15 player)", CurrencyType.BALANCE, false);
@@ -471,10 +475,10 @@ public class MenuUtil implements Listener {
         }
 
         if (limit >= 20) {
-            buttons.add(new MenuButton(3, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
+            buttons.add(new MenuButton(3, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
                     "Role Play Expansion (20 Player)", Collections.singletonList(ChatColor.GREEN + "You own this!"))));
         } else {
-            buttons.add(new MenuButton(3, ItemUtil.create(Material.SKULL_ITEM, 1, (byte) 3, ChatColor.GREEN +
+            buttons.add(new MenuButton(3, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
                     "Role Play Expansion (20 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
                     ChatColor.GREEN + "$350", ChatColor.RED + "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
                 if (limit < 15) {
@@ -489,7 +493,7 @@ public class MenuUtil implements Listener {
                     return;
                 }
 
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 5f, 2f);
                 p.closeInventory();
                 purchaseParticle(p);
                 Core.getMongoHandler().changeAmount(p.getUniqueId(), -350,
@@ -513,7 +517,7 @@ public class MenuUtil implements Listener {
                     return;
                 }
 
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 5f, 2f);
                 p.closeInventory();
                 purchaseParticle(p);
                 Core.getMongoHandler().changeAmount(p.getUniqueId(), -100,
@@ -531,7 +535,7 @@ public class MenuUtil implements Listener {
                     p.closeInventory();
                     return;
                 }
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 5f, 2f);
                 p.closeInventory();
                 purchaseParticle(p);
                 Core.getMongoHandler().changeAmount(p.getUniqueId(), -5000,
@@ -541,10 +545,10 @@ public class MenuUtil implements Listener {
         }
 
         if (data.hasShowCreator()) {
-            buttons.add(new MenuButton(15, ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Show Creator",
+            buttons.add(new MenuButton(15, ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Show Creator",
                     Collections.singletonList(ChatColor.GREEN + "You own this!"))));
         } else {
-            buttons.add(new MenuButton(15, ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Show Creator",
+            buttons.add(new MenuButton(15, ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Show Creator",
                     Arrays.asList(ChatColor.YELLOW + "Price: " + ChatColor.GREEN + "$500", ChatColor.RED +
                             "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
                 if (balance < 500) {
@@ -553,7 +557,7 @@ public class MenuUtil implements Listener {
                     p.closeInventory();
                     return;
                 }
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 5f, 2f);
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 5f, 2f);
                 p.closeInventory();
                 purchaseParticle(p);
                 Core.getMongoHandler().changeAmount(p.getUniqueId(), -500,
@@ -936,7 +940,7 @@ public class MenuUtil implements Listener {
                 CPlayer cPlayer = Core.getPlayerManager().getPlayer(uuid);
                 ItemStack itemStack;
                 if (cPlayer == null) {
-                    itemStack = ItemUtil.create(Material.SKULL_ITEM, ChatColor.GRAY + Bukkit.getOfflinePlayer(uuid).getName());
+                    itemStack = ItemUtil.create(Material.SKELETON_SKULL, ChatColor.GRAY + Bukkit.getOfflinePlayer(uuid).getName());
                 } else {
                     itemStack = network.palace.core.utils.HeadUtil.getPlayerHead(cPlayer.getTextureValue(), cPlayer.getRank().getTagColor() + cPlayer.getName());
                 }
@@ -1023,7 +1027,7 @@ public class MenuUtil implements Listener {
                 ItemStack item;
                 CPlayer cplayer = Core.getPlayerManager().getPlayer(uuid);
                 if (cplayer == null) {
-                    item = ItemUtil.create(Material.SKULL_ITEM, ChatColor.GRAY + Bukkit.getOfflinePlayer(uuid).getName(),
+                    item = ItemUtil.create(Material.SKELETON_SKULL, ChatColor.GRAY + Bukkit.getOfflinePlayer(uuid).getName(),
                             Collections.singletonList(ChatColor.RED + "Click to Un-Deny this Player!"));
                 } else {
                     item = HeadUtil.getPlayerHead(cplayer.getTextureValue(), cplayer.getRank().getTagColor() + cplayer.getName());

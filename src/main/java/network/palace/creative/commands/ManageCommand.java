@@ -20,7 +20,6 @@ public class ManageCommand extends CoreCommand {
         super("manage");
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
         Plot plot = new PlotAPI().getPlot(player.getLocation());

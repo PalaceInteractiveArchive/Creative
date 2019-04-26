@@ -81,9 +81,9 @@ public class FireworkAction extends ShowAction implements Listener {
 
     @Override
     public ItemStack getItem() {
-        return ItemUtil.create(Material.FIREWORK, ChatColor.AQUA + "Firework Action", Arrays.asList(ChatColor.GREEN + "Time: " + (time / 1000) + " Type: " + showData.getType().name(),
-                ChatColor.GREEN + "Colors: " + String.join(", ", showData.getColors().stream().map(ShowColor::name).collect(Collectors.toList())),
-                ChatColor.GREEN + "Fade: " + String.join(", ", showData.getFade().stream().map(ShowColor::name).collect(Collectors.toList())),
+        return ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.AQUA + "Firework Action", Arrays.asList(ChatColor.GREEN + "Time: " + (time / 1000) + " Type: " + showData.getType().name(),
+                ChatColor.GREEN + "Colors: " + showData.getColors().stream().map(ShowColor::name).collect(Collectors.joining(", ")),
+                ChatColor.GREEN + "Fade: " + showData.getFade().stream().map(ShowColor::name).collect(Collectors.joining(", ")),
                 ChatColor.GREEN + "Flicker: " + showData.isFlicker() + " Trail: " + showData.isTrail()));
     }
 

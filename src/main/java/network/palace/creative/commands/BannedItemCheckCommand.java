@@ -27,11 +27,6 @@ public class BannedItemCheckCommand extends CoreCommand {
         }
 
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(args[0]);
-        if (offlinePlayer == null) {
-            player.sendMessage(ChatColor.RED + "Player not found.");
-            return;
-        }
-
         Optional<CaughtUserData> data = Creative.getInstance().getItemExploitHandler().getData(offlinePlayer.getUniqueId());
         if (data.isPresent()) {
             Creative.getInstance().getItemExploitHandler().viewPlayer(player.getBukkitPlayer(), data.get(), offlinePlayer, 1);

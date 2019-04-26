@@ -16,7 +16,6 @@ public class PlayerMove implements Listener {
         Player player = event.getPlayer();
         if (event.getTo().getBlockY() <= 0) {
             player.teleport(Creative.getInstance().getSpawn());
-            return;
         }
     }
 }

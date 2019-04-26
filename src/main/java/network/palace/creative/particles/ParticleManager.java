@@ -34,7 +34,7 @@ public class ParticleManager {
         data.setParticle(null);
         stop(player.getUniqueId());
         player.sendMessage(ChatColor.GREEN + "Cleared your particle effects!");
-        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 100, 2);
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 100, 2);
         Core.runTaskAsynchronously(() -> Core.getMongoHandler().setCreativeValue(player.getUniqueId(),
                 "particle", "none"));
     }

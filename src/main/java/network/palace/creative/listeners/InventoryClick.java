@@ -22,9 +22,9 @@ import org.bukkit.inventory.ItemStack;
  * Created by Marc on 6/12/15
  */
 public class InventoryClick implements Listener {
-    private List<Material> clickBlacklist = Arrays.asList(Material.MOB_SPAWNER, Material.PORTAL, Material.ENDER_PORTAL,
-            Material.DRAGON_EGG, Material.COMMAND, Material.COMMAND_CHAIN, Material.COMMAND_REPEATING,
-            Material.COMMAND_MINECART, Material.BARRIER, Material.END_GATEWAY, Material.END_CRYSTAL,
+    private List<Material> clickBlacklist = Arrays.asList(Material.SPAWNER, Material.NETHER_PORTAL, Material.END_PORTAL,
+            Material.DRAGON_EGG, Material.COMMAND_BLOCK, Material.CHAIN_COMMAND_BLOCK, Material.REPEATING_COMMAND_BLOCK,
+            Material.COMMAND_BLOCK_MINECART, Material.BARRIER, Material.END_GATEWAY, Material.END_CRYSTAL,
             Material.STRUCTURE_BLOCK, Material.STRUCTURE_VOID);
     private ItemStack air = ItemUtil.create(Material.AIR);
 
@@ -36,10 +36,8 @@ public class InventoryClick implements Listener {
         if (player.getRank().getRankId() >= Rank.TRAINEE.getRankId())
             return;
         ItemStack cursor = event.getCursor();
-        if (cursor == null)
-            return;
         Material type = cursor.getType();
-        if (type != null && clickBlacklist.contains(type)) {
+        if (clickBlacklist.contains(type)) {
             event.setCancelled(true);
             event.setCursor(air);
         }
@@ -50,15 +48,14 @@ public class InventoryClick implements Listener {
         long t = System.currentTimeMillis();
         Inventory inv = event.getClickedInventory();
 
-        if (inv == null || inv.getTitle() == null) {
+        if (inv == null) {
             return;
         }
-        if (event.getWhoClicked() != null) {
-            if (event.getWhoClicked() instanceof Player) {
-                PlayerData data = Creative.getInstance().getPlayerData(event.getWhoClicked().getUniqueId());
-                if (data != null) {
-                    data.resetAction();
-                }
+
+        if (event.getWhoClicked() instanceof Player) {
+            PlayerData data = Creative.getInstance().getPlayerData(event.getWhoClicked().getUniqueId());
+            if (data != null) {
+                data.resetAction();
             }
         }
 

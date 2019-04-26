@@ -49,9 +49,8 @@ public class ShowFireworkData {
 
     @Override
     public String toString() {
-        return type == null ? "null" : type.name() + " " +
-                String.join(",", colors.stream().map(ShowColor::name).collect(Collectors.toList())) + " " +
-                String.join(",", fade.stream().map(ShowColor::name).collect(Collectors.toList())) + " "
+        return type == null ? "null" : type.name() + " " + colors.stream().map(ShowColor::name).collect(Collectors.joining(","))
+                + " " + fade.stream().map(ShowColor::name).collect(Collectors.joining(",")) + " "
                 + (flicker ? "true" : "false") + " " + (trail ? "true" : "false");
     }
 

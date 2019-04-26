@@ -58,7 +58,7 @@ public class ResourceUtil {
         }
         YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
         List<String> s = config.getStringList("packs");
-        if (s == null || s.isEmpty()) {
+        if (s.isEmpty()) {
             Core.logMessage("Creative", ChatColor.RED + "No Resource Packs defined!");
             return;
         }
@@ -146,31 +146,7 @@ public class ResourceUtil {
     }
 
     public Material randomDisc() {
-        switch (random.nextInt(12) + 1) {
-            case 1:
-                return Material.GOLD_RECORD;
-            case 2:
-                return Material.GREEN_RECORD;
-            case 3:
-                return Material.RECORD_3;
-            case 4:
-                return Material.RECORD_4;
-            case 5:
-                return Material.RECORD_5;
-            case 6:
-                return Material.RECORD_6;
-            case 7:
-                return Material.RECORD_7;
-            case 8:
-                return Material.RECORD_8;
-            case 9:
-                return Material.RECORD_9;
-            case 10:
-                return Material.RECORD_10;
-            case 11:
-                return Material.RECORD_11;
-            default:
-                return Material.RECORD_12;
-        }
+        List<Material> discs = Arrays.asList(Material.MUSIC_DISC_11, Material.MUSIC_DISC_13, Material.MUSIC_DISC_BLOCKS, Material.MUSIC_DISC_CAT, Material.MUSIC_DISC_CHIRP, Material.MUSIC_DISC_FAR, Material.MUSIC_DISC_MALL, Material.MUSIC_DISC_MELLOHI, Material.MUSIC_DISC_STAL, Material.MUSIC_DISC_STRAD, Material.MUSIC_DISC_WAIT, Material.MUSIC_DISC_WARD);
+        return discs.get(new Random().nextInt(discs.size()));
     }
 }

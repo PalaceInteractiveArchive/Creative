@@ -39,22 +39,22 @@ public class BannerUtil {
     public BannerUtil() {
         //--Colors--
         List<String> empty = new ArrayList<>();
-        colors.put("red", ItemUtil.create(Material.WOOL, 1, (byte) 14, ChatColor.DARK_RED + "Red", empty));
-        colors.put("orange", ItemUtil.create(Material.WOOL, 1, (byte) 1, ChatColor.GOLD + "Orange", empty));
-        colors.put("yellow", ItemUtil.create(Material.WOOL, 1, (byte) 4, ChatColor.YELLOW + "Yellow", empty));
-        colors.put("lime", ItemUtil.create(Material.WOOL, 1, (byte) 5, ChatColor.GREEN + "Lime", empty));
-        colors.put("green", ItemUtil.create(Material.WOOL, 1, (byte) 13, ChatColor.DARK_GREEN + "Green", empty));
-        colors.put("lightblue", ItemUtil.create(Material.WOOL, 1, (byte) 3, ChatColor.AQUA + "Light Blue", empty));
-        colors.put("cyan", ItemUtil.create(Material.WOOL, 1, (byte) 9, ChatColor.DARK_AQUA + "Cyan", empty));
-        colors.put("blue", ItemUtil.create(Material.WOOL, 1, (byte) 11, ChatColor.BLUE + "Blue", empty));
-        colors.put("purple", ItemUtil.create(Material.WOOL, 1, (byte) 10, ChatColor.DARK_PURPLE + "Purple", empty));
-        colors.put("magenta", ItemUtil.create(Material.WOOL, 1, (byte) 2, ChatColor.LIGHT_PURPLE + "Magenta", empty));
-        colors.put("pink", ItemUtil.create(Material.WOOL, 1, (byte) 6, ChatColor.RED + "Pink", empty));
-        colors.put("brown", ItemUtil.create(Material.WOOL, 1, (byte) 12, ChatColor.DARK_GRAY + "Brown", empty));
-        colors.put("gray", ItemUtil.create(Material.WOOL, 1, (byte) 8, ChatColor.GRAY + "Gray", empty));
-        colors.put("darkgray", ItemUtil.create(Material.WOOL, 1, (byte) 7, ChatColor.DARK_GRAY + "Dark Gray", empty));
-        colors.put("white", ItemUtil.create(Material.WOOL, 1, (byte) 0, ChatColor.WHITE + "White", empty));
-        colors.put("black", ItemUtil.create(Material.WOOL, 1, (byte) 15, ChatColor.DARK_GRAY + "Black", empty));
+        colors.put("red", ItemUtil.create(Material.RED_WOOL, 1, ChatColor.DARK_RED + "Red", empty));
+        colors.put("orange", ItemUtil.create(Material.ORANGE_WOOL, 1, ChatColor.GOLD + "Orange", empty));
+        colors.put("yellow", ItemUtil.create(Material.YELLOW_WOOL, 1, ChatColor.YELLOW + "Yellow", empty));
+        colors.put("lime", ItemUtil.create(Material.LIME_WOOL, 1, ChatColor.GREEN + "Lime", empty));
+        colors.put("green", ItemUtil.create(Material.GREEN_WOOL, 1, ChatColor.DARK_GREEN + "Green", empty));
+        colors.put("lightblue", ItemUtil.create(Material.LIGHT_BLUE_WOOL, 1, ChatColor.AQUA + "Light Blue", empty));
+        colors.put("cyan", ItemUtil.create(Material.CYAN_WOOL, 1, ChatColor.DARK_AQUA + "Cyan", empty));
+        colors.put("blue", ItemUtil.create(Material.BLUE_WOOL, 1, ChatColor.BLUE + "Blue", empty));
+        colors.put("purple", ItemUtil.create(Material.PURPLE_WOOL, 1, ChatColor.DARK_PURPLE + "Purple", empty));
+        colors.put("magenta", ItemUtil.create(Material.MAGENTA_WOOL, 1, ChatColor.LIGHT_PURPLE + "Magenta", empty));
+        colors.put("pink", ItemUtil.create(Material.PINK_WOOL, 1, ChatColor.RED + "Pink", empty));
+        colors.put("brown", ItemUtil.create(Material.BROWN_WOOL, 1, ChatColor.DARK_GRAY + "Brown", empty));
+        colors.put("gray", ItemUtil.create(Material.LIGHT_GRAY_WOOL, 1, ChatColor.GRAY + "Gray", empty));
+        colors.put("darkgray", ItemUtil.create(Material.GRAY_WOOL, 1, ChatColor.DARK_GRAY + "Dark Gray", empty));
+        colors.put("white", ItemUtil.create(Material.WHITE_WOOL, 1, ChatColor.WHITE + "White", empty));
+        colors.put("black", ItemUtil.create(Material.BLACK_WOOL, 1, ChatColor.DARK_GRAY + "Black", empty));
         //--Banners--
         PatternType[] types = new PatternType[]{PatternType.SQUARE_BOTTOM_LEFT, PatternType.SQUARE_BOTTOM_RIGHT,
                 PatternType.SQUARE_TOP_LEFT, PatternType.SQUARE_TOP_RIGHT, PatternType.STRIPE_BOTTOM, PatternType.STRIPE_TOP,
@@ -102,7 +102,7 @@ public class BannerUtil {
 
     public void openMenu(Player player, BannerInventoryType type) {
         List<MenuButton> buttons = new ArrayList<>();
-        ItemStack banner = userBanners.getOrDefault(player.getUniqueId(), new ItemStack(Material.BANNER));
+        ItemStack banner = userBanners.getOrDefault(player.getUniqueId(), new ItemStack(Material.BLACK_BANNER));
         BannerMeta meta = (BannerMeta) banner.getItemMeta();
         buttons.add(new MenuButton(4, banner, ImmutableMap.of(ClickType.LEFT, p -> {
             p.getInventory().addItem(banner);
@@ -128,8 +128,57 @@ public class BannerUtil {
             List<Integer> margin = Arrays.asList(16, 25, 34, 43);
             for (ItemStack item : colors.values()) {
                 buttons.add(new MenuButton(place, item, ImmutableMap.of(ClickType.LEFT, p -> {
-                    if (type == BannerInventoryType.SELECT_BASE && item.getType() == Material.WOOL) {
-                        meta.setBaseColor(colorFromString(ChatColor.stripColor(item.getItemMeta().getDisplayName())));
+                    if (type == BannerInventoryType.SELECT_BASE) {
+                        switch (item.getType()) {
+                            case BLACK_WOOL:
+                                banner.setType(Material.BLACK_BANNER);
+                                break;
+                            case BLUE_WOOL:
+                                banner.setType(Material.BLUE_BANNER);
+                                break;
+                            case BROWN_WOOL:
+                                banner.setType(Material.BROWN_BANNER);
+                                break;
+                            case CYAN_WOOL:
+                                banner.setType(Material.CYAN_BANNER);
+                                break;
+                            case GRAY_WOOL:
+                                banner.setType(Material.GRAY_BANNER);
+                                break;
+                            case GREEN_WOOL:
+                                banner.setType(Material.GREEN_BANNER);
+                                break;
+                            case LIGHT_BLUE_WOOL:
+                                banner.setType(Material.LIGHT_BLUE_BANNER);
+                                break;
+                            case LIGHT_GRAY_WOOL:
+                                banner.setType(Material.LIGHT_GRAY_BANNER);
+                                break;
+                            case LIME_WOOL:
+                                banner.setType(Material.LIME_BANNER);
+                                break;
+                            case MAGENTA_WOOL:
+                                banner.setType(Material.MAGENTA_BANNER);
+                                break;
+                            case ORANGE_WOOL:
+                                banner.setType(Material.ORANGE_BANNER);
+                                break;
+                            case PINK_WOOL:
+                                banner.setType(Material.PINK_BANNER);
+                                break;
+                            case PURPLE_WOOL:
+                                banner.setType(Material.PURPLE_BANNER);
+                                break;
+                            case RED_WOOL:
+                                banner.setType(Material.RED_BANNER);
+                                break;
+                            case WHITE_WOOL:
+                                banner.setType(Material.WHITE_BANNER);
+                                break;
+                            case YELLOW_WOOL:
+                                banner.setType(Material.YELLOW_BANNER);
+                                break;
+                        }
                     }
                     else {
                         DyeColor color = colorFromString(ChatColor.stripColor(item.getItemMeta().getDisplayName()));
@@ -155,9 +204,8 @@ public class BannerUtil {
     }
 
     private ItemStack getExampleBanner(PatternType type, String name) {
-        ItemStack banner = ItemUtil.create(Material.BANNER, name);
+        ItemStack banner = ItemUtil.create(Material.WHITE_BANNER, name);
         BannerMeta bm = (BannerMeta) banner.getItemMeta();
-        bm.setBaseColor(DyeColor.WHITE);
         bm.addPattern(new Pattern(DyeColor.BLACK, type));
         bm.setLore(Collections.singletonList(ChatColor.GRAY + "Click to apply!"));
         banner.setItemMeta(bm);
@@ -208,7 +256,7 @@ public class BannerUtil {
             case "brown":
                 return DyeColor.BROWN;
             case "gray":
-                return DyeColor.SILVER;
+                return DyeColor.LIGHT_GRAY;
             case "dark gray":
                 return DyeColor.GRAY;
             case "white":

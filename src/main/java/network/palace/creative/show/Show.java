@@ -216,7 +216,6 @@ public class Show {
         return Integer.parseInt(s);
     }
 
-    @SuppressWarnings("deprecation")
     public List<UUID> getNearPlayers() {
         if (System.currentTimeMillis() - lastPlayerListUpdate < 10000) {
             return new ArrayList<>(nearbyPlayers);
@@ -484,7 +483,7 @@ public class Show {
         if (area == null) return;
         area.triggerPlayer(tp);
         tp.sendMessage(ChatColor.GREEN + "Syncing your audio!");
-        Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () -> area.sync(((System.currentTimeMillis() - musicTime + 300) / 1000), tp), 20L);
+        Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () -> area.sync(((System.currentTimeMillis() - musicTime + 300) / 1000D), tp), 20L);
     }
 
     public void setName(String name) {

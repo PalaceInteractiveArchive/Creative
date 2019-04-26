@@ -16,7 +16,7 @@ import java.util.UUID;
  */
 public class PacketIgnoreList extends BasePacket {
     private UUID uuid;
-    @Getter private List<String> ignoreList = new ArrayList<>();
+    @Getter private List<String> ignoreList;
 
     public PacketIgnoreList() {
         this(null, new ArrayList<>());

@@ -1,7 +1,7 @@
 package network.palace.creative.commands;
 
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
 import network.palace.core.command.CoreCommand;
@@ -22,11 +22,11 @@ public class ManageCommand extends CoreCommand {
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        Plot plot = new PlotAPI().getPlot(player.getLocation());
+        Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
         if (plot == null) {
             player.sendMessage(ChatColor.RED + "You're not standing on a Plot!");
             return;
         }
-        Creative.getInstance().getMenuUtil().openManagePlot(player.getBukkitPlayer(), plot);
+        Creative.getInstance().getMenuUtil().openManagePlot(player, plot);
     }
 }

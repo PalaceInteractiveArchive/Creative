@@ -70,7 +70,7 @@ public class RoleCommand extends CoreCommand {
                     return;
                 }
                 case "shop": {
-                    Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer());
+                    Creative.getInstance().getMenuUtil().openMenu(player);
                     return;
                 }
                 case "close": {

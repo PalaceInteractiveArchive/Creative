@@ -1,7 +1,7 @@
 package network.palace.creative.commands;
 
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -39,8 +39,7 @@ public class PlotWarpCommand extends CoreCommand {
 
                 switch (args[1].toLowerCase()) {
                     case "register":
-                        PlotAPI plotAPI = new PlotAPI();
-                        Plot plot = plotAPI.getPlot(player.getBukkitPlayer());
+                        Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
                         if (plot == null || !new ArrayList<>(plot.getOwners()).contains(player.getUniqueId())) {
                             player.sendMessage(ChatColor.RED + "You must be in a plot you own or co-own.");
                             return;
@@ -97,6 +96,6 @@ public class PlotWarpCommand extends CoreCommand {
             return;
         }
 
-        plotWarpUtil.openWarpsMenu(player.getBukkitPlayer(), 1);
+        plotWarpUtil.openWarpsMenu(player, 1);
     }
 }

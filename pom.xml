@@ -50,14 +50,19 @@
             <version>1.0.9</version>
         </dependency>
         <dependency>
-            <groupId>com.intellectualcrafters</groupId>
+            <groupId>com.github.intellectualsites.plotsquared</groupId>
             <artifactId>plotsquared</artifactId>
-            <version>3.4.3</version>
+            <version>4.277</version>
         </dependency>
         <dependency>
             <groupId>com.sk89q</groupId>
             <artifactId>worldguard</artifactId>
             <version>6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sk89q</groupId>
+            <artifactId>worldedit</artifactId>
+            <version>7.0.0-rc-2</version>
         </dependency>
     </dependencies>
 

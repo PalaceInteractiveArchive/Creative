@@ -1,8 +1,8 @@
 package network.palace.creative.show;
 
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import com.google.common.collect.ImmutableMap;
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,13 +22,13 @@ import java.util.regex.Pattern;
 import network.palace.audio.Audio;
 import network.palace.audio.handlers.AudioArea;
 import network.palace.core.Core;
+import network.palace.core.menu.Menu;
+import network.palace.core.menu.MenuButton;
 import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.ShowColor;
 import network.palace.creative.handlers.ShowFireworkData;
-import network.palace.creative.inventory.Menu;
-import network.palace.creative.inventory.MenuButton;
 import network.palace.creative.show.actions.FireworkAction;
 import network.palace.creative.show.actions.ParticleAction;
 import network.palace.creative.show.actions.ShowAction;
@@ -131,15 +131,15 @@ public class ShowManager implements Listener {
             return null;
         }
 
-        PlotAPI api = new PlotAPI();
-        Plot plot = api.getPlot(player.getBukkitPlayer());
+        PlotPlayer plotPlayer = PlotPlayer.wrap(player.getBukkitPlayer());
+        Plot plot = plotPlayer.getCurrentPlot();
         boolean owns = false;
         if (plot == null) {
             messagePlayer(player, ChatColor.RED + "You must start shows on your own Plot!");
             return null;
         }
 
-        for (Plot pl : api.getPlayerPlots(Bukkit.getWorld("plotworld"), player.getBukkitPlayer())) {
+        for (Plot pl : plotPlayer.getPlots("plotworld")) {
             if (plot.getId().equals(pl.getId())) {
                 owns = true;
                 break;
@@ -182,7 +182,7 @@ public class ShowManager implements Listener {
             for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
                 if (p == null || p.getBukkitPlayer() == null)
                     continue;
-                Plot pl = api.getPlot(p.getBukkitPlayer());
+                Plot pl = PlotPlayer.wrap(p).getCurrentPlot();
                 if (pl == null)
                     continue;
                 if (pl.getId().equals(plot.getId())) {
@@ -217,9 +217,8 @@ public class ShowManager implements Listener {
         });
     }
 
-    public void selectShow(Player player) {
-        PlotAPI api = new PlotAPI();
-        Plot plot = api.getPlot(player);
+    public void selectShow(CPlayer player) {
+        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
         if (plot == null || !plot.getOwners().contains(player.getUniqueId())) {
             player.closeInventory();
             player.sendMessage(ChatColor.RED + "You must edit shows on your own Plot!");
@@ -230,19 +229,13 @@ public class ShowManager implements Listener {
         userShowsDir.mkdirs();
         File[] showFiles = userShowsDir.listFiles();
         List<MenuButton> buttons = new ArrayList<>();
-        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
-        if (cPlayer == null) {
-            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
-            return;
-        }
-
-        int maxShows = getMaxShowAmount(cPlayer);
+        int maxShows = getMaxShowAmount(player);
         int showCount = 0;
         if (showFiles != null) {
             for (int x = 0; x < maxShows; x++) {
                 try {
                     File file = showFiles[x];
-                    Show show = new Show(showFiles[x], cPlayer, plot);
+                    Show show = new Show(showFiles[x], player, plot);
                     buttons.add(new MenuButton(x, ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.RESET + show.getNameColored(),
                             Arrays.asList(ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN + "to Edit this Show!",
                                     ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Show!")),
@@ -261,7 +254,7 @@ public class ShowManager implements Listener {
         if (showCount <= maxShows) {
             buttons.add(new MenuButton(7, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "New Show"), ImmutableMap.of(ClickType.LEFT, p -> {
                 p.closeInventory();
-                p.sendTitle(ChatColor.GREEN + "Set Show Name", ChatColor.GREEN + "Type the name you want for your show.", 0, 0, 200);
+                p.getBukkitPlayer().sendTitle(ChatColor.GREEN + "Set Show Name", ChatColor.GREEN + "Type the name you want for your show.", 0, 0, 200);
                 new TextInput(p, (ply, msg) -> {
                     try {
                         String name = ChatColor.stripColor(msg);
@@ -289,7 +282,7 @@ public class ShowManager implements Listener {
         }
 
         buttons.add(new MenuButton(8, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, Creative.getInstance().getMenuUtil()::openMenu)));
-        new Menu(Bukkit.createInventory(player, 9, ChatColor.BLUE + "Select A Show To Edit"), player, buttons);
+        new Menu(9, ChatColor.BLUE + "Select A Show To Edit", player, buttons).open();
     }
 
     public int getMaxShowAmount(CPlayer player) {
@@ -312,7 +305,7 @@ public class ShowManager implements Listener {
         return files == null ? 0 : files.length;
     }
 
-    public void editShow(Player player, int page, Show show) {
+    public void editShow(CPlayer player, int page, Show show) {
         List<ShowAction> actions = show.getActions();
         actions.removeIf(action -> action.getItem() == null);
         List<MenuButton> buttons = new ArrayList<>();
@@ -355,14 +348,14 @@ public class ShowManager implements Listener {
                     show.saveFile();
                     p.closeInventory();
                 })));
-        new Menu(Bukkit.createInventory(player, 54, ChatColor.BLUE + "Edit Show File"), player, buttons);
+        new Menu(54, ChatColor.BLUE + "Edit Show File", player, buttons).open();
     }
 
-    public void cancelEdit(Player player) {
+    public void cancelEdit(CPlayer player) {
         cancelEdit(player, true);
     }
 
-    public void cancelEdit(Player player, boolean silent) {
+    public void cancelEdit(CPlayer player, boolean silent) {
         if (player == null) {
             return;
         }
@@ -389,7 +382,7 @@ public class ShowManager implements Listener {
         return FireworkEffect.Type.BALL;
     }
 
-    private void selectTrack(Player player, int page, Show show) {
+    private void selectTrack(CPlayer player, int page, Show show) {
         List<MenuButton> buttons = new ArrayList<>();
         List<AudioTrack> audioTracks = new ArrayList<>(this.audioTracks.values());
         for (int x = 0; x < 27; x++) {
@@ -413,16 +406,16 @@ public class ShowManager implements Listener {
         if (page + 1 <= new Double(Math.ceil(audioTracks.size() / 27D)).intValue()) {
             buttons.add(new MenuButton(35, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> selectTrack(p, page + 1, show))));
         }
-        new Menu(Bukkit.createInventory(player, 36, ChatColor.BLUE + "Select Track"), player, buttons);
+        new Menu(36, ChatColor.BLUE + "Select Track", player, buttons).open();
     }
 
-    private void editAction(Player player, Show show, ShowAction action) {
+    private void editAction(CPlayer player, Show show, ShowAction action) {
         ItemStack setTimeItem = ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "Set Time",
                 Arrays.asList(ChatColor.YELLOW + "Time in seconds after start of", ChatColor.YELLOW +
                         "Show for an Action to execute."));
-        Map<ClickType, Consumer<Player>> setTimeActions = ImmutableMap.of(ClickType.LEFT, p -> {
+        Map<ClickType, Consumer<CPlayer>> setTimeActions = ImmutableMap.of(ClickType.LEFT, p -> {
             p.closeInventory();
-            p.sendTitle(ChatColor.GREEN + "Set a Time", ChatColor.GREEN + "Enter a number for the action to execute at", 0, 0, 200);
+            p.getBukkitPlayer().sendTitle(ChatColor.GREEN + "Set a Time", ChatColor.GREEN + "Enter a number for the action to execute at", 0, 0, 200);
             new TextInput(p, (ply, msg) -> {
                 double time;
                 try {
@@ -449,7 +442,7 @@ public class ShowManager implements Listener {
             buttons.add(new MenuButton(11, setTimeItem, setTimeActions));
             buttons.add(new MenuButton(15, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Set Text", Collections.singletonList(ChatColor.YELLOW + "Supports Color Codes!")), ImmutableMap.of(ClickType.LEFT, p -> {
                         p.closeInventory();
-                p.sendTitle(ChatColor.GREEN + "Set Text Message", ChatColor.GREEN +
+                p.getBukkitPlayer().sendTitle(ChatColor.GREEN + "Set Text Message", ChatColor.GREEN +
                         "Type a message to be displayed (Color Codes work!)", 0, 0, 200);
                 new TextInput(p, (ply, msg) -> {
                     ((TextAction) action).setText(msg);
@@ -459,11 +452,11 @@ public class ShowManager implements Listener {
                             ChatColor.translateAlternateColorCodes('&', msg) + ChatColor.YELLOW + "!");
                 });
             })));
-            new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Edit Text Action"), player, buttons);
+            new Menu(27, ChatColor.BLUE + "Edit Text Action", player, buttons).open();
         } else if (action instanceof ParticleAction) {
             buttons.add(new MenuButton(11, setTimeItem, setTimeActions));
             buttons.add(new MenuButton(15, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Set Particle", Collections.singletonList(ChatColor.YELLOW + "Some Minecraft Particles are not allowed")), ImmutableMap.of(ClickType.LEFT, p -> setParticle(p, show, (ParticleAction) action))));
-            new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Edit Particle Action"), player, buttons);
+            new Menu(27, ChatColor.BLUE + "Edit Particle Action", player, buttons).open();
         } else if (action instanceof FireworkAction) {
             FireworkAction a = (FireworkAction) action;
             buttons.add(new MenuButton(10, setTimeItem, setTimeActions));
@@ -487,13 +480,13 @@ public class ShowManager implements Listener {
                             show.saveFile();
                             editAction(p, show, action);
             })));
-            new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Edit Firework Action"), player, buttons);
+            new Menu(27, ChatColor.BLUE + "Edit Firework Action", player, buttons).open();
         }
     }
 
-    private void setPower(Player player, Show show, FireworkAction action) {
+    private void setPower(CPlayer player, Show show, FireworkAction action) {
         List<MenuButton> buttons = new ArrayList<>();
-        Function<Integer, ImmutableMap<ClickType, Consumer<Player>>> powerAction = power -> ImmutableMap.of(ClickType.LEFT, p -> {
+        Function<Integer, ImmutableMap<ClickType, Consumer<CPlayer>>> powerAction = power -> ImmutableMap.of(ClickType.LEFT, p -> {
             action.setPower(power);
             show.saveFile();
             editAction(p, show, action);
@@ -503,7 +496,7 @@ public class ShowManager implements Listener {
         buttons.add(new MenuButton(14, ItemUtil.create(Material.FIREWORK_ROCKET, 2, ChatColor.GREEN + "Power 2", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(2)));
         buttons.add(new MenuButton(16, ItemUtil.create(Material.FIREWORK_ROCKET, 3, ChatColor.GREEN + "Power 3", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), powerAction.apply(3)));
         buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Set Power"), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Set Power", player, buttons).open();
     }
 
     private ItemStack addGlow(ItemStack itemStack, List<ShowColor> colors) {
@@ -512,9 +505,9 @@ public class ShowManager implements Listener {
                 .findFirst().map(name -> ItemUtil.addGlow(itemStack)).orElse(itemStack);
     }
 
-    private void selectColors(Player player, Show show, FireworkAction action) {
+    private void selectColors(CPlayer player, Show show, FireworkAction action) {
         List<MenuButton> buttons = new ArrayList<>();
-        Function<ShowColor, ImmutableMap<ClickType, Consumer<Player>>> colorAction = color -> ImmutableMap.of(ClickType.LEFT, p -> {
+        Function<ShowColor, ImmutableMap<ClickType, Consumer<CPlayer>>> colorAction = color -> ImmutableMap.of(ClickType.LEFT, p -> {
             List<ShowColor> colors = action.getShowData().getColors();
             if (!colors.removeIf(c -> c == color)) {
                 if (colors.size() >= 4) {
@@ -548,12 +541,12 @@ public class ShowManager implements Listener {
             show.saveFile();
             editAction(p, show, action);
         })));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Colors"), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Select Colors", player, buttons).open();
     }
 
-    private void selectFadeColors(Player player, Show show, FireworkAction action) {
+    private void selectFadeColors(CPlayer player, Show show, FireworkAction action) {
         List<MenuButton> buttons = new ArrayList<>();
-        Function<ShowColor, ImmutableMap<ClickType, Consumer<Player>>> colorAction = color -> ImmutableMap.of(ClickType.LEFT, p -> {
+        Function<ShowColor, ImmutableMap<ClickType, Consumer<CPlayer>>> colorAction = color -> ImmutableMap.of(ClickType.LEFT, p -> {
             List<ShowColor> colors = action.getShowData().getFade();
             if (!colors.removeIf(c -> c == color)) {
                 if (colors.size() >= 4) {
@@ -587,12 +580,12 @@ public class ShowManager implements Listener {
             show.saveFile();
             editAction(p, show, action);
         })));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Fade Colors"), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Select Fade Colors", player, buttons).open();
     }
 
-    private void selectType(Player player, Show show, FireworkAction action) {
+    private void selectType(CPlayer player, Show show, FireworkAction action) {
         List<MenuButton> buttons = new ArrayList<>();
-        Function<Type, ImmutableMap<ClickType, Consumer<Player>>> typeAction = type -> ImmutableMap.of(ClickType.LEFT, p -> {
+        Function<Type, ImmutableMap<ClickType, Consumer<CPlayer>>> typeAction = type -> ImmutableMap.of(ClickType.LEFT, p -> {
             action.setType(type);
             show.saveFile();
             editAction(p, show, action);
@@ -603,13 +596,13 @@ public class ShowManager implements Listener {
         buttons.add(new MenuButton(15, ItemUtil.create(Material.CLAY_BALL, ChatColor.GREEN + "Burst", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.BURST)));
         buttons.add(new MenuButton(17, ItemUtil.create(Material.CREEPER_HEAD, 1, ChatColor.GREEN + "Creeper", Collections.singletonList(ChatColor.GRAY + "Click to Select!")), typeAction.apply(Type.CREEPER)));
         buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Type"), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Select Type", player, buttons).open();
     }
 
-    private void setParticle(Player player, Show show, ParticleAction action) {
+    private void setParticle(CPlayer player, Show show, ParticleAction action) {
         List<MenuButton> buttons = new ArrayList<>();
         ChatColor c = ChatColor.GREEN;
-        Function<Particle, ImmutableMap<ClickType, Consumer<Player>>> particleAction = particle -> ImmutableMap.of(ClickType.LEFT, p -> {
+        Function<Particle, ImmutableMap<ClickType, Consumer<CPlayer>>> particleAction = particle -> ImmutableMap.of(ClickType.LEFT, p -> {
             action.setParticle(particle);
             show.saveFile();
             editAction(p, show, action);
@@ -628,10 +621,10 @@ public class ShowManager implements Listener {
         buttons.add(new MenuButton(16, ItemUtil.create(Material.LAVA_BUCKET, 1, c + "Lava", new ArrayList<>()), particleAction.apply(Particle.LAVA)));
         buttons.add(new MenuButton(17, ItemUtil.create(Material.FIREWORK_ROCKET, 1, c + "Fireworks Spark", new ArrayList<>()), particleAction.apply(Particle.FIREWORKS_SPARK)));
         buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action))));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Select Particle"), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Select Particle", player, buttons).open();
     }
 
-    private void openAddAction(Player player, Show show) {
+    private void openAddAction(CPlayer player, Show show) {
         List<MenuButton> buttons = new ArrayList<>();
         ItemStack text = ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Text Action");
         ItemStack music = ItemUtil.create(Material.MUSIC_DISC_CHIRP, ChatColor.GREEN + "Set Music");
@@ -657,7 +650,7 @@ public class ShowManager implements Listener {
             editAction(p, show, action);
         })));
         buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, 1, show))));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Add Action"), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Add Action", player, buttons).open();
     }
 
     public Map<String, AudioTrack> getAudioTracks() {

@@ -29,7 +29,7 @@ public class BannedItemCheckCommand extends CoreCommand {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(args[0]);
         Optional<CaughtUserData> data = Creative.getInstance().getItemExploitHandler().getData(offlinePlayer.getUniqueId());
         if (data.isPresent()) {
-            Creative.getInstance().getItemExploitHandler().viewPlayer(player.getBukkitPlayer(), data.get(), offlinePlayer, 1);
+            Creative.getInstance().getItemExploitHandler().viewPlayer(player, data.get(), offlinePlayer, 1);
             return;
         }
 

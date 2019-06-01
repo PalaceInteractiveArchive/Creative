@@ -11,15 +11,15 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import network.palace.core.menu.Menu;
+import network.palace.core.menu.MenuButton;
+import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
-import network.palace.creative.inventory.Menu;
-import network.palace.creative.inventory.MenuButton;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.json.simple.JSONArray;
@@ -107,7 +107,7 @@ public class HeadUtil {
         return sb.toString();
     }
 
-    public void openCategory(Player player, String name, int page) {
+    public void openCategory(CPlayer player, String name, int page) {
         List<MenuButton> buttons = new ArrayList<>();
         List<ItemStack> heads = map.get(name);
         int size = heads.size();
@@ -135,6 +135,6 @@ public class HeadUtil {
             buttons.add(new MenuButton(s - 1, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> openCategory(p, name, page + 1))));
         }
 
-        new Menu(Bukkit.createInventory(player, s, ChatColor.BLUE + "Heads - " + name + " - " + page), player, buttons);
+        new Menu(s, ChatColor.BLUE + "Heads - " + name + " - " + page, player, buttons).open();
     }
 }

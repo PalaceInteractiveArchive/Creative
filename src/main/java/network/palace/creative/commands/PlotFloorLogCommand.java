@@ -1,7 +1,7 @@
 package network.palace.creative.commands;
 
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import network.palace.core.command.CommandException;
@@ -29,8 +29,7 @@ public class PlotFloorLogCommand extends CoreCommand {
         }
 
         Player player = (Player) sender;
-        PlotAPI plotAPI = new PlotAPI();
-        Plot plot = plotAPI.getPlot(player);
+        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
         if (plot == null) {
             player.sendMessage(ChatColor.RED + "You must be on a plot to do that.");
             return;

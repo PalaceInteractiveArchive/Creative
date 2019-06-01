@@ -195,7 +195,8 @@ public class Creative extends Plugin {
         registerCommand(new CreatorCommand());
         registerCommand(new CReloadCommand());
         registerCommand(new DelWarpCommand());
-        registerCommand(new DownloadCommand());
+        //TODO broken until needed to fix
+        //registerCommand(new DownloadCommand());
         registerCommand(new GiveCommand());
         registerCommand(new HeadCommand());
         registerCommand(new HealCommand());
@@ -331,5 +332,9 @@ public class Creative extends Plugin {
                 warps.add(w);
             }
         }
+    }
+
+    public static com.github.intellectualsites.plotsquared.plot.object.Location wrapLocation(Location location) {
+        return new com.github.intellectualsites.plotsquared.plot.object.Location(location.getWorld().getName(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 }

@@ -1,7 +1,8 @@
 package network.palace.creative.listeners;
 
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.PlotSquared;
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -44,7 +45,7 @@ public class PlayerInteract implements Listener {
         if (player.getItemInMainHand().getType().equals(Material.NETHER_STAR) && player.getItemInMainHand().getItemMeta()
                 != null && player.getItemInMainHand().getItemMeta().getDisplayName() != null &&
                 player.getItemInMainHand().getItemMeta().getDisplayName().startsWith(ChatColor.AQUA + "Creative")) {
-            Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer());
+            Creative.getInstance().getMenuUtil().openMenu(player);
             event.setCancelled(true);
             return;
         }
@@ -56,8 +57,7 @@ public class PlayerInteract implements Listener {
         }
         Sign s = (Sign) event.getClickedBlock().getState();
         if (s.getLine(0).equals(ChatColor.BLUE + "[Show]")) {
-            PlotAPI api = new PlotAPI();
-            Plot plot = api.getPlot(s.getLocation());
+            Plot plot = PlotSquared.get().getPlotAreaAbs(Creative.wrapLocation(s.getLocation())).getPlot(Creative.wrapLocation(s.getLocation()));
             if (plot != null) {
                 List<UUID> owners = new ArrayList<>(plot.getOwners());
                 Player owner = Bukkit.getPlayer(owners.get(0));
@@ -74,15 +74,15 @@ public class PlayerInteract implements Listener {
         if (!player.getWorld().getName().equals("spawn")) {
             return;
         }
-        List<Plot> plots = new ArrayList<>(new PlotAPI().getPlayerPlots(player.getBukkitPlayer()));
-        for (Plot p : plots) {
+
+        for (Plot p : PlotPlayer.wrap(player).getPlots()) {
             if (p.getArea().worldname.equalsIgnoreCase("plotworld")) {
                 player.sendMessage(ChatColor.RED +
                         "You already claimed your Free Plot! To get a second, you must purchase it in /menu.");
                 return;
             }
         }
-        Creative.getInstance().getMenuUtil().givePlot(player.getBukkitPlayer(), true);
+        Creative.getInstance().getMenuUtil().givePlot(player, true);
     }
 
     @EventHandler

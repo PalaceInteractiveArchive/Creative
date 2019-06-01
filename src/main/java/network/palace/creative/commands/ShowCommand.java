@@ -1,7 +1,7 @@
 package network.palace.creative.commands;
 
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -122,16 +122,16 @@ public class ShowCommand extends CoreCommand {
                         return;
                     }
 
-                    Plot plot = new PlotAPI().getPlot(player.getBukkitPlayer());
+                    Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
                     if (plot == null || !player.getUniqueId().equals(plot.getOwners().iterator().next())) {
                         player.sendMessage(ChatColor.RED + "You must be on your own plot to edit this show.");
                         return;
                     }
 
-                    creative.getShowManager().editShow(player.getBukkitPlayer(), 1, new Show(file, player, plot));
+                    creative.getShowManager().editShow(player, 1, new Show(file, player, plot));
                 }
                 else {
-                    creative.getShowManager().selectShow(player.getBukkitPlayer());
+                    creative.getShowManager().selectShow(player);
                 }
 
                 return;

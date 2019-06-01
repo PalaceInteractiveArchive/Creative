@@ -1,10 +1,10 @@
 package network.palace.creative.utils;
 
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.PlotId;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
-import com.intellectualcrafters.plot.object.PlotId;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,9 +18,10 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import network.palace.core.menu.Menu;
+import network.palace.core.menu.MenuButton;
+import network.palace.core.player.CPlayer;
 import network.palace.creative.Creative;
-import network.palace.creative.inventory.Menu;
-import network.palace.creative.inventory.MenuButton;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -47,7 +48,6 @@ import org.bukkit.block.data.type.Stairs;
 import org.bukkit.block.data.type.TechnicalPiston;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
@@ -218,9 +218,8 @@ public class PlotFloorUtil {
         }
     }
 
-    public void open(Player player, int page) {
-        PlotAPI plotAPI = new PlotAPI();
-        Plot plot = plotAPI.getPlot(player);
+    public void open(CPlayer player, int page) {
+        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
         if (plot == null || !plot.getOwners().contains(player.getUniqueId())) {
             player.sendMessage(ChatColor.RED + "You must be in your own plot to do this.");
             return;
@@ -231,7 +230,7 @@ public class PlotFloorUtil {
             try {
                 ItemStack itemStack = materials.get(i + (page - 1) * 45);
                 buttons.add(new MenuButton(i, itemStack, ImmutableMap.of(ClickType.LEFT, p -> {
-                    if (plotAPI.getPlot(p).getId() != plot.getId()) {
+                    if (PlotPlayer.wrap(p).getCurrentPlot().getId() != plot.getId()) {
                         p.sendMessage(ChatColor.RED + "You must be in your own plot to do this.");
                         p.closeInventory();
                         return;
@@ -285,10 +284,10 @@ public class PlotFloorUtil {
             buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, p -> open(p, page + 1))));
         }
 
-        new Menu(Bukkit.createInventory(player, 54, ChatColor.BLUE + "Set the floor of your plot."), player, buttons);
+        new Menu(54, ChatColor.BLUE + "Set the floor of your plot.", player, buttons).open();
     }
 
-    private Location getFloorCorner(com.intellectualcrafters.plot.object.Location psLocation) {
+    private Location getFloorCorner(com.github.intellectualsites.plotsquared.plot.object.Location psLocation) {
         return new Location(Bukkit.getWorld(psLocation.getWorld()), psLocation.getX(), 64, psLocation.getZ());
     }
 

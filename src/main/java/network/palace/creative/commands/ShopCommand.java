@@ -19,6 +19,6 @@ public class ShopCommand extends CoreCommand {
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer());
+        Creative.getInstance().getMenuUtil().openMenu(player);
     }
 }

@@ -1,19 +1,17 @@
 package network.palace.creative.utils;
 
+import com.github.intellectualsites.plotsquared.plot.PlotSquared;
+import com.github.intellectualsites.plotsquared.plot.flag.BooleanFlag;
+import com.github.intellectualsites.plotsquared.plot.flag.Flag;
+import com.github.intellectualsites.plotsquared.plot.flag.FlagManager;
+import com.github.intellectualsites.plotsquared.plot.flag.Flags;
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.PlotArea;
+import com.github.intellectualsites.plotsquared.plot.object.PlotId;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
+import com.github.intellectualsites.plotsquared.plot.util.EventUtil;
+import com.github.intellectualsites.plotsquared.plot.util.PlotWeather;
 import com.google.common.collect.ImmutableMap;
-import com.intellectualcrafters.plot.PS;
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.flag.BooleanFlag;
-import com.intellectualcrafters.plot.flag.Flag;
-import com.intellectualcrafters.plot.flag.FlagManager;
-import com.intellectualcrafters.plot.flag.Flags;
-import com.intellectualcrafters.plot.object.Plot;
-import com.intellectualcrafters.plot.object.PlotArea;
-import com.intellectualcrafters.plot.object.PlotId;
-import com.intellectualcrafters.plot.object.PlotPlayer;
-import com.intellectualcrafters.plot.util.EventUtil;
-import com.intellectualcrafters.plot.util.PlotWeather;
-import com.plotsquared.bukkit.util.BukkitUtil;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,12 +21,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
 import network.palace.core.Core;
 import network.palace.core.economy.CurrencyType;
+import network.palace.core.menu.Menu;
+import network.palace.core.menu.MenuButton;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.core.player.SponsorTier;
@@ -39,8 +40,6 @@ import network.palace.creative.handlers.BannerInventoryType;
 import network.palace.creative.handlers.MemberState;
 import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.handlers.RolePlay;
-import network.palace.creative.inventory.Menu;
-import network.palace.creative.inventory.MenuButton;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -120,12 +119,12 @@ public class MenuUtil implements Listener {
     private ItemStack witch = new ItemStack(Material.POTION);
     private ItemStack none = ItemUtil.create(Material.WHITE_STAINED_GLASS, ChatColor.RED + "Clear Particle",
             new ArrayList<>());
-    private PlotAPI api;
+    private PlotSquared plotSquared;
     private List<UUID> denyTask = new ArrayList<>();
     @Getter @Setter private boolean chatMuted = false;
 
     public MenuUtil() {
-        api = new PlotAPI();
+        plotSquared = PlotSquared.get();
         BannerMeta bm = (BannerMeta) bannerCreator.getItemMeta();
         bm.setBaseColor(DyeColor.BLUE);
         bm.addPattern(new Pattern(DyeColor.RED, PatternType.TRIANGLE_BOTTOM));
@@ -152,18 +151,17 @@ public class MenuUtil implements Listener {
         Flags.registerFlag(new BooleanFlag("flight"));
     }
 
-    public void openMenu(Player player) {
+    public void openMenu(CPlayer player) {
         Creative plugin = Creative.getInstance();
         PlayerData data = plugin.getPlayerData(player.getUniqueId());
         if (data == null) {
             return;
         }
 
-
-        Plot plot = api.getPlot(player);
+        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
         boolean owns = false;
         if (plot != null) {
-            for (Plot pl : api.getPlayerPlots(Bukkit.getWorld("plotworld"), player)) {
+            for (Plot pl : PlotPlayer.wrap(player).getPlots("plotworld")) {
                 if (plot.getId().equals(pl.getId())) {
                     owns = true;
                     break;
@@ -190,15 +188,16 @@ public class MenuUtil implements Listener {
             buttons.add(new MenuButton(22, showCreator, ImmutableMap.of(ClickType.LEFT, p -> plugin.getShowManager().selectShow(p))));
         }
 
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Creative Menu"), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Creative Menu", player, buttons).open();
     }
 
-    public void openBuildingPlots(Player player) {
+    public void openBuildingPlots(CPlayer player) {
         List<MenuButton> buttons = new ArrayList<>();
         buttons.add(new MenuButton(22, loading));
-        Menu menu = new Menu(Bukkit.createInventory(player, 54, ChatColor.BLUE + "Building Plots"), player, buttons);
+        Menu menu = new Menu(54, ChatColor.BLUE + "Building Plots", player, buttons);
+        menu.open();
         Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
-            final List<Plot> plotList = new ArrayList<>(PS.get().getPlots("plotworld"));
+            final List<Plot> plotList = new ArrayList<>(plotSquared.getPlots("plotworld"));
             Bukkit.getScheduler().runTask(Creative.getInstance(), () -> {
                 int i = 0;
                 for (Plot plot : plotList) {
@@ -215,7 +214,7 @@ public class MenuUtil implements Listener {
                         break;
                     }
 
-                    Map<ClickType, Consumer<Player>> actions = ImmutableMap.of(ClickType.LEFT, p -> {
+                    Map<ClickType, Consumer<CPlayer>> actions = ImmutableMap.of(ClickType.LEFT, p -> {
                         if (plot == null) {
                             player.sendMessage(ChatColor.RED + "There was a problem performing this action! (Error Code 110)");
                             player.closeInventory();
@@ -245,7 +244,7 @@ public class MenuUtil implements Listener {
         });
     }
 
-    public void openHeadShop(Player player) {
+    public void openHeadShop(CPlayer player) {
         List<MenuButton> buttons = new ArrayList<>();
         HashMap<String, List<ItemStack>> map = Creative.getInstance().getHeadUtil().getCategories();
         List<String> categories = new ArrayList<>(map.keySet());
@@ -267,12 +266,12 @@ public class MenuUtil implements Listener {
         }
 
         buttons.add(new MenuButton(invSize - 5, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
-        new Menu(Bukkit.createInventory(player, invSize, ChatColor.BLUE + "Heads"), player, buttons);
+        new Menu(invSize, ChatColor.BLUE + "Heads", player, buttons).open();
     }
 
-    public void openMyPlots(Player player) {
+    public void openMyPlots(CPlayer player) {
         List<MenuButton> buttons = new ArrayList<>();
-        List<Plot> plots = new ArrayList<>(api.getPlayerPlots(Bukkit.getWorld("plotworld"), player));
+        List<Plot> plots = new ArrayList<>(PlotPlayer.wrap(player).getPlots("plotworld"));
         if (plots.isEmpty()) {
             ItemStack empty = ItemUtil.create(Material.RED_WOOL, 1, ChatColor.RED +
                     "You don't have any plots!", Arrays.asList(ChatColor.GREEN + "Click here to get",
@@ -293,11 +292,11 @@ public class MenuUtil implements Listener {
         }
 
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "My Plots"), player, buttons);
+        new Menu(27, ChatColor.BLUE + "My Plots", player, buttons).open();
     }
 
-    public void openPlotSettings(Player player) {
-        Plot plot = api.getPlot(player);
+    public void openPlotSettings(CPlayer player) {
+        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
         HashMap<Flag<?>, Object> flags = plot.getFlags();
         long time = 3000;
         boolean flightEnabled = false;
@@ -331,13 +330,8 @@ public class MenuUtil implements Listener {
 
             p.closeInventory();
         })));
-        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
-        if (cPlayer == null) {
-            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
-            return;
-        }
 
-        if (cPlayer.getRank() != Rank.SETTLER) {
+        if (player.getRank() != Rank.SETTLER) {
             buttons.add(new MenuButton(13, ItemUtil.create(Material.MUSIC_DISC_CAT, ChatColor.GREEN + "Set park loop music."), ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParkLoopUtil().open(p, 1))));
         }
 
@@ -350,10 +344,10 @@ public class MenuUtil implements Listener {
         buttons.add(new MenuButton(16, ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "12AM", time == 18000 ? current : not), getTimeAction(plot, 18000)));
         buttons.add(new MenuButton(17, ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "3AM", time == 21000 ? current : not), getTimeAction(plot, 21000)));
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Plot Settings"), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Plot Settings", player, buttons).open();
     }
 
-    private Map<ClickType, Consumer<Player>> getTimeAction(Plot plot, long time) {
+    private Map<ClickType, Consumer<CPlayer>> getTimeAction(Plot plot, long time) {
         return ImmutableMap.of(ClickType.LEFT, p -> {
             Flag flag = FlagManager.getFlag("time");//new Flag(FlagManager.getFlag("time", true), time);
             Object parsed = flag.parseValue(String.valueOf(time));
@@ -366,7 +360,7 @@ public class MenuUtil implements Listener {
         });
     }
 
-    public void openChangeBiome(Player player, Plot plot) {
+    public void openChangeBiome(CPlayer player, Plot plot) {
         List<MenuButton> buttons = new ArrayList<>();
         String biome = plot.getBiome();
         List<String> empty = new ArrayList<>();
@@ -386,10 +380,10 @@ public class MenuUtil implements Listener {
         buttons.add(new MenuButton(16, ItemUtil.create(Material.PACKED_ICE, ChatColor.AQUA + "Ice Plains (Snow)",
                 biome.equalsIgnoreCase("ice_flats") ? selected : empty), getBiomeAction("ice_flats", plot)));
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openPlotSettings)));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Change Biome"), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Change Biome", player, buttons).open();
     }
 
-    private Map<ClickType, Consumer<Player>> getBiomeAction(String biome, Plot plot) {
+    private Map<ClickType, Consumer<CPlayer>> getBiomeAction(String biome, Plot plot) {
         return ImmutableMap.of(ClickType.LEFT, p -> {
             if (plot.getBiome().equalsIgnoreCase(biome)) {
                 p.sendMessage(ChatColor.RED + "Your plot is already set to this biome!");
@@ -410,7 +404,7 @@ public class MenuUtil implements Listener {
         });
     }
 
-    private Map<ClickType, Consumer<Player>> getWeatherAction(Plot plot, PlotWeather plotWeather) {
+    private Map<ClickType, Consumer<CPlayer>> getWeatherAction(Plot plot, PlotWeather plotWeather) {
         return ImmutableMap.of(ClickType.LEFT, p -> {
             if (plot.setFlag(FlagManager.getFlag("weather"), plotWeather)) {
                 p.sendMessage(ChatColor.GREEN + "Set Plot Weather to " + StringUtils.capitalize(plotWeather.toString().toLowerCase()) + "!");
@@ -421,7 +415,7 @@ public class MenuUtil implements Listener {
         });
     }
 
-    public void openShop(Player player) {
+    public void openShop(CPlayer player) {
         List<MenuButton> buttons = new ArrayList<>();
         PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
         int limit = data.getRPLimit();
@@ -527,7 +521,7 @@ public class MenuUtil implements Listener {
             })));
         }
 
-        if (api.getPlayerPlots(Bukkit.getWorld("plotworld"), player).size() == 1) {
+        if (PlotPlayer.wrap(player).getPlots("plotworld").size() == 1) {
             buttons.add(new MenuButton(13, purchase, ImmutableMap.of(ClickType.LEFT, p -> {
                 if (balance < 5000) {
                     p.sendMessage(ChatColor.RED + "You cannot afford a Second Plot! You need "
@@ -535,6 +529,7 @@ public class MenuUtil implements Listener {
                     p.closeInventory();
                     return;
                 }
+
                 p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 5f, 2f);
                 p.closeInventory();
                 purchaseParticle(p);
@@ -570,12 +565,12 @@ public class MenuUtil implements Listener {
         }
 
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Creative Shop"), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Creative Shop", player, buttons).open();
     }
 
-    public void openParticle(Player player) {
+    public void openParticle(CPlayer player) {
         List<MenuButton> buttons = new ArrayList<>();
-        buttons.add(new MenuButton(4, none, ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParticleManager().clearParticle(Core.getPlayerManager().getPlayer(p)))));
+        buttons.add(new MenuButton(4, none, ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParticleManager().clearParticle(p))));
         buttons.add(new MenuButton(9, note, particleAction(note)));
         buttons.add(new MenuButton(10, spark, particleAction(spark)));
         buttons.add(new MenuButton(11, flame, particleAction(flame)));
@@ -586,12 +581,12 @@ public class MenuUtil implements Listener {
         buttons.add(new MenuButton(16, lava, particleAction(lava)));
         buttons.add(new MenuButton(17, witch, particleAction(witch)));
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Particle Menu"), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Particle Menu", player, buttons).open();
     }
 
-    private Map<ClickType, Consumer<Player>> particleAction(ItemStack itemStack) {
+    private Map<ClickType, Consumer<CPlayer>> particleAction(ItemStack itemStack) {
         String name = itemStack.getItemMeta().getDisplayName();
-        return ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParticleManager().setParticle(Core.getPlayerManager().getPlayer(p), ChatColor.stripColor(name).toLowerCase(), name));
+        return ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParticleManager().setParticle(p, ChatColor.stripColor(name).toLowerCase(), name));
     }
 
     private String getOwner(Plot p) {
@@ -604,16 +599,16 @@ public class MenuUtil implements Listener {
     }
 
     public Location getHome(Plot plot) {
-        com.intellectualcrafters.plot.object.Location home = plot.getHome();
+        com.github.intellectualsites.plotsquared.plot.object.Location home = plot.getHome();
         return new Location(Bukkit.getWorld(home.getWorld()), home.getX(), home.getY(), home.getZ(),
                 home.getYaw(), home.getPitch());
     }
 
-    private void openAddOrTrust(Player tp, Plot plot) {
+    private void openAddOrTrust(CPlayer tp, Plot plot) {
         List<MenuButton> buttons = new ArrayList<>();
         buttons.add(new MenuButton(11, member, ImmutableMap.of(ClickType.LEFT, p -> {
             p.closeInventory();
-            p.sendTitle(ChatColor.GREEN + "Add a Member", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
+            p.getBukkitPlayer().sendTitle(ChatColor.GREEN + "Add a Member", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
             new TextInput(p, (ply, s) -> {
                 String owner = getOwner(plot);
                 if (s.equalsIgnoreCase(ply.getName()) && plot.getOwners().contains(ply.getUniqueId())) {
@@ -652,7 +647,7 @@ public class MenuUtil implements Listener {
         })));
         buttons.add(new MenuButton(15, trusted, ImmutableMap.of(ClickType.LEFT, p -> {
             p.closeInventory();
-            p.sendTitle(ChatColor.GREEN + "Add a Member", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
+            p.getBukkitPlayer().sendTitle(ChatColor.GREEN + "Add a Member", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
             new TextInput(p, (ply, s) -> {
                 String owner = getOwner(plot);
                 if (s.equalsIgnoreCase(ply.getName()) && plot.getOwners().contains(ply.getUniqueId())) {
@@ -690,28 +685,22 @@ public class MenuUtil implements Listener {
             });
         })));
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, p -> openManagePlot(p, plot))));
-        new Menu(Bukkit.createInventory(tp, 27, ChatColor.BLUE + "Add Player to Plot " + plot.getId().toString()), tp, buttons);
+        new Menu(27, ChatColor.BLUE + "Add Player to Plot " + plot.getId().toString(), tp, buttons).open();
     }
 
-    public void openManagePlot(Player player, Plot plot) {
+    public void openManagePlot(CPlayer player, Plot plot) {
         if (!plot.hasOwner()) {
             player.sendMessage(ChatColor.RED + "This plot is not owned right now!");
             return;
         }
 
-        PlotPlayer plotPlayer = BukkitUtil.getPlayer(player);
+        PlotPlayer plotPlayer = PlotPlayer.wrap(player);
         if (plotPlayer == null) {
             return;
         }
 
         List<MenuButton> buttons = new ArrayList<>();
-        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
-        if (cPlayer == null) {
-            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
-            return;
-        }
-
-        buttons.add(new MenuButton(9, HeadUtil.getPlayerHead(cPlayer.getTextureValue(), ChatColor.GREEN + "Add a Player"), ImmutableMap.of(ClickType.LEFT, p -> openAddOrTrust(p, plot))));
+        buttons.add(new MenuButton(9, HeadUtil.getPlayerHead(player.getTextureValue(), ChatColor.GREEN + "Add a Player"), ImmutableMap.of(ClickType.LEFT, p -> openAddOrTrust(p, plot))));
         buttons.add(new MenuButton(11, deny, ImmutableMap.of(ClickType.LEFT, p -> {
             new TextInput(p, (ply, s) -> {
                 if (s.equalsIgnoreCase(player.getName()) && plot.getOwners().contains(player.getUniqueId())) {
@@ -736,8 +725,10 @@ public class MenuUtil implements Listener {
                     player.sendMessage(ChatColor.RED + "This player is already denied on this Plot!");
                     return;
                 }
-                if (api.getPlot(tp.getLocation()) != null) {
-                    if (api.getPlot(tp.getLocation()).getId().toString().equals(plot.getId().toString())) {
+
+                Plot tpPlot = plotSquared.getPlotAreaAbs(Creative.wrapLocation(tp.getLocation())).getPlot(Creative.wrapLocation(tp.getLocation()));
+                if (tpPlot != null) {
+                    if (tpPlot.getId().toString().equals(plot.getId().toString())) {
                         denyTask.add(tp.getUniqueId());
                         tp.sendMessage(ChatColor.RED + "You were denied from " + player.getName() + "'s Plot!");
                     }
@@ -751,7 +742,7 @@ public class MenuUtil implements Listener {
                         plot.getId().toString());
             });
             p.closeInventory();
-            p.sendTitle(ChatColor.RED + "Deny a Player", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
+            p.getBukkitPlayer().sendTitle(ChatColor.RED + "Deny a Player", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
         })));
         buttons.add(new MenuButton(13, teleport, ImmutableMap.of(ClickType.LEFT, p -> {
             Location location = getHome(plot);
@@ -762,23 +753,26 @@ public class MenuUtil implements Listener {
         buttons.add(new MenuButton(15, members, ImmutableMap.of(ClickType.LEFT, p -> openAddedPlayers(p, plot))));
         buttons.add(new MenuButton(17, denied, ImmutableMap.of(ClickType.LEFT, p -> openDeniedPlayers(p, plot))));
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMyPlots)));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Manage Plot " + plot.getId().toString()), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Manage Plot " + plot.getId().toString(), player, buttons).open();
     }
 
-    public void givePlot(final Player player, boolean spawn) {
+    public void givePlot(final CPlayer player, boolean spawn) {
         player.closeInventory();
         final long time = System.currentTimeMillis();
         player.sendMessage(ChatColor.GREEN + "Finding you a plot right now...");
-        PlotPlayer plr = BukkitUtil.getPlayer(player);
+        PlotPlayer plr = PlotPlayer.wrap(player);
         String world;
-        if (PS.get().getPlotWorldStrings().size() == 1) {
-            world = PS.get().getPlotWorldStrings().iterator().next();
+        //TODO need to test
+        Set<String> worlds = plotSquared.worlds.getConfigurationSection("worlds").getKeys(false);
+        if (worlds.size() == 1) {
+            world = worlds.iterator().next();
         } else {
             world = plr.getLocation().getWorld();
             if (spawn) {
                 world = "plotworld";
             }
-            if (!PS.get().isPlotWorld(world)) {
+
+            if (!plotSquared.hasPlotArea(world)) {
                 player.sendMessage(ChatColor.RED + "You're not in a PlotWorld!");
                 return;
             }
@@ -786,8 +780,8 @@ public class MenuUtil implements Listener {
         if (!world.equalsIgnoreCase("plotworld")) {
             world = "plotworld";
         }
-        final String worldname = world;
-        PlotArea plotarea = PS.get().getPlotArea(worldname, worldname);
+
+        PlotArea plotarea = plotSquared.getPlotArea(world, world);
         plotarea.setMeta("lastPlot", new PlotId(0, 0));
         while (true) {
             PlotId start = getNextPlotId(getLastPlotId(plotarea), 1);
@@ -921,7 +915,7 @@ public class MenuUtil implements Listener {
         event.setCancelled(true);
     }
 
-    private void openAddedPlayers(Player player, Plot plot) {
+    private void openAddedPlayers(CPlayer player, Plot plot) {
         List<MenuButton> buttons = new ArrayList<>();
         List<Entry<UUID, MemberState>> added = new ArrayList<>();
         for (UUID uuid : plot.getTrusted()) {
@@ -1008,17 +1002,17 @@ public class MenuUtil implements Listener {
 
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, p -> {
             if (plot == null) {
-                openMenu(player);
+                openMenu(p);
                 return;
             }
 
-            openManagePlot(player, plot);
+            openManagePlot(p, plot);
         })));
 
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Added Players " + plot.getId().toString()), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Added Players " + plot.getId().toString(), player, buttons).open();
     }
 
-    private void openDeniedPlayers(Player player, Plot plot) {
+    private void openDeniedPlayers(CPlayer player, Plot plot) {
         List<MenuButton> buttons = new ArrayList<>();
         List<UUID> denied = new ArrayList<>(plot.getDenied());
         for (int i = 0; i < 18; i++) {
@@ -1052,17 +1046,11 @@ public class MenuUtil implements Listener {
         }
 
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, p -> openManagePlot(p, plot))));
-        new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Denied Players " + plot.getId().toString()), player, buttons);
+        new Menu(27, ChatColor.BLUE + "Denied Players " + plot.getId().toString(), player, buttons).open();
     }
 
-    private void purchaseParticle(Player player) {
-        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
-        if (cPlayer == null) {
-            player.sendMessage(ChatColor.RED + "An error has occurred. Please try again later.");
-            return;
-        }
-
-        cPlayer.getParticles().send(player.getLocation(), Particle.FIREWORKS_SPARK,
+    private void purchaseParticle(CPlayer player) {
+        player.getParticles().send(player.getLocation(), Particle.FIREWORKS_SPARK,
                 30, 0, 0, 0, 0.25f);
     }
 
@@ -1072,7 +1060,11 @@ public class MenuUtil implements Listener {
             return false;
         }
 
-        switch (cPlayer.getRank()) {
+        return isStaff(cPlayer);
+    }
+
+    public static boolean isStaff(CPlayer player) {
+        switch (player.getRank()) {
             case SETTLER:
             case DWELLER:
             case NOBLE:

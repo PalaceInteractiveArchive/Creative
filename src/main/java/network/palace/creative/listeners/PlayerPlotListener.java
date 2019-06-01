@@ -1,10 +1,10 @@
 package network.palace.creative.listeners;
 
-import com.intellectualcrafters.plot.flag.BooleanFlag;
-import com.intellectualcrafters.plot.flag.FlagManager;
-import com.intellectualcrafters.plot.object.Plot;
-import com.plotsquared.bukkit.events.PlayerEnterPlotEvent;
-import com.plotsquared.bukkit.events.PlayerLeavePlotEvent;
+import com.github.intellectualsites.plotsquared.bukkit.events.PlayerEnterPlotEvent;
+import com.github.intellectualsites.plotsquared.bukkit.events.PlayerLeavePlotEvent;
+import com.github.intellectualsites.plotsquared.plot.flag.BooleanFlag;
+import com.github.intellectualsites.plotsquared.plot.flag.FlagManager;
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
 import network.palace.creative.Creative;
 import network.palace.creative.utils.MenuUtil;
 import org.bukkit.Bukkit;

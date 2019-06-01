@@ -11,19 +11,18 @@ import java.util.Map;
 import java.util.Random;
 import java.util.function.Consumer;
 import network.palace.core.Core;
+import network.palace.core.menu.Menu;
+import network.palace.core.menu.MenuButton;
 import network.palace.core.player.CPlayer;
 import network.palace.core.resource.ResourcePack;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.PlayerData;
-import network.palace.creative.inventory.Menu;
-import network.palace.creative.inventory.MenuButton;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -119,12 +118,11 @@ public class ResourceUtil {
             add = !add;
         }
 
-        new Menu(Bukkit.createInventory(player.getBukkitPlayer(), 27, ChatColor.BLUE + "Resource Pack"), player.getBukkitPlayer(), buttons);
+        new Menu(27, ChatColor.BLUE + "Resource Pack", player, buttons).open();
     }
 
-    private ImmutableMap<ClickType, Consumer<Player>> getResourcePackAction(String name, PlayerData data) {
+    private ImmutableMap<ClickType, Consumer<CPlayer>> getResourcePackAction(String name, PlayerData data) {
         return ImmutableMap.of(ClickType.LEFT, p -> {
-            CPlayer cPlayer = Core.getPlayerManager().getPlayer(p);
             ResourcePack pack = Core.getResourceManager().getPack(name);
             if (pack == null) {
                 p.sendMessage(ChatColor.RED + "We couldn't find the pack you clicked on! Try another one.");
@@ -138,8 +136,8 @@ public class ResourceUtil {
                 Core.getMongoHandler().setCreativeValue(p.getUniqueId(), "pack", pack.getName());
                 p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 0);
                 p.closeInventory();
-                if (!cPlayer.getPack().equalsIgnoreCase(pack.getName())) {
-                    Core.getResourceManager().sendPack(cPlayer, pack);
+                if (!p.getPack().equalsIgnoreCase(pack.getName())) {
+                    Core.getResourceManager().sendPack(p, pack);
                 }
             });
         });

@@ -1,7 +1,6 @@
 package network.palace.creative.listeners;
 
-import com.intellectualcrafters.plot.object.PlotPlayer;
-import com.plotsquared.bukkit.util.BukkitUtil;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -54,7 +53,7 @@ public class PlayerJoinAndLeave implements Listener {
         player.getHeaderFooter().setFooter(ChatColor.LIGHT_PURPLE + "You're on the " + ChatColor.GREEN + "Creative " +
                 ChatColor.LIGHT_PURPLE + "server");
         Core.runTaskLater(() -> {
-            PlotPlayer tp = BukkitUtil.getPlayer(player.getBukkitPlayer());
+            PlotPlayer tp = PlotPlayer.wrap(player.getBukkitPlayer());
             if (player.getRank().getRankId() >= Rank.MOD.getRankId()) {
                 tp.setAttribute("worldedit");
             }

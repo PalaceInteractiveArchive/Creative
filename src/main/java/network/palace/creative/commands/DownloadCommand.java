@@ -1,14 +1,14 @@
-package network.palace.creative.commands;
+/*package network.palace.creative.commands;
 
-import com.intellectualcrafters.jnbt.CompoundTag;
-import com.intellectualcrafters.jnbt.NBTOutputStream;
-import com.intellectualcrafters.plot.PS;
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.config.Settings;
-import com.intellectualcrafters.plot.object.Plot;
-import com.intellectualcrafters.plot.object.RunnableVal;
-import com.intellectualcrafters.plot.util.TaskManager;
-import com.plotsquared.bukkit.util.BukkitSchematicHandler;
+import com.github.intellectualsites.plotsquared.bukkit.util.BukkitSchematicHandler;
+import com.github.intellectualsites.plotsquared.plot.PlotSquared;
+import com.github.intellectualsites.plotsquared.plot.config.Settings;
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
+import com.github.intellectualsites.plotsquared.plot.object.RunnableVal;
+import com.github.intellectualsites.plotsquared.plot.util.TaskManager;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.NBTOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -34,7 +34,7 @@ import org.bukkit.ChatColor;
 /**
  * Created by Marc on 12/27/16.
  */
-@CommandMeta(description = "Download your Plot", rank = Rank.DEVELOPER)
+/*@CommandMeta(description = "Download your Plot", rank = Rank.DEVELOPER)
 public class DownloadCommand extends CoreCommand {
 
     public DownloadCommand() {
@@ -43,8 +43,7 @@ public class DownloadCommand extends CoreCommand {
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        PlotAPI api = new PlotAPI();
-        Plot plot = api.getPlot(player.getBukkitPlayer());
+        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
         if (!plot.getOwners().contains(player.getUniqueId())) {
             player.sendMessage(ChatColor.RED + "Only the Plot Owner can download a schematic of the plot!");
             return;
@@ -73,7 +72,7 @@ public class DownloadCommand extends CoreCommand {
 
     public void upload(final CompoundTag tag, UUID uuid, String file, RunnableVal<URL> whenDone) {
         if (tag == null) {
-            PS.debug("&cCannot save empty tag");
+            PlotSquared.debug("&cCannot save empty tag");
             TaskManager.runTask(whenDone);
             return;
         }
@@ -83,7 +82,7 @@ public class DownloadCommand extends CoreCommand {
                 try {
                     try (GZIPOutputStream gzip = new GZIPOutputStream(output, true)) {
                         try (NBTOutputStream nos = new NBTOutputStream(gzip)) {
-                            nos.writeTag(tag);
+                            nos.writeNamedTag("", tag);
                         }
                     }
                 } catch (IOException e) {
@@ -95,7 +94,7 @@ public class DownloadCommand extends CoreCommand {
 
     public static void upload2(UUID uuid, String file, String extension, final RunnableVal<OutputStream> writeTask, final RunnableVal<URL> whenDone) {
         if (writeTask == null) {
-            PS.debug("&cWrite task cannot be null");
+            PlotSquared.debug("&cWrite task cannot be null");
             TaskManager.runTask(whenDone);
             return;
         }
@@ -173,4 +172,4 @@ public class DownloadCommand extends CoreCommand {
             }
         });
     }
-}
+}*/

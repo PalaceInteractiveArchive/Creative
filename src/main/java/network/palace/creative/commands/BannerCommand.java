@@ -20,6 +20,6 @@ public class BannerCommand extends CoreCommand {
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        Creative.getInstance().getBannerUtil().openMenu(player.getBukkitPlayer(), BannerInventoryType.SELECT_BASE);
+        Creative.getInstance().getBannerUtil().openMenu(player, BannerInventoryType.SELECT_BASE);
     }
 }

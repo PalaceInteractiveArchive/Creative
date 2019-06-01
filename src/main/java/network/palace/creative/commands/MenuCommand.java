@@ -21,6 +21,6 @@ public class MenuCommand extends CoreCommand {
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
         player.sendMessage(ChatColor.GREEN + "Opening Creative Menu...");
-        Creative.getInstance().getMenuUtil().openMenu(player.getBukkitPlayer());
+        Creative.getInstance().getMenuUtil().openMenu(player);
     }
 }

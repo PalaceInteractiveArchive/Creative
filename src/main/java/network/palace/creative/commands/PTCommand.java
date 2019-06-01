@@ -19,6 +19,6 @@ public class PTCommand extends CoreCommand {
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        Creative.getInstance().getMenuUtil().openParticle(player.getBukkitPlayer());
+        Creative.getInstance().getMenuUtil().openParticle(player);
     }
 }

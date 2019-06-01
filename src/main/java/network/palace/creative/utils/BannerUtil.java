@@ -11,12 +11,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import network.palace.core.Core;
+import network.palace.core.menu.Menu;
+import network.palace.core.menu.MenuButton;
+import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.BannerInventoryType;
-import network.palace.creative.inventory.Menu;
-import network.palace.creative.inventory.MenuButton;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
@@ -24,7 +25,6 @@ import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 
@@ -68,7 +68,7 @@ public class BannerUtil {
                 PatternType.CURLY_BORDER, PatternType.CREEPER, PatternType.GRADIENT, PatternType.GRADIENT_UP,
                 PatternType.BRICKS, PatternType.SKULL, PatternType.FLOWER, PatternType.MOJANG};
         for (PatternType type : types) {
-            banners.put(type, getExampleBanner(type, getName(type.toString().toLowerCase())));
+            banners.put(type, getExampleBanner(type, getInventoryName(type.toString().toLowerCase())));
         }
         ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(Creative.getInstance(),
                 PacketType.Play.Client.CLOSE_WINDOW) {
@@ -76,12 +76,17 @@ public class BannerUtil {
             public void onPacketReceiving(PacketEvent event) {
                 Player player = event.getPlayer();
                 cancel(player.getUniqueId());
-                Creative.getInstance().getShowManager().cancelEdit(player);
+                CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
+                if (cPlayer == null) {
+                    return;
+                }
+
+                Creative.getInstance().getShowManager().cancelEdit(cPlayer);
             }
         });
     }
 
-    private String getName(String name) {
+    private String getInventoryName(String name) {
         StringBuilder done = new StringBuilder();
         String[] list = name.split("_");
         for (String s : list) {
@@ -100,7 +105,7 @@ public class BannerUtil {
         return ChatColor.RESET + done.toString();
     }
 
-    public void openMenu(Player player, BannerInventoryType type) {
+    public void openMenu(CPlayer player, BannerInventoryType type) {
         List<MenuButton> buttons = new ArrayList<>();
         ItemStack banner = userBanners.getOrDefault(player.getUniqueId(), new ItemStack(Material.BLACK_BANNER));
         BannerMeta meta = (BannerMeta) banner.getItemMeta();
@@ -200,7 +205,7 @@ public class BannerUtil {
             }
         }
 
-        new Menu(createInventory(type), player, buttons);
+        new Menu(54, getInventoryName(type), player, buttons).open();
     }
 
     private ItemStack getExampleBanner(PatternType type, String name) {
@@ -212,12 +217,11 @@ public class BannerUtil {
         return banner;
     }
 
-    private Inventory createInventory(BannerInventoryType type) {
+    private String getInventoryName(BannerInventoryType type) {
         String n = "";
         switch (type) {
             case SELECT_BASE:
                 n = "Select Base Color";
-                break;
             case ADD_LAYER:
                 n = "Add Layer";
                 break;
@@ -226,7 +230,7 @@ public class BannerUtil {
                 break;
         }
 
-        return Bukkit.createInventory(null, 54, ChatColor.GREEN + n);
+        return ChatColor.GREEN + n;
     }
 
     private DyeColor colorFromString(String name) {

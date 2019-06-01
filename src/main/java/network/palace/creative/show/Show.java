@@ -1,8 +1,8 @@
 package network.palace.creative.show;
 
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
-import com.intellectualcrafters.plot.object.PlotId;
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.PlotId;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -78,7 +78,7 @@ public class Show {
         startTime = System.currentTimeMillis();
         this.plotId = plot.getId();
         for (Player tp : Bukkit.getOnlinePlayers()) {
-            Plot p = new PlotAPI().getPlot(tp.getLocation());
+            Plot p = PlotPlayer.wrap(tp).getCurrentPlot();
             if (p != null && p.getId().equals(plot.getId())) {
                 nearbyPlayers.add(tp.getUniqueId());
             }
@@ -222,7 +222,7 @@ public class Show {
         }
         List<UUID> list = new ArrayList<>();
         for (Player tp : Bukkit.getOnlinePlayers()) {
-            Plot p = new PlotAPI().getPlot(tp.getLocation());
+            Plot p = PlotPlayer.wrap(tp).getCurrentPlot();
             if (p != null && p.getId().equals(plotId)) {
                 list.add(tp.getUniqueId());
             }

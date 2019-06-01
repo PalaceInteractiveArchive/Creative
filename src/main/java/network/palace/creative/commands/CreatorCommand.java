@@ -1,12 +1,10 @@
 package network.palace.creative.commands;
 
-import com.intellectualcrafters.plot.PS;
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
-import com.intellectualcrafters.plot.object.PlotArea;
-import com.intellectualcrafters.plot.object.PlotId;
-import com.intellectualcrafters.plot.object.PlotPlayer;
-import com.plotsquared.bukkit.util.BukkitUtil;
+import com.github.intellectualsites.plotsquared.plot.PlotSquared;
+import com.github.intellectualsites.plotsquared.plot.object.Plot;
+import com.github.intellectualsites.plotsquared.plot.object.PlotArea;
+import com.github.intellectualsites.plotsquared.plot.object.PlotId;
+import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -32,7 +30,6 @@ public class CreatorCommand extends CoreCommand {
     private static FormattedMessage msg = new FormattedMessage("Learn how to join The Creator Project: ")
             .color(ChatColor.YELLOW).style(ChatColor.BOLD).then("https://palace.network/cc").color(ChatColor.AQUA)
             .link("https://palace.network/cc").tooltip(ChatColor.GREEN + "Click to visit https://palace.network/cc");
-    private static PlotAPI api = new PlotAPI();
 
     public CreatorCommand() {
         super("creator");
@@ -51,7 +48,7 @@ public class CreatorCommand extends CoreCommand {
             case 1: {
                 switch (args[0].toLowerCase()) {
                     case "plot": {
-                        List<Plot> plots = new ArrayList<>(api.getPlayerPlots(Bukkit.getWorld("creator"), player));
+                        List<Plot> plots = new ArrayList<>(PlotPlayer.wrap(player).getPlots("creator"));
                         if (plots.isEmpty()) {
                             giveCreatorPlot(player);
                         } else {
@@ -168,9 +165,9 @@ public class CreatorCommand extends CoreCommand {
         player.closeInventory();
         final long time = System.currentTimeMillis();
         player.sendMessage(ChatColor.GREEN + "Finding you a plot right now...");
-        PlotPlayer plr = BukkitUtil.getPlayer(player);
+        PlotPlayer plr = PlotPlayer.wrap(player);
         final String worldname = "creator";
-        PlotArea plotarea = PS.get().getPlotArea(worldname, worldname);
+        PlotArea plotarea = PlotSquared.get().getPlotArea(worldname, worldname);
         plotarea.setMeta("lastPlot", new PlotId(0, 0));
         while (true) {
             PlotId start = getNextPlotId(getLastPlotId(plotarea), 1);

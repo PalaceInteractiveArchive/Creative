@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-import network.palace.core.Core;
 import network.palace.core.menu.Menu;
 import network.palace.core.menu.MenuButton;
 import network.palace.core.player.CPlayer;
@@ -23,7 +22,6 @@ import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
-import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
@@ -74,14 +72,7 @@ public class BannerUtil {
                 PacketType.Play.Client.CLOSE_WINDOW) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                Player player = event.getPlayer();
-                cancel(player.getUniqueId());
-                CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
-                if (cPlayer == null) {
-                    return;
-                }
-
-                Creative.getInstance().getShowManager().cancelEdit(cPlayer);
+                cancel(event.getPlayer().getUniqueId());
             }
         });
     }

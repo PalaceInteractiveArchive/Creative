@@ -29,7 +29,7 @@ import network.palace.core.menu.MenuButton;
 import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
-import network.palace.creative.show.handlers.AudioTrack;
+import network.palace.creative.handlers.AudioTrack;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -91,7 +91,7 @@ public class ParkLoopUtil {
 
     private void loadLoops() {
         loops.clear();
-        File file = new File("plugins/Creative/parkloops.yml");
+        File file = new File(Creative.getInstance().getDataFolder(), "parkloops.yml");
         if (!file.exists()) {
             try {
                 file.createNewFile();

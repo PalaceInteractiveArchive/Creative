@@ -126,14 +126,14 @@ public class MenuUtil implements Listener {
     public MenuUtil() {
         plotSquared = PlotSquared.get();
         BannerMeta bm = (BannerMeta) bannerCreator.getItemMeta();
-        bm.setBaseColor(DyeColor.BLUE);
+        Objects.requireNonNull(bm).setBaseColor(DyeColor.BLUE);
         bm.addPattern(new Pattern(DyeColor.RED, PatternType.TRIANGLE_BOTTOM));
         bm.addPattern(new Pattern(DyeColor.RED, PatternType.TRIANGLE_TOP));
         bm.addPattern(new Pattern(DyeColor.ORANGE, PatternType.CIRCLE_MIDDLE));
         bm.setDisplayName(ChatColor.GREEN + "Banner Creator");
         bannerCreator.setItemMeta(bm);
         PotionMeta pm = (PotionMeta) witch.getItemMeta();
-        pm.setBasePotionData(new PotionData(PotionType.POISON));
+        Objects.requireNonNull(pm).setBasePotionData(new PotionData(PotionType.POISON));
         witch.setItemMeta(pm);
         String hash = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUv" +
                 "Y2RhZGYxNzQ0NDMzZTFjNzlkMWQ1OWQyNzc3ZDkzOWRlMTU5YTI0Y2Y1N2U4YTYxYzgyYmM0ZmUzNzc3NTUzYyJ9fX0=";
@@ -184,8 +184,8 @@ public class MenuUtil implements Listener {
         buttons.add(new MenuButton(14, particles, ImmutableMap.of(ClickType.LEFT, p -> p.performCommand("pt"))));
         buttons.add(new MenuButton(15, buildingPlots, ImmutableMap.of(ClickType.LEFT, this::openBuildingPlots)));
         buttons.add(new MenuButton(16, headShop, ImmutableMap.of(ClickType.LEFT, this::openHeadShop)));
-        if (data.hasShowCreator()) {
-            buttons.add(new MenuButton(22, showCreator, ImmutableMap.of(ClickType.LEFT, p -> plugin.getShowManager().selectShow(p))));
+        if (player.getPreviousHonorLevel() >= 5) {
+            buttons.add(new MenuButton(22, showCreator, ImmutableMap.of(ClickType.LEFT, p -> p.performCommand("/show edit"))));
         }
 
         new Menu(27, ChatColor.BLUE + "Creative Menu", player, buttons).open();
@@ -260,7 +260,7 @@ public class MenuUtil implements Listener {
             }
             ItemStack item = map.get(s).get(0).clone();
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(ChatColor.GREEN + s);
+            Objects.requireNonNull(meta).setDisplayName(ChatColor.GREEN + s);
             item.setItemMeta(meta);
             buttons.add(new MenuButton(place++, item, ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getHeadUtil().openCategory(p, s, 1))));
         }
@@ -347,6 +347,7 @@ public class MenuUtil implements Listener {
         new Menu(27, ChatColor.BLUE + "Plot Settings", player, buttons).open();
     }
 
+    @SuppressWarnings("unchecked")
     private Map<ClickType, Consumer<CPlayer>> getTimeAction(Plot plot, long time) {
         return ImmutableMap.of(ClickType.LEFT, p -> {
             Flag flag = FlagManager.getFlag("time");//new Flag(FlagManager.getFlag("time", true), time);
@@ -539,31 +540,6 @@ public class MenuUtil implements Listener {
             })));
         }
 
-        if (data.hasShowCreator()) {
-            buttons.add(new MenuButton(15, ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Show Creator",
-                    Collections.singletonList(ChatColor.GREEN + "You own this!"))));
-        } else {
-            buttons.add(new MenuButton(15, ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Show Creator",
-                    Arrays.asList(ChatColor.YELLOW + "Price: " + ChatColor.GREEN + "$500", ChatColor.RED +
-                            "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
-                if (balance < 500) {
-                    p.sendMessage(ChatColor.RED + "You cannot afford the Show Creator! You need "
-                            + ChatColor.GREEN + "$" + (500 - balance) + "!");
-                    p.closeInventory();
-                    return;
-                }
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 5f, 2f);
-                p.closeInventory();
-                purchaseParticle(p);
-                Core.getMongoHandler().changeAmount(p.getUniqueId(), -500,
-                        "show creator", CurrencyType.BALANCE, false);
-                data.setHasShowCreator(true);
-                p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "\nHOW TO USE: " + ChatColor.GREEN +
-                        "Type /show to use the Show Creator!\n ");
-                setValue(p.getUniqueId(), "showcreator", true);
-            })));
-        }
-
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
         new Menu(27, ChatColor.BLUE + "Creative Shop", player, buttons).open();
     }
@@ -585,7 +561,7 @@ public class MenuUtil implements Listener {
     }
 
     private Map<ClickType, Consumer<CPlayer>> particleAction(ItemStack itemStack) {
-        String name = itemStack.getItemMeta().getDisplayName();
+        String name = Objects.requireNonNull(itemStack.getItemMeta()).getDisplayName();
         return ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParticleManager().setParticle(p, ChatColor.stripColor(name).toLowerCase(), name));
     }
 
@@ -792,7 +768,7 @@ public class MenuUtil implements Listener {
                     for (int j = start.y; j <= end.y; j++) {
                         Plot plot = plotarea.getPlotAbs(new PlotId(i, j));
                         boolean teleport = i == end.x && j == end.y;
-                        plot.claim(plr, teleport, null);
+                        Objects.requireNonNull(plot).claim(plr, teleport, null);
                     }
                 }
                 break;
@@ -942,13 +918,13 @@ public class MenuUtil implements Listener {
                 ItemMeta meta = itemStack.getItemMeta();
                 switch (state) {
                     case MEMBER:
-                        meta.setLore(Arrays.asList(ChatColor.GREEN + "Left-Click to change this Player from,",
+                        Objects.requireNonNull(meta).setLore(Arrays.asList(ChatColor.GREEN + "Left-Click to change this Player from,",
                                 ChatColor.YELLOW + "Member " + ChatColor.GREEN + "to " + ChatColor.GOLD + ChatColor.ITALIC + "Trusted",
                                 ChatColor.RED + "Right-Click to Remove this Player!", ChatColor.BLACK + "" + uuid));
                         itemStack.setItemMeta(meta);
                         break;
                     case TRUSTED:
-                        meta.setLore(Arrays.asList(ChatColor.GREEN + "Left-Click to change this Player from,",
+                        Objects.requireNonNull(meta).setLore(Arrays.asList(ChatColor.GREEN + "Left-Click to change this Player from,",
                                 ChatColor.YELLOW + "Trusted " + ChatColor.GREEN + "to " + ChatColor.GOLD + ChatColor.ITALIC + "Member",
                                 ChatColor.RED + "Right-Click to Remove this Player!", ChatColor.BLACK + "" + uuid));
                         itemStack.setItemMeta(meta);
@@ -1026,7 +1002,7 @@ public class MenuUtil implements Listener {
                 } else {
                     item = HeadUtil.getPlayerHead(cplayer.getTextureValue(), cplayer.getRank().getTagColor() + cplayer.getName());
                     ItemMeta meta = item.getItemMeta();
-                    meta.setLore(Collections.singletonList(ChatColor.RED + "Click to Un-Deny this Player!"));
+                    Objects.requireNonNull(meta).setLore(Collections.singletonList(ChatColor.RED + "Click to Un-Deny this Player!"));
                     item.setItemMeta(meta);
                 }
                 buttons.add(new MenuButton(i, item, ImmutableMap.of(ClickType.LEFT, p -> {
@@ -1036,7 +1012,7 @@ public class MenuUtil implements Listener {
                         return;
                     }
 
-                    plot.removeDenied(Bukkit.getOfflinePlayer(ChatColor.stripColor(item.getItemMeta().getDisplayName())).getUniqueId());
+                    plot.removeDenied(Bukkit.getOfflinePlayer(ChatColor.stripColor(Objects.requireNonNull(item.getItemMeta()).getDisplayName())).getUniqueId());
                     player.sendMessage(ChatColor.GREEN + item.getItemMeta().getDisplayName() + " is no longer Denied on Plot " + plot.getId().toString());
                     openDeniedPlayers(player, plot);
                 })));

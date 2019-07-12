@@ -51,8 +51,6 @@ public class OnlineUtil {
                     Core.getMongoHandler().changeAmount(p.getUniqueId(), 10,
                             "Creative Online Time", CurrencyType.BALANCE, false);
                     cp.giveHonor(5);
-//                    p.sendMessage(ChatColor.GREEN + "You received " + ChatColor.AQUA + "$10 " + ChatColor.GREEN +
-//                            "for playing on Creative for 30 minutes!");
                     data.setOnlineTime(0);
                 } else {
                     data.addOnlineTime(10);

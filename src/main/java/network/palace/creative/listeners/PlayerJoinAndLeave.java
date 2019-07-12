@@ -82,8 +82,10 @@ public class PlayerJoinAndLeave implements Listener {
         for (PotionEffect e : player.getBukkitPlayer().getActivePotionEffects()) {
             player.getBukkitPlayer().removePotionEffect(e.getType());
         }
-        Creative.getInstance().getParticleManager().join(player);
+        Creative plugin = Creative.getInstance();
+        plugin.getParticleManager().join(player);
         player.sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.AQUA + "" + ChatColor.BOLD + "Palace Creative!");
+        plugin.getPlotReview().check(player.getUniqueId());
     }
 
     @EventHandler
@@ -104,7 +106,6 @@ public class PlayerJoinAndLeave implements Listener {
         creative.getParticleManager().stop(uuid);
         creative.getTeleportUtil().logout(uuid);
         creative.getBannerUtil().cancel(uuid);
-        creative.getShowManager().logout(uuid);
         creative.logout(uuid);
     }
 }

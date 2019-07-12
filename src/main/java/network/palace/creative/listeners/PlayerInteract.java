@@ -1,16 +1,11 @@
 package network.palace.creative.listeners;
 
-import com.github.intellectualsites.plotsquared.plot.PlotSquared;
 import com.github.intellectualsites.plotsquared.plot.object.Plot;
 import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.PlayerData;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Sign;
@@ -56,17 +51,6 @@ public class PlayerInteract implements Listener {
             return;
         }
         Sign s = (Sign) event.getClickedBlock().getState();
-        if (s.getLine(0).equals(ChatColor.BLUE + "[Show]")) {
-            Plot plot = PlotSquared.get().getPlotAreaAbs(Creative.wrapLocation(s.getLocation())).getPlot(Creative.wrapLocation(s.getLocation()));
-            if (plot != null) {
-                List<UUID> owners = new ArrayList<>(plot.getOwners());
-                Player owner = Bukkit.getPlayer(owners.get(0));
-                if (owner != null) {
-                    Creative.getInstance().getShowManager().syncMusic(player, owner);
-                }
-            }
-            return;
-        }
         if (!s.getLine(0).equals(ChatColor.BLUE + "[Plot]")) {
             return;
         }

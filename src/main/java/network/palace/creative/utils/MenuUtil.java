@@ -158,10 +158,10 @@ public class MenuUtil implements Listener {
             return;
         }
 
-        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
+        Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
         boolean owns = false;
         if (plot != null) {
-            for (Plot pl : PlotPlayer.wrap(player).getPlots("plotworld")) {
+            for (Plot pl : PlotPlayer.wrap(player.getBukkitPlayer()).getPlots("plotworld")) {
                 if (plot.getId().equals(pl.getId())) {
                     owns = true;
                     break;
@@ -271,7 +271,7 @@ public class MenuUtil implements Listener {
 
     public void openMyPlots(CPlayer player) {
         List<MenuButton> buttons = new ArrayList<>();
-        List<Plot> plots = new ArrayList<>(PlotPlayer.wrap(player).getPlots("plotworld"));
+        List<Plot> plots = new ArrayList<>(PlotPlayer.wrap(player.getBukkitPlayer()).getPlots("plotworld"));
         if (plots.isEmpty()) {
             ItemStack empty = ItemUtil.create(Material.RED_WOOL, 1, ChatColor.RED +
                     "You don't have any plots!", Arrays.asList(ChatColor.GREEN + "Click here to get",
@@ -296,7 +296,7 @@ public class MenuUtil implements Listener {
     }
 
     public void openPlotSettings(CPlayer player) {
-        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
+        Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
         HashMap<Flag<?>, Object> flags = plot.getFlags();
         long time = 3000;
         boolean flightEnabled = false;
@@ -422,10 +422,10 @@ public class MenuUtil implements Listener {
         int limit = data.getRPLimit();
         int balance = Core.getMongoHandler().getCurrency(player.getUniqueId(), CurrencyType.BALANCE);
         if (limit >= 10) {
-            buttons.add(new MenuButton(1, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
+            buttons.add(new MenuButton(0, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
                     "Role Play Expansion (10 Player)", Collections.singletonList(ChatColor.GREEN + "You own this!"))));
         } else {
-            buttons.add(new MenuButton(1, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
+            buttons.add(new MenuButton(0, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
                     "Role Play Expansion (10 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
                     ChatColor.GREEN + "$250", ChatColor.RED + "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
                 if (balance < 250) {
@@ -442,10 +442,10 @@ public class MenuUtil implements Listener {
         }
 
         if (limit >= 15) {
-            buttons.add(new MenuButton(2, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
+            buttons.add(new MenuButton(1, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
                     "Role Play Expansion (15 Player)", Collections.singletonList(ChatColor.GREEN + "You own this!"))));
         } else {
-            buttons.add(new MenuButton(2, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
+            buttons.add(new MenuButton(1, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
                     "Role Play Expansion (15 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
                     ChatColor.GREEN + "$300", ChatColor.RED + "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
                 if (limit < 10) {
@@ -470,10 +470,10 @@ public class MenuUtil implements Listener {
         }
 
         if (limit >= 20) {
-            buttons.add(new MenuButton(3, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
+            buttons.add(new MenuButton(2, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
                     "Role Play Expansion (20 Player)", Collections.singletonList(ChatColor.GREEN + "You own this!"))));
         } else {
-            buttons.add(new MenuButton(3, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
+            buttons.add(new MenuButton(2, ItemUtil.create(Material.PLAYER_HEAD, 1, ChatColor.GREEN +
                     "Role Play Expansion (20 Player)", Arrays.asList(ChatColor.YELLOW + "Price: " +
                     ChatColor.GREEN + "$350", ChatColor.RED + "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
                 if (limit < 15) {
@@ -499,10 +499,10 @@ public class MenuUtil implements Listener {
         }
 
         if (data.hasRPTag()) {
-            buttons.add(new MenuButton(11, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Role Play Tag",
+            buttons.add(new MenuButton(10, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Role Play Tag",
                     Collections.singletonList(ChatColor.GREEN + "You own this!"))));
         } else {
-            buttons.add(new MenuButton(11, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Role Play Tag",
+            buttons.add(new MenuButton(10, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Role Play Tag",
                     Arrays.asList(ChatColor.YELLOW + "Price: " + ChatColor.GREEN + "✪ 100", ChatColor.RED +
                             "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
                 int tokens = Core.getMongoHandler().getCurrency(p.getUniqueId(), CurrencyType.TOKENS);
@@ -522,8 +522,8 @@ public class MenuUtil implements Listener {
             })));
         }
 
-        if (PlotPlayer.wrap(player).getPlots("plotworld").size() == 1) {
-            buttons.add(new MenuButton(13, purchase, ImmutableMap.of(ClickType.LEFT, p -> {
+        if (PlotPlayer.wrap(player.getBukkitPlayer()).getPlots("plotworld").size() == 1) {
+            buttons.add(new MenuButton(12, purchase, ImmutableMap.of(ClickType.LEFT, p -> {
                 if (balance < 5000) {
                     p.sendMessage(ChatColor.RED + "You cannot afford a Second Plot! You need "
                             + ChatColor.GREEN + "$" + (5000 - balance) + "!");
@@ -540,8 +540,47 @@ public class MenuUtil implements Listener {
             })));
         }
 
+        buttons.add(new MenuButton(14, ItemUtil.create(Material.EMERALD, ChatColor.GREEN + "Claim rank specific plot."), ImmutableMap.of(ClickType.LEFT, this::claimPlot)));
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openMenu)));
         new Menu(27, ChatColor.BLUE + "Creative Shop", player, buttons).open();
+    }
+
+    public void claimPlot(CPlayer player) {
+        List<MenuButton> buttons = new ArrayList<>();
+        CreativeRank[] ranks = CreativeRank.values();
+        for (int i = 11; i < ranks.length; i++ ) {
+            CreativeRank rank = ranks[i - 11];
+            PlotPlayer plotPlayer = PlotPlayer.wrap(player.getBukkitPlayer());
+            if (plotPlayer.getPlots("plot" + rank.getSize()).size() == 0) {
+                buttons.add(new MenuButton(i, ItemUtil.create(Material.GRASS_BLOCK, ChatColor.GREEN + "Claim a " + rank.getSize() + "x" + rank.getSize() + " plot."), ImmutableMap.of(ClickType.LEFT, p -> {
+                    String world = "plot" + rank.getSize();
+                    PlotPlayer plr = PlotPlayer.wrap(p.getBukkitPlayer());
+                    PlotArea plotArea = plotSquared.getPlotArea(world, world);
+                    plotArea.setMeta("lastPlot", new PlotId(0, 0));
+                    while (true) {
+                        PlotId start = getNextPlotId(getLastPlotId(plotArea), 1);
+                        PlotId end = new PlotId(start.x, start.y);
+                        plotArea.setMeta("lastPlot", start);
+                        if (plotArea.canClaim(plr, start, end)) {
+                            for (int x = start.x; x <= end.x; x++) {
+                                for (int y = start.y; y <= end.y; y++) {
+                                    Plot plot = plotArea.getPlotAbs(new PlotId(x, y));
+                                    boolean teleport = x == end.x && y == end.y;
+                                    plot.claim(plr, teleport, null);
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+                })));
+            }
+            else {
+                buttons.add(new MenuButton(i, ItemUtil.create(Material.GRASS_BLOCK, ChatColor.GREEN + "You've already claimed a " + rank.getSize() + "x" + rank.getSize() + " plot.")));
+            }
+        }
+
+        new Menu(27, ChatColor.BLUE + "Plot Claim", player, buttons).open();
     }
 
     public void openParticle(CPlayer player) {
@@ -614,7 +653,7 @@ public class MenuUtil implements Listener {
                     return;
                 }
                 plot.addMember(op.getUniqueId());
-                EventUtil.manager.callMember(PlotPlayer.wrap(ply), plot, op.getUniqueId(), true);
+                EventUtil.manager.callMember(PlotPlayer.wrap(ply.getBukkitPlayer()), plot, op.getUniqueId(), true);
                 ply.sendMessage(ChatColor.GREEN + "Successfully added " + op.getName() + " to Plot " +
                         plot.getId().toString());
                 op.sendMessage(ChatColor.GREEN + "You were added to " + ChatColor.YELLOW + owner + "'s Plot! " +
@@ -653,7 +692,7 @@ public class MenuUtil implements Listener {
                     return;
                 }
                 plot.addTrusted(op.getUniqueId());
-                EventUtil.manager.callTrusted(PlotPlayer.wrap(ply), plot, op.getUniqueId(), true);
+                EventUtil.manager.callTrusted(PlotPlayer.wrap(ply.getBukkitPlayer()), plot, op.getUniqueId(), true);
                 ply.sendMessage(ChatColor.GREEN + "Successfully trusted " + op.getName() + " to Plot " +
                         plot.getId().toString());
                 op.sendMessage(ChatColor.GREEN + "You were " + ChatColor.GOLD + ChatColor.ITALIC + "trusted " + ChatColor.GREEN
@@ -670,7 +709,7 @@ public class MenuUtil implements Listener {
             return;
         }
 
-        PlotPlayer plotPlayer = PlotPlayer.wrap(player);
+        PlotPlayer plotPlayer = PlotPlayer.wrap(player.getBukkitPlayer());
         if (plotPlayer == null) {
             return;
         }
@@ -736,7 +775,7 @@ public class MenuUtil implements Listener {
         player.closeInventory();
         final long time = System.currentTimeMillis();
         player.sendMessage(ChatColor.GREEN + "Finding you a plot right now...");
-        PlotPlayer plr = PlotPlayer.wrap(player);
+        PlotPlayer plr = PlotPlayer.wrap(player.getBukkitPlayer());
         String world;
         //TODO need to test
         Set<String> worlds = plotSquared.worlds.getConfigurationSection("worlds").getKeys(false);
@@ -941,7 +980,7 @@ public class MenuUtil implements Listener {
                         }
 
                         plot.addMember(uuid);
-                        EventUtil.manager.callTrusted(PlotPlayer.wrap(player), plot, uuid, true);
+                        EventUtil.manager.callTrusted(PlotPlayer.wrap(player.getBukkitPlayer()), plot, uuid, true);
                         player.sendMessage(ChatColor.GREEN + name + " is now a " +
                                 ChatColor.YELLOW + "Member " + ChatColor.GREEN + "on Plot " + plot.getId().toString());
                     } else if (plot.getMembers().contains(uuid)) {
@@ -952,7 +991,7 @@ public class MenuUtil implements Listener {
                         }
 
                         plot.addTrusted(uuid);
-                        EventUtil.manager.callTrusted(PlotPlayer.wrap(player), plot, uuid, true);
+                        EventUtil.manager.callTrusted(PlotPlayer.wrap(player.getBukkitPlayer()), plot, uuid, true);
                         player.sendMessage(ChatColor.GREEN + name + " is now a " +
                                 ChatColor.YELLOW + "Trusted " + ChatColor.GREEN + "on Plot " + plot.getId().toString());
                     }

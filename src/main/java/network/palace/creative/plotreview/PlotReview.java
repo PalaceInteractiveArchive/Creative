@@ -86,7 +86,12 @@ public class PlotReview {
                             pa.setPermission("fawe.limit." + newRank.toString().toLowerCase(), true);
                             pa.setPermission("fawe.limit." + rank.toString().toLowerCase(), false);
                     }
+
+                    if (newRank == CreativeRank.EXPERT) {
+                        Bukkit.broadcastMessage(ChatColor.GOLD + cPlayer.getName() + ChatColor.GREEN + " has reached the " + ChatColor.LIGHT_PURPLE + "Expert" + ChatColor.GREEN + " rank!");
+                    }
                 }
+
 
                 accepted.remove(uuid);
             }

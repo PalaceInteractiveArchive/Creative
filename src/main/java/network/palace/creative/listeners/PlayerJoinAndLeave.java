@@ -6,7 +6,9 @@ import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
+import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.handlers.RolePlay;
+import network.palace.creative.utils.CreativeRank;
 import network.palace.creative.utils.TpaUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -19,6 +21,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.potion.PotionEffect;
 
 import java.util.UUID;
@@ -101,6 +104,14 @@ public class PlayerJoinAndLeave implements Listener {
                 rp.leave(player);
             }
         }
+
+        PlayerData data = creative.getPlayerData(player.getUniqueId());
+        CreativeRank rank = data.getRank();
+        PermissionAttachment pa = player.getBukkitPlayer().addAttachment(Creative.getInstance());
+        pa.setPermission("worldedit.selection.pos", false);
+        pa.setPermission("worldedit.wand", false);
+        pa.setPermission("worldedit.region.set", false);
+        pa.setPermission("fawe.limit." + rank.toString().toLowerCase(), false);
         TpaUtil.logout(player);
         creative.getIgnoreUtil().logout(uuid);
         creative.getParticleManager().stop(uuid);

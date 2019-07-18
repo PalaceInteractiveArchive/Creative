@@ -1,6 +1,5 @@
 package network.palace.creative.commands;
 
-import java.util.Collection;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
 import network.palace.core.command.CoreCommand;
@@ -9,6 +8,8 @@ import network.palace.core.player.Rank;
 import org.bukkit.ChatColor;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+
+import java.util.Collection;
 
 /**
  * Created by Marc on 5/25/15
@@ -22,8 +23,8 @@ public class NightvisionCommand extends CoreCommand {
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        if (player.getRank().getRankId() < Rank.DVCMEMBER.getRankId()) {
-            player.sendMessage(ChatColor.RED + "You must be the " + Rank.DVCMEMBER.getFormattedName()
+        if (player.getRank().getRankId() < Rank.DWELLER.getRankId()) {
+            player.sendMessage(ChatColor.RED + "You must be the " + Rank.DWELLER.getFormattedName()
                     + ChatColor.RED + " rank or above to use this!");
             return;
         }

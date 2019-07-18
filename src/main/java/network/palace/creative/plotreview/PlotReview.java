@@ -34,7 +34,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.permissions.PermissionAttachment;
 
 public class PlotReview {
 
@@ -64,48 +63,15 @@ public class PlotReview {
 
     public void check(UUID uuid) {
         CPlayer cPlayer = Core.getPlayerManager().getPlayer(uuid);
-        if (cPlayer != null && cPlayer.isOnline()) {
+        if (cPlayer.isOnline()) {
             cPlayer.sendMessage(ChatColor.GREEN + "Your plot has been reviewed!");
-            Creative plugin = Creative.getInstance();
-            PlayerData data = plugin.getPlayerData(cPlayer.getUniqueId());
-            CreativeRank rank = data.getRank();
             if (accepted.containsKey(uuid)) {
-                CreativeRank[] ranks = CreativeRank.values();
                 cPlayer.sendMessage(ChatColor.GREEN + accepted.get(uuid));
-                if (rank.ordinal() < ranks.length) {
-                    CreativeRank newRank = ranks[rank.ordinal() + 1];
-                    PermissionAttachment pa = cPlayer.getBukkitPlayer().addAttachment(Creative.getInstance());
-                    switch (newRank) {
-                        case SKILLED:
-                        case ADVANCED:
-                        case MASTER:
-                        case EXPERT:
-                            pa.setPermission("worldedit.selection.pos", true);
-                            pa.setPermission("worldedit.wand", true);
-                            pa.setPermission("worldedit.region.set", true);
-                            pa.setPermission("fawe.limit." + newRank.toString().toLowerCase(), true);
-                            pa.setPermission("fawe.limit." + rank.toString().toLowerCase(), false);
-                    }
-                }
-
                 accepted.remove(uuid);
             }
             else if (denied.containsKey(uuid)) {
                 cPlayer.sendMessage(ChatColor.GREEN + accepted.get(uuid));
                 denied.remove(uuid);
-            }
-            else {
-                PermissionAttachment pa = cPlayer.getBukkitPlayer().addAttachment(Creative.getInstance());
-                switch (rank) {
-                    case SKILLED:
-                    case ADVANCED:
-                    case MASTER:
-                    case EXPERT:
-                        pa.setPermission("worldedit.selection.pos", true);
-                        pa.setPermission("worldedit.wand", true);
-                        pa.setPermission("worldedit.region.set", true);
-                        pa.setPermission("fawe.limit." + rank.toString().toLowerCase(), true);
-                }
             }
         }
     }

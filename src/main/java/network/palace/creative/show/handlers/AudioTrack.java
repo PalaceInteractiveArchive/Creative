@@ -1,4 +1,4 @@
-package network.palace.creative.handlers;
+package network.palace.creative.show.handlers;
 
 import java.util.Arrays;
 import java.util.List;

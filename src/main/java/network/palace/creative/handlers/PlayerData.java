@@ -1,6 +1,5 @@
 package network.palace.creative.handlers;
 
-import network.palace.creative.utils.CreativeRank;
 import org.bukkit.Particle;
 
 import java.util.UUID;
@@ -12,7 +11,7 @@ public class PlayerData {
     private UUID uuid;
     private Particle particle;
     private boolean rptag;
-    private CreativeRank rank;
+    private boolean showCreator;
     private int rplimit;
     private boolean creator;
     private boolean creatorTag;
@@ -21,19 +20,16 @@ public class PlayerData {
     private boolean isAFK = false;
     private String resourcePack;
 
-    public PlayerData(UUID uuid, Particle particle, boolean rptag, CreativeRank rank, int rplimit, boolean creator, boolean creatorTag, String resourcePack) {
+    public PlayerData(UUID uuid, Particle particle, boolean rptag, boolean showCreator, int rplimit,
+                      boolean creator, boolean creatorTag, String resourcePack) {
         this.uuid = uuid;
         this.particle = particle;
         this.rptag = rptag;
-        this.rank = rank;
+        this.showCreator = showCreator;
         this.rplimit = rplimit;
         this.creator = creator;
         this.creatorTag = creatorTag;
         this.resourcePack = resourcePack;
-    }
-
-    public CreativeRank getRank() {
-        return rank;
     }
 
     public UUID getUniqueId() {
@@ -46,6 +42,10 @@ public class PlayerData {
 
     public boolean hasRPTag() {
         return rptag;
+    }
+
+    public boolean hasShowCreator() {
+        return showCreator;
     }
 
     public boolean isCreator() {
@@ -74,6 +74,10 @@ public class PlayerData {
 
     public void setHasRPTag(boolean hasRPTag) {
         this.rptag = hasRPTag;
+    }
+
+    public void setHasShowCreator(boolean b) {
+        this.showCreator = b;
     }
 
     public void setCreatorTag(boolean creatorTag) {
@@ -114,10 +118,6 @@ public class PlayerData {
 
     public String getResourcePack() {
         return resourcePack;
-    }
-
-    public void setRank(CreativeRank rank) {
-        this.rank = rank;
     }
 
     public void setResourcePack(String resourcePack) {

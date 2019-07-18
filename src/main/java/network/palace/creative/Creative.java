@@ -1,12 +1,5 @@
 package network.palace.creative;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import lombok.Getter;
 import network.palace.audio.Audio;
 import network.palace.audio.handlers.AudioArea;
@@ -14,80 +7,27 @@ import network.palace.core.Core;
 import network.palace.core.player.Rank;
 import network.palace.core.plugin.Plugin;
 import network.palace.core.plugin.PluginInfo;
-import network.palace.creative.commands.BackCommand;
-import network.palace.creative.commands.BannedItemCheckCommand;
-import network.palace.creative.commands.BannerCommand;
-import network.palace.creative.commands.BroadcastCommand;
-import network.palace.creative.commands.CReloadCommand;
-import network.palace.creative.commands.CreatorCommand;
-import network.palace.creative.commands.DelWarpCommand;
-import network.palace.creative.commands.GiveCommand;
-import network.palace.creative.commands.HeadCommand;
-import network.palace.creative.commands.HealCommand;
-import network.palace.creative.commands.InvseeCommand;
-import network.palace.creative.commands.LogLagCommand;
-import network.palace.creative.commands.ManageCommand;
-import network.palace.creative.commands.MenuCommand;
-import network.palace.creative.commands.MoreCommand;
-import network.palace.creative.commands.MsgCommand;
-import network.palace.creative.commands.NightvisionCommand;
-import network.palace.creative.commands.PTCommand;
-import network.palace.creative.commands.PackCommand;
-import network.palace.creative.commands.PlotFloorLogCommand;
-import network.palace.creative.commands.PlotWarpCommand;
-import network.palace.creative.commands.PtimeCommand;
-import network.palace.creative.commands.PweatherCommand;
-import network.palace.creative.commands.ReviewCommand;
-import network.palace.creative.commands.RoleCommand;
-import network.palace.creative.commands.RulesCommand;
-import network.palace.creative.commands.SetSpawnCommand;
-import network.palace.creative.commands.SetWarpCommand;
-import network.palace.creative.commands.ShopCommand;
-import network.palace.creative.commands.SpawnCommand;
-import network.palace.creative.commands.StarCommand;
-import network.palace.creative.commands.SubmitCommand;
-import network.palace.creative.commands.TpAcceptCommand;
-import network.palace.creative.commands.TpCommand;
-import network.palace.creative.commands.TpDenyCommand;
-import network.palace.creative.commands.TpaCommand;
-import network.palace.creative.commands.WarpCommand;
+import network.palace.creative.commands.*;
 import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.handlers.Warp;
 import network.palace.creative.itemexploit.ItemExploitHandler;
-import network.palace.creative.listeners.BlockEdit;
-import network.palace.creative.listeners.EntitySpawn;
-import network.palace.creative.listeners.InventoryClick;
-import network.palace.creative.listeners.PacketListener;
-import network.palace.creative.listeners.PlayerDamage;
-import network.palace.creative.listeners.PlayerInteract;
-import network.palace.creative.listeners.PlayerJoinAndLeave;
-import network.palace.creative.listeners.PlayerMove;
-import network.palace.creative.listeners.PlayerPlotListener;
-import network.palace.creative.listeners.RedstoneListener;
-import network.palace.creative.listeners.ResourceListener;
-import network.palace.creative.listeners.SignChange;
-import network.palace.creative.listeners.WorldListener;
+import network.palace.creative.listeners.*;
 import network.palace.creative.particles.ParticleManager;
 import network.palace.creative.particles.PlayParticle;
-import network.palace.creative.plotreview.PlotReview;
-import network.palace.creative.utils.BannerUtil;
-import network.palace.creative.utils.CreativeRank;
-import network.palace.creative.utils.HeadUtil;
-import network.palace.creative.utils.IgnoreUtil;
-import network.palace.creative.utils.MenuUtil;
-import network.palace.creative.utils.OnlineUtil;
-import network.palace.creative.utils.ParkLoopUtil;
-import network.palace.creative.utils.ParticleUtil;
-import network.palace.creative.utils.PlotFloorUtil;
-import network.palace.creative.utils.PlotWarpUtil;
-import network.palace.creative.utils.ResourceUtil;
-import network.palace.creative.utils.RolePlayUtil;
-import network.palace.creative.utils.TeleportUtil;
+import network.palace.creative.show.ShowManager;
+import network.palace.creative.utils.*;
 import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Marc on 12/14/14
@@ -104,15 +44,15 @@ public class Creative extends Plugin {
     @Getter private ParkLoopUtil parkLoopUtil;
     @Getter private ParticleManager particleManager;
     @Getter private RolePlayUtil rolePlayUtil;
+    @Getter private ShowManager showManager;
     @Getter private OnlineUtil onlineUtil;
     @Getter private HeadUtil headUtil;
     @Getter private ResourceUtil resourceUtil;
     @Getter private IgnoreUtil ignoreUtil;
     @Getter private ItemExploitHandler itemExploitHandler;
     @Getter private PlotFloorUtil plotFloorUtil;
-    @Getter private PlotReview plotReview;
     @Getter private PlotWarpUtil plotWarpUtil;
-    @Getter private Map<UUID, PlayerData> playerData = new HashMap<>();
+    @Getter private HashMap<UUID, PlayerData> playerData = new HashMap<>();
 
     @Getter private PlayParticle playParticle;
 
@@ -127,12 +67,12 @@ public class Creative extends Plugin {
         bannerUtil = new BannerUtil();
         particleManager = new ParticleManager();
         rolePlayUtil = new RolePlayUtil();
+        showManager = new ShowManager();
         onlineUtil = new OnlineUtil();
         headUtil = new HeadUtil();
         resourceUtil = new ResourceUtil();
         ignoreUtil = new IgnoreUtil();
         plotFloorUtil = new PlotFloorUtil();
-        plotReview = new PlotReview();
         plotWarpUtil = new PlotWarpUtil();
         playParticle = new PlayParticle();
 
@@ -154,7 +94,7 @@ public class Creative extends Plugin {
     public void onPluginDisable() {
         itemExploitHandler.saveCaughtItems();
         parkLoopUtil.serverShutdown();
-        plotReview.save();
+        showManager.stopAllShows();
     }
 
     public Location getSpawn() {
@@ -175,7 +115,7 @@ public class Creative extends Plugin {
         config.set("spawn.pitch", location.getPitch());
 
         try {
-            config.save(new File(getDataFolder(), "config.yml"));
+            config.save(new File("plugins/Creative/config.yml"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -202,7 +142,7 @@ public class Creative extends Plugin {
 
         warps.add(warp);
 
-        File file = new File(getDataFolder(), "warps.yml");
+        File file = new File("plugins/Creative/warps.yml");
         Location loc = warp.getLocation();
 
         YamlConfiguration warpFile = YamlConfiguration.loadConfiguration(file);
@@ -231,7 +171,7 @@ public class Creative extends Plugin {
             return false;
         }
 
-        File file = new File(getDataFolder(), "warps.yml");
+        File file = new File("plugins/Creative/warps.yml");
         YamlConfiguration warpFile = YamlConfiguration.loadConfiguration(file);
         List<String> list = warpFile.getStringList("warps");
         list.remove(w.getName());
@@ -273,15 +213,14 @@ public class Creative extends Plugin {
         registerCommand(new PTCommand());
         registerCommand(new PtimeCommand());
         registerCommand(new PweatherCommand());
-        registerCommand(new ReviewCommand());
         registerCommand(new RoleCommand());
         registerCommand(new RulesCommand());
         registerCommand(new SetSpawnCommand());
         registerCommand(new SetWarpCommand());
         registerCommand(new ShopCommand());
+        registerCommand(new ShowCommand());
         registerCommand(new SpawnCommand());
         registerCommand(new StarCommand());
-        registerCommand(new SubmitCommand());
         registerCommand(new TpCommand());
         registerCommand(new TpaCommand());
         registerCommand(new TpAcceptCommand());
@@ -303,6 +242,7 @@ public class Creative extends Plugin {
         registerListener(new SignChange());
         registerListener(new ResourceListener());
         registerListener(new WorldListener());
+        registerListener(showManager);
         registerListener(menuUtil);
         registerListener(itemExploitHandler = new ItemExploitHandler());
     }
@@ -315,7 +255,7 @@ public class Creative extends Plugin {
         Document dataDocument = Core.getMongoHandler().getCreativeData(uuid);
         if (dataDocument == null) return null;
         PlayerData data = new PlayerData(uuid, ParticleUtil.getParticle(dataDocument.getString("particle")),
-                dataDocument.getBoolean("rptag"), CreativeRank.valueOf(dataDocument.getString("rank").toUpperCase()),
+                dataDocument.getBoolean("rptag"), dataDocument.getBoolean("showcreator"),
                 dataDocument.getInteger("rplimit"), dataDocument.getBoolean("creator"),
                 dataDocument.getBoolean("creatortag"), dataDocument.getString("resourcepack"));
         playerData.remove(uuid);
@@ -340,7 +280,12 @@ public class Creative extends Plugin {
 
     public void loadConfig() {
         createDataFolder();
-        File cnfg = new File(getDataFolder(), "config.yml");
+        File showFolder = new File("plugins/Creative/shows/");
+        if (!showFolder.exists()) {
+            showFolder.mkdir();
+        }
+
+        File cnfg = new File("plugins/Creative/config.yml");
         if (!cnfg.exists()) {
             try {
                 cnfg.createNewFile();
@@ -363,7 +308,7 @@ public class Creative extends Plugin {
 
     public void loadWarps() {
         createDataFolder();
-        File warpFile = new File(getDataFolder(), "warps.yml");
+        File warpFile = new File("plugins/Creative/warps.yml");
         if (!warpFile.exists()) {
             try {
                 warpFile.createNewFile();

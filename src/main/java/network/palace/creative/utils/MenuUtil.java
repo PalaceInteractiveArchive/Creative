@@ -12,18 +12,6 @@ import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import com.github.intellectualsites.plotsquared.plot.util.EventUtil;
 import com.github.intellectualsites.plotsquared.plot.util.PlotWeather;
 import com.google.common.collect.ImmutableMap;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
 import network.palace.core.Core;
@@ -41,13 +29,7 @@ import network.palace.creative.handlers.MemberState;
 import network.palace.creative.handlers.PlayerData;
 import network.palace.creative.handlers.RolePlay;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.entity.Player;
@@ -63,6 +45,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
+
+import java.util.AbstractMap.SimpleEntry;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 /**
  * Created by Marc on 7/29/15
@@ -595,7 +582,7 @@ public class MenuUtil implements Listener {
     }
 
     private void setValue(UUID uuid, String name, Object o) {
-        Core.runTaskAsynchronously(() -> Core.getMongoHandler().setCreativeValue(uuid, name, o));
+        Core.runTaskAsynchronously(Creative.getInstance(), () -> Core.getMongoHandler().setCreativeValue(uuid, name, o));
     }
 
     public Location getHome(Plot plot) {

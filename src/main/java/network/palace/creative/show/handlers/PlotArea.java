@@ -12,6 +12,8 @@ import network.palace.creative.Creative;
 import org.bukkit.Location;
 import org.bukkit.World;
 
+import java.util.ArrayList;
+
 /**
  * Created by Marc on 6/16/16
  */
@@ -21,7 +23,7 @@ public class PlotArea extends AudioArea {
     private CPlayer owner;
 
     public PlotArea(PlotId plotId, CPlayer owner, String soundname, World world) {
-        super(owner.getUniqueId().toString(), soundname, 750, 1.0, null, true, false, world);
+        super(owner.getUniqueId().toString(), soundname, 750, 1.0, new ArrayList<>(), true, false, world);
         this.plotId = plotId;
         this.owner = owner;
         for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
@@ -38,8 +40,8 @@ public class PlotArea extends AudioArea {
     }
 
     @Override
-    public String getRegionName() {
-        return "Plot ID " + plotId.toString();
+    public String getRegionNames() {
+        return plotId.toString();
     }
 
     @Override

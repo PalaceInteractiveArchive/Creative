@@ -52,7 +52,7 @@ public class PlayerJoinAndLeave implements Listener {
         player.getHeaderFooter().setHeader(ChatColor.GOLD + "Palace Network - A Family of Servers");
         player.getHeaderFooter().setFooter(ChatColor.LIGHT_PURPLE + "You're on the " + ChatColor.GREEN + "Creative " +
                 ChatColor.LIGHT_PURPLE + "server");
-        Core.runTaskLater(() -> {
+        Core.runTaskLater(Creative.getInstance(), () -> {
             PlotPlayer tp = PlotPlayer.wrap(player.getBukkitPlayer());
             if (player.getRank().getRankId() >= Rank.MOD.getRankId()) {
                 tp.setAttribute("worldedit");

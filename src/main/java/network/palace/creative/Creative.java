@@ -76,7 +76,7 @@ public class Creative extends Plugin {
         plotWarpUtil = new PlotWarpUtil();
         playParticle = new PlayParticle();
 
-        Core.runTaskTimer(playParticle, 0L, 2L);
+        Core.runTaskTimer(this, playParticle, 0L, 2L);
 
         registerListeners();
         registerCommands();

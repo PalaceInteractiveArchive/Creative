@@ -69,7 +69,7 @@ public class PlotFloorUtil {
 
     public PlotFloorUtil() {
         this.materials = Stream.of(Material.values()).filter(Material::isSolid)
-                .filter(material -> invalidMaterials.contains(material) || !material.toString().contains("_SHULKER_BOX"))
+                .filter(material -> !invalidMaterials.contains(material) && !material.toString().contains("_SHULKER_BOX"))
                 .flatMap(material -> {
                     switch (material) {
                         case LEAVES_2:

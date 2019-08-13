@@ -7,9 +7,10 @@ import lombok.Getter;
 import network.palace.audio.handlers.AudioArea;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
-import network.palace.creative.Creative;
 import org.bukkit.Location;
 import org.bukkit.World;
+
+import java.util.Collections;
 
 /**
  * Created by Marc on 6/16/16
@@ -19,9 +20,8 @@ public class PlotArea extends AudioArea {
     private PlotId plotId;
     private CPlayer owner;
 
-    @SuppressWarnings("deprecation")
     public PlotArea(PlotId plotId, CPlayer owner, String soundname, World world) {
-        super(owner.getUniqueId().toString(), soundname, 750, 1.0, null, true, false, world);
+        super(owner.getUniqueId().toString(), soundname, 750, 1.0, Collections.emptyList(), true, false, world);
         this.plotId = plotId;
         this.owner = owner;
         PlotAPI api = new PlotAPI();
@@ -39,11 +39,10 @@ public class PlotArea extends AudioArea {
     }
 
     @Override
-    public String getRegionName() {
+    public String getRegionNames() {
         return "Plot ID " + plotId.toString();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public boolean locIsInArea(Location loc) {
         PlotAPI api = new PlotAPI();

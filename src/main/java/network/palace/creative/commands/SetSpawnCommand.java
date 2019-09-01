@@ -11,7 +11,7 @@ import org.bukkit.ChatColor;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Set the spawn location", rank = Rank.SRMOD)
+@CommandMeta(description = "Set the spawn location", rank = Rank.COORDINATOR)
 public class SetSpawnCommand extends CoreCommand {
 
     public SetSpawnCommand() {

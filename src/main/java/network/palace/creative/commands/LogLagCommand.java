@@ -10,7 +10,7 @@ import network.palace.creative.Creative;
 /**
  * Created by Marc on 4/13/15
  */
-@CommandMeta(description = "View all redstone activity (spams your chat!)", rank = Rank.SRMOD)
+@CommandMeta(description = "View all redstone activity (spams your chat!)", rank = Rank.COORDINATOR)
 public class LogLagCommand extends CoreCommand {
 
     public LogLagCommand() {

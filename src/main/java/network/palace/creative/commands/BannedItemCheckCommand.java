@@ -12,7 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 
-@CommandMeta(description = "Check if a user has been caught with banned/hacked items.", aliases = "bic", usage = "/bic [player]", rank = Rank.SRMOD)
+@CommandMeta(description = "Check if a user has been caught with banned/hacked items.", aliases = "bic", usage = "/bic [player]", rank = Rank.COORDINATOR)
 public class BannedItemCheckCommand extends CoreCommand {
 
     public BannedItemCheckCommand() {

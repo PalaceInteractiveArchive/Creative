@@ -42,7 +42,7 @@ public class CreatorCommand extends CoreCommand {
     protected void handleCommand(CPlayer p, String[] args) throws CommandException {
         Player player = p.getBukkitPlayer();
         PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
-        if (!data.isCreator() && p.getRank().getRankId() < Rank.SRMOD.getRankId()) {
+        if (!data.isCreator() && p.getRank().getRankId() < Rank.COORDINATOR.getRankId()) {
             msg.send(player);
             return;
         }
@@ -62,7 +62,7 @@ public class CreatorCommand extends CoreCommand {
                         return;
                     }
                     case "list": {
-                        if (p.getRank().getRankId() < Rank.SRMOD.getRankId()) {
+                        if (p.getRank().getRankId() < Rank.COORDINATOR.getRankId()) {
                             helpMenu(player, p.getRank());
                             return;
                         }
@@ -91,7 +91,7 @@ public class CreatorCommand extends CoreCommand {
             case 3: {
                 switch (args[0].toLowerCase()) {
                     case "set": {
-                        if (p.getRank().getRankId() < Rank.SRMOD.getRankId()) {
+                        if (p.getRank().getRankId() < Rank.COORDINATOR.getRankId()) {
                             helpMenu(player, p.getRank());
                             return;
                         }
@@ -124,7 +124,7 @@ public class CreatorCommand extends CoreCommand {
                         return;
                     }
                     case "settag": {
-                        if (p.getRank().getRankId() < Rank.SRMOD.getRankId()) {
+                        if (p.getRank().getRankId() < Rank.COORDINATOR.getRankId()) {
                             helpMenu(player, p.getRank());
                             return;
                         }
@@ -233,7 +233,7 @@ public class CreatorCommand extends CoreCommand {
     private void helpMenu(Player player, Rank rank) {
         player.sendMessage(ChatColor.GREEN + "The Creator Project Commands:");
         player.sendMessage(ChatColor.GREEN + "/creator plot " + ChatColor.AQUA + "- Bring you to your Creator Plot");
-        if (rank.getRankId() >= Rank.SRMOD.getRankId()) {
+        if (rank.getRankId() >= Rank.COORDINATOR.getRankId()) {
             player.sendMessage(ChatColor.GREEN + "/creator settag [Username] [true/false] " + ChatColor.AQUA +
                     "- Add or remove The Creator Tag from a Guest");
             player.sendMessage(ChatColor.GREEN + "/creator set [Username] [true/false] " + ChatColor.AQUA +

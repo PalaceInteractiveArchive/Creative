@@ -151,10 +151,7 @@ public class MenuUtil implements Listener {
     public void openMenu(Player player) {
         Creative plugin = Creative.getInstance();
         PlayerData data = plugin.getPlayerData(player.getUniqueId());
-        if (data == null) {
-            return;
-        }
-
+        if (data == null) return;
 
         Plot plot = api.getPlot(player);
         boolean owns = false;

@@ -216,7 +216,6 @@ public class Show {
         return Integer.parseInt(s);
     }
 
-    @SuppressWarnings("deprecation")
     public List<UUID> getNearPlayers() {
         if (System.currentTimeMillis() - lastPlayerListUpdate < 10000) {
             return new ArrayList<>(nearbyPlayers);

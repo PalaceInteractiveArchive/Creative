@@ -20,6 +20,7 @@ import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -32,7 +33,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.8.6")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.8.7")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -253,7 +254,13 @@ public class Creative extends Plugin {
     public PlayerData login(UUID uuid) {
         Document dataDocument = Core.getMongoHandler().getCreativeData(uuid);
         if (dataDocument == null) return null;
-        PlayerData data = new PlayerData(uuid, ParticleUtil.getParticle(dataDocument.getString("particle")),
+        Particle p;
+        try {
+            p = ParticleUtil.getParticle(dataDocument.getString("particle"));
+        } catch (Exception e) {
+            p = null;
+        }
+        PlayerData data = new PlayerData(uuid, p,
                 dataDocument.getBoolean("rptag"), dataDocument.getBoolean("showcreator"),
                 dataDocument.getInteger("rplimit"), dataDocument.getBoolean("creator"),
                 dataDocument.getBoolean("creatortag"), dataDocument.getString("resourcepack"));

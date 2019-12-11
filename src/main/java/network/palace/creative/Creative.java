@@ -33,7 +33,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 12/14/14
  */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.8.7")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.8.8")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -205,7 +205,6 @@ public class Creative extends Plugin {
         registerCommand(new ManageCommand());
         registerCommand(new MenuCommand());
         registerCommand(new MoreCommand());
-        registerCommand(new MsgCommand());
         registerCommand(new NightvisionCommand());
         registerCommand(new PackCommand());
         registerCommand(new PlotFloorLogCommand());

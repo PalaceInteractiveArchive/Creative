@@ -55,8 +55,10 @@ public class PlayerJoinAndLeave implements Listener {
                 ChatColor.LIGHT_PURPLE + "server");
         Core.runTaskLater(() -> {
             PlotPlayer tp = BukkitUtil.getPlayer(player.getBukkitPlayer());
-            if (player.getRank().getRankId() >= Rank.MOD.getRankId()) {
+            if (player.getRank().getRankId() >= Rank.TRAINEEBUILD.getRankId()) {
                 tp.setAttribute("worldedit");
+            } else {
+                tp.removeAttribute("worldedit");
             }
             if (!player.getBukkitPlayer().hasPlayedBefore()) {
                 player.getTitle().show(ChatColor.YELLOW + "Read the rules!", ChatColor.GREEN +

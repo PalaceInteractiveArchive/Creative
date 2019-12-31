@@ -14,17 +14,6 @@ import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.intellectualcrafters.plot.util.EventUtil;
 import com.intellectualcrafters.plot.util.PlotWeather;
 import com.plotsquared.bukkit.util.BukkitUtil;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.Setter;
 import network.palace.core.Core;
@@ -42,13 +31,7 @@ import network.palace.creative.handlers.RolePlay;
 import network.palace.creative.inventory.Menu;
 import network.palace.creative.inventory.MenuButton;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.entity.Player;
@@ -61,6 +44,11 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.AbstractMap.SimpleEntry;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 /**
  * Created by Marc on 7/29/15
@@ -1061,19 +1049,6 @@ public class MenuUtil implements Listener {
 
     public static boolean isStaff(Player player) {
         CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
-        if (cPlayer == null) {
-            return false;
-        }
-
-        switch (cPlayer.getRank()) {
-            case SETTLER:
-            case DWELLER:
-            case NOBLE:
-            case MAJESTIC:
-            case HONORABLE:
-                return false;
-            default:
-                return true;
-        }
+        return cPlayer != null && cPlayer.getRank().getRankId() >= Rank.TRAINEE.getRankId();
     }
 }

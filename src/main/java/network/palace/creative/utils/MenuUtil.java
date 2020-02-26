@@ -20,7 +20,7 @@ import network.palace.core.Core;
 import network.palace.core.economy.CurrencyType;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
-import network.palace.core.player.SponsorTier;
+import network.palace.core.player.RankTag;
 import network.palace.core.utils.HeadUtil;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
@@ -334,6 +334,7 @@ public class MenuUtil implements Listener {
         new Menu(Bukkit.createInventory(player, 27, ChatColor.BLUE + "Plot Settings"), player, buttons);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private Map<ClickType, Consumer<Player>> getTimeAction(Plot plot, long time) {
         return ImmutableMap.of(ClickType.LEFT, p -> {
             final Flag flag = FlagManager.getFlag("time");//new Flag(FlagManager.getFlag("time", true), time);
@@ -850,7 +851,7 @@ public class MenuUtil implements Listener {
         }
 
         Rank rank = cplayer.getRank();
-        SponsorTier tier = cplayer.getSponsorTier();
+        List<RankTag> tags = cplayer.getTags();
         if (isChatMuted() && rank.getRankId() < Rank.TRAINEE.getRankId()) {
             cplayer.sendMessage(ChatColor.RED + "Chat is muted right now! (You can still add/remove players and use Show Creator)");
             return;
@@ -863,7 +864,7 @@ public class MenuUtil implements Listener {
             msg = event.getMessage();
         }
         String messageToSend = (data.hasCreatorTag() ? (ChatColor.WHITE + "[" + ChatColor.BLUE + "Creator"
-                + ChatColor.WHITE + "] ") : "") + tier.getChatTag(true) + rank.getFormattedName() +
+                + ChatColor.WHITE + "] ") : "") + RankTag.formatChat(cplayer.getTags()) + rank.getFormattedName() +
                 " " + ChatColor.GRAY + player.getName() + ": " + rank.getChatColor() + msg;
         RolePlayUtil rolePlayUtil = Creative.getInstance().getRolePlayUtil();
         IgnoreUtil ignoreUtil = Creative.getInstance().getIgnoreUtil();

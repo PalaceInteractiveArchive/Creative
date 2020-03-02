@@ -16,6 +16,9 @@ import com.intellectualcrafters.plot.util.PlotWeather;
 import com.plotsquared.bukkit.util.BukkitUtil;
 import lombok.Getter;
 import lombok.Setter;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
 import network.palace.core.Core;
 import network.palace.core.economy.CurrencyType;
 import network.palace.core.player.CPlayer;
@@ -863,9 +866,16 @@ public class MenuUtil implements Listener {
         } else {
             msg = event.getMessage();
         }
-        String messageToSend = (data.hasCreatorTag() ? (ChatColor.WHITE + "[" + ChatColor.BLUE + "Creator"
-                + ChatColor.WHITE + "] ") : "") + RankTag.formatChat(cplayer.getTags()) + rank.getFormattedName() +
-                " " + ChatColor.GRAY + player.getName() + ": " + rank.getChatColor() + msg;
+        ComponentBuilder builder = new ComponentBuilder("");
+        if (data.hasCreatorTag()) {
+            builder.append("[").color(net.md_5.bungee.api.ChatColor.WHITE)
+                    .append("Creator").color(net.md_5.bungee.api.ChatColor.BLUE)
+                    .append("] ").color(net.md_5.bungee.api.ChatColor.WHITE);
+        }
+        BaseComponent[] messageToSend = builder.append(RankTag.formatChat(cplayer.getTags())).event(getPlayerHover(cplayer))
+                .append(rank.getFormattedName() + " ")
+                .append(cplayer.getName() + ": ").color(net.md_5.bungee.api.ChatColor.GRAY)
+                .append(msg, ComponentBuilder.FormatRetention.NONE).color(net.md_5.bungee.api.ChatColor.getByChar(rank.getChatColor().getChar())).create();
         RolePlayUtil rolePlayUtil = Creative.getInstance().getRolePlayUtil();
         IgnoreUtil ignoreUtil = Creative.getInstance().getIgnoreUtil();
         for (CPlayer tp : Core.getPlayerManager().getOnlinePlayers()) {
@@ -874,8 +884,18 @@ public class MenuUtil implements Listener {
                             cplayer.getRank().getRankId() < Rank.TRAINEE.getRankId() &&
                             tp.getRank().getRankId() < Rank.TRAINEE.getRankId()))
                 continue;
-            tp.sendMessage(messageToSend);
+            tp.getBukkitPlayer().spigot().sendMessage(messageToSend);
         }
+    }
+
+    private HoverEvent getPlayerHover(CPlayer player) {
+        ComponentBuilder builder = new ComponentBuilder(player.getRank().getFormattedName())
+                .append(" " + player.getName() + "\n").color(net.md_5.bungee.api.ChatColor.GRAY);
+        for (RankTag tag : player.getTags()) {
+            builder.append(tag.getName() + "\n").color(net.md_5.bungee.api.ChatColor.getByChar(tag.getColor().getChar())).italic(true);
+        }
+        builder.append("Server: ", ComponentBuilder.FormatRetention.NONE).color(net.md_5.bungee.api.ChatColor.AQUA).append("Creative").color(net.md_5.bungee.api.ChatColor.GREEN);
+        return new HoverEvent(HoverEvent.Action.SHOW_TEXT, builder.create());
     }
 
     private boolean isAdded(Plot plot, Player tp) {

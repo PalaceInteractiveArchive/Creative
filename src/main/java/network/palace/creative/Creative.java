@@ -76,6 +76,7 @@ public class Creative extends Plugin {
         plotFloorUtil = new PlotFloorUtil();
         plotWarpUtil = new PlotWarpUtil();
         playParticle = new PlayParticle();
+        itemExploitHandler = new ItemExploitHandler();
 
         Core.runTaskTimer(playParticle, 0L, 2L);
 
@@ -243,7 +244,7 @@ public class Creative extends Plugin {
         registerListener(new WorldListener());
         registerListener(showManager);
         registerListener(menuUtil);
-        registerListener(itemExploitHandler = new ItemExploitHandler());
+        registerListener(itemExploitHandler);
     }
 
     public static Creative getInstance() {

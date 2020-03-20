@@ -15,6 +15,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.PlayerInventory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,10 +107,17 @@ public class BlockEdit implements Listener {
             return;
         }
         if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
-            if (itemBlackList.contains(player.getBukkitPlayer().getInventory().getItemInMainHand().getType())) {
+            PlayerInventory inv = player.getInventory();
+            Material main = inv.getItemInMainHand().getType();
+            Material offhand = inv.getItemInOffHand().getType();
+            if (itemBlackList.contains(main)) {
                 event.setCancelled(true);
-                player.sendMessage(ChatColor.RED + "You are not permitted to interact with " + ChatColor.GREEN +
-                        player.getBukkitPlayer().getInventory().getItemInMainHand().getType().toString() + "!");
+                player.sendMessage(ChatColor.RED + "You are not permitted to interact with " +
+                        ChatColor.GREEN + main.toString() + "!");
+            } else if (itemBlackList.contains(offhand)) {
+                event.setCancelled(true);
+                player.sendMessage(ChatColor.RED + "You are not permitted to interact with " +
+                        ChatColor.GREEN + offhand.toString() + "!");
             }
         }
     }

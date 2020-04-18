@@ -63,19 +63,33 @@ public class Creative extends Plugin {
         loadWarps();
 
         redstoneListener = new RedstoneListener();
+        System.out.println("Redstone");
         menuUtil = new MenuUtil();
+        System.out.println("Menu");
         parkLoopUtil = new ParkLoopUtil();
+        System.out.println("park");
         bannerUtil = new BannerUtil();
+        System.out.println("Banner");
         particleManager = new ParticleManager();
+        System.out.println("Particle");
         rolePlayUtil = new RolePlayUtil();
+        System.out.println("RolePlay");
         showManager = new ShowManager();
+        System.out.println("Show");
         onlineUtil = new OnlineUtil();
+        System.out.println("Online");
         headUtil = new HeadUtil();
+        System.out.println("Head");
         resourceUtil = new ResourceUtil();
+        System.out.println("Resource");
         ignoreUtil = new IgnoreUtil();
+        System.out.println("Ignore");
         plotFloorUtil = new PlotFloorUtil();
+        System.out.println("Floor");
         plotWarpUtil = new PlotWarpUtil();
+        System.out.println("Warp");
         playParticle = new PlayParticle();
+        System.out.println("Particle");
         itemExploitHandler = new ItemExploitHandler();
 
         Core.runTaskTimer(playParticle, 0L, 2L);
@@ -221,7 +235,6 @@ public class Creative extends Plugin {
         registerCommand(new ShowCommand());
         registerCommand(new SpawnCommand());
         registerCommand(new StarCommand());
-        registerCommand(new TpCommand());
         registerCommand(new TpaCommand());
         registerCommand(new TpAcceptCommand());
         registerCommand(new TpDenyCommand());
@@ -299,6 +312,7 @@ public class Creative extends Plugin {
                 e.printStackTrace();
             }
             config = YamlConfiguration.loadConfiguration(cnfg);
+            System.out.println("Loaded config");
         } else {
             config = YamlConfiguration.loadConfiguration(cnfg);
             if (config.getString("spawn.world") == null) {
@@ -337,6 +351,7 @@ public class Creative extends Plugin {
                         warpList.getString("warp." + item + ".world"), rank);
                 warps.add(w);
             }
+            System.out.println("Loaded warps");
         }
     }
 }

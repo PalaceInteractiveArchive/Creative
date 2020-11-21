@@ -117,7 +117,7 @@ public class ParkLoopUtil {
                     String[] keySplit = key.split(";");
                     plotAPI.getPlotAreas(Bukkit.getWorld("plotworld")).stream().map(plotArea -> plotArea.getPlot(new PlotId(Integer.parseInt(keySplit[0]), Integer.parseInt(keySplit[1])))).filter(Objects::nonNull).forEach(plot -> {
                         Optional<AudioTrack> audioTrack = loops.values().stream().filter(at -> at.getAudioPath().equals(yaml.getString(key))).findFirst();
-                        if (!audioTrack.isPresent()) return;
+                        if (audioTrack.isEmpty()) return;
 
                         createRegion(audioTrack.get(), plot, Bukkit.getWorld("plotworld"));
                     });
@@ -131,6 +131,7 @@ public class ParkLoopUtil {
     public void open(Player player, int page) {
         List<MenuButton> buttons = new ArrayList<>();
         List<AudioTrack> loops = new ArrayList<>(this.loops.values());
+        loops.sort(Comparator.comparing(AudioTrack::getName));
         for (int x = 0; x < 27; x++) {
             try {
                 AudioTrack track = loops.get(x + (page - 1) * 27);

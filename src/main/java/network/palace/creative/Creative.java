@@ -30,10 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Created by Marc on 12/14/14
- */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.9.7")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.9.8")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -53,7 +50,7 @@ public class Creative extends Plugin {
     @Getter private ItemExploitHandler itemExploitHandler;
     @Getter private PlotFloorUtil plotFloorUtil;
     @Getter private PlotWarpUtil plotWarpUtil;
-    @Getter private HashMap<UUID, PlayerData> playerData = new HashMap<>();
+    @Getter private final HashMap<UUID, PlayerData> playerData = new HashMap<>();
 
     @Getter private PlayParticle playParticle;
 
@@ -206,6 +203,7 @@ public class Creative extends Plugin {
         registerCommand(new ManageCommand());
         registerCommand(new MenuCommand());
         registerCommand(new MoreCommand());
+        registerCommand(new MyHeadCommand());
         registerCommand(new NightvisionCommand());
         registerCommand(new PackCommand());
         registerCommand(new PlotFloorLogCommand());

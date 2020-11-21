@@ -1,8 +1,15 @@
 package network.palace.creative.listeners;
 
+import com.comphenix.protocol.wrappers.nbt.NbtCompound;
+import com.comphenix.protocol.wrappers.nbt.NbtFactory;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
+import network.palace.creative.Creative;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -15,6 +22,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import java.util.ArrayList;
@@ -24,8 +32,8 @@ import java.util.List;
  * Created by Marc on 2/8/15
  */
 public class BlockEdit implements Listener {
-    private List<Material> blockBlackList = new ArrayList<>();
-    private List<Material> itemBlackList = new ArrayList<>();
+    private final List<Material> blockBlackList = new ArrayList<>();
+    private final List<Material> itemBlackList = new ArrayList<>();
 
     public BlockEdit() {
         blockBlackList.add(Material.BARRIER);
@@ -57,12 +65,58 @@ public class BlockEdit implements Listener {
             event.getPlayer().sendMessage(ChatColor.RED + "You cannot place blocks right now! (Error Code 107)");
             return;
         }
-        if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
+        if (player.getRank().getRankId() < Rank.TRAINEE.getRankId()) {
             Block block = event.getBlock();
             if (blockBlackList.contains(block.getType()) || block.getType().name().toLowerCase().contains("lava")) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You are not permitted to place " + ChatColor.GREEN +
                         block.getType().toString() + "!");
+            }
+            if (!event.isCancelled() && event.getBlock().getType().equals(Material.SKULL)) {
+                ItemStack item = player.getItemInMainHand();
+                if (!item.getType().equals(Material.SKULL_ITEM)) {
+                    event.setCancelled(true);
+                    player.getInventory().setItem(player.getHeldItemSlot(), new ItemStack(Material.AIR));
+                } else {
+                    boolean valid = false;
+                    try {
+                        NbtCompound compound = (NbtCompound) NbtFactory.fromItemTag(item);
+                        if (compound.containsKey("SkullOwner")) {
+                            JsonElement element = new JsonParser().parse(String.valueOf(compound.getValue("SkullOwner").getValue()));
+                            if (element.isJsonObject()) {
+                                JsonObject object = (JsonObject) element;
+                                if (object.has("Properties")) {
+                                    JsonObject properties = object.getAsJsonObject("Properties");
+                                    if (properties.has("textures")) {
+                                        JsonObject textures = properties.getAsJsonObject("textures");
+                                        if (textures.has("value")) {
+                                            JsonArray value = textures.getAsJsonArray("value");
+                                            if (value.size() > 0) {
+                                                JsonObject entry = (JsonObject) value.get(0);
+                                                if (entry.has("Value")) {
+                                                    String texture = entry.get("Value").getAsString();
+                                                    if (texture.equals(player.getTextureValue()) || Creative.getInstance().getHeadUtil().getHashes().contains(texture)) {
+                                                        valid = true;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                valid = true;
+                            }
+                        }
+                    } catch (Exception e) {
+                        valid = false;
+                    }
+                    if (!valid) {
+                        event.setCancelled(true);
+                        player.getInventory().setItem(player.getHeldItemSlot(), new ItemStack(Material.AIR));
+                        player.sendMessage(ChatColor.RED + "You do not have permission to place that head!");
+                        player.sendMessage(ChatColor.AQUA + "You can place heads from the Head Shop, or from /myhead.");
+                    }
+                }
             }
         } else {
             event.setCancelled(false);

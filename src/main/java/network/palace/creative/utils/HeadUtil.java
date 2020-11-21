@@ -1,16 +1,7 @@
 package network.palace.creative.utils;
 
 import com.google.common.collect.ImmutableMap;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import lombok.Getter;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.inventory.Menu;
@@ -27,11 +18,17 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.*;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
 public class HeadUtil {
 
     //public String url = "https://spreadsheets.google.com/feeds/cells/1_zKmWoZYj7rUkL5qeAmJIfyJlxndl9NcRHxgw3h2wn4/od6/public/basic?alt=json";
     public String url = "https://spreadsheets.google.com/feeds/cells/1msHPnWju6nSYXcZUwq-F2tU71LoQHYyhJXbG0xiJ2AA/od6/public/basic?alt=json";
     private HashMap<String, List<ItemStack>> map = new HashMap<>();
+    @Getter private final Set<String> hashes = new HashSet<>();
 
     public HeadUtil() {
         Bukkit.getScheduler().runTaskTimerAsynchronously(Creative.getInstance(), this::update, 0L, 36000L);
@@ -44,6 +41,7 @@ public class HeadUtil {
         }
         JSONArray array = (JSONArray) ((JSONObject) obj.get("feed")).get("entry");
         map.clear();
+        hashes.clear();
         String lastCategory = "";
         String lastName = "";
         for (Object anArray : array) {
@@ -75,6 +73,7 @@ public class HeadUtil {
                 if (it.getItemMeta().getDisplayName().equals(lastName)) {
                     list.remove(i2);
                     String hash = (String) code.get("$t");
+                    hashes.add(hash);
                     list.add(network.palace.core.utils.HeadUtil.getPlayerHead(hash, ChatColor.GREEN + lastName));
                 }
                 i2++;
@@ -88,7 +87,7 @@ public class HeadUtil {
 
     private static JSONObject readJsonFromUrl(String url) {
         try (InputStream is = new URL(url).openStream()) {
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             String jsonText = readAll(rd);
             JSONParser parser = new JSONParser();
             return (JSONObject) parser.parse(jsonText);
@@ -120,9 +119,7 @@ public class HeadUtil {
                     player.getInventory().addItem(head);
                     player.playSound(player.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1, 1);
                 })));
-            }
-            catch (IndexOutOfBoundsException ignored) {
-
+            } catch (IndexOutOfBoundsException ignored) {
             }
         }
 
@@ -131,7 +128,7 @@ public class HeadUtil {
         }
 
         buttons.add(new MenuButton(s - 5, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, Creative.getInstance().getMenuUtil()::openHeadShop)));
-        if (page + 1 <= new Double(Math.ceil(map.get(name).size() / 45D)).intValue()) {
+        if (page + 1 <= (int) Math.ceil(map.get(name).size() / 45D)) {
             buttons.add(new MenuButton(s - 1, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> openCategory(p, name, page + 1))));
         }
 

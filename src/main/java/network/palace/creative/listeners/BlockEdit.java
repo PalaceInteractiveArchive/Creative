@@ -3,9 +3,9 @@ package network.palace.creative.listeners;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtFactory;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -25,6 +25,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,33 +82,19 @@ public class BlockEdit implements Listener {
                     boolean valid = false;
                     try {
                         NbtCompound compound = (NbtCompound) NbtFactory.fromItemTag(item);
-                        if (compound.containsKey("SkullOwner")) {
-                            JsonElement element = new JsonParser().parse(String.valueOf(compound.getValue("SkullOwner").getValue()));
-                            if (element.isJsonObject()) {
-                                JsonObject object = (JsonObject) element;
-                                if (object.has("Properties")) {
-                                    JsonObject properties = object.getAsJsonObject("Properties");
-                                    if (properties.has("textures")) {
-                                        JsonObject textures = properties.getAsJsonObject("textures");
-                                        if (textures.has("value")) {
-                                            JsonArray value = textures.getAsJsonArray("value");
-                                            if (value.size() > 0) {
-                                                JsonObject entry = (JsonObject) value.get(0);
-                                                if (entry.has("Value")) {
-                                                    String texture = entry.get("Value").getAsString();
-                                                    if (texture.equals(player.getTextureValue()) || Creative.getInstance().getHeadUtil().getHashes().contains(texture)) {
-                                                        valid = true;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                valid = true;
-                            }
+                        JsonReader reader = new JsonReader(new StringReader(String.valueOf(compound.getValue("SkullOwner").getValue())));
+                        reader.setLenient(true);
+                        JsonObject object = (JsonObject) new JsonParser().parse(reader);
+                        JsonObject properties = object.getAsJsonObject("Properties");
+                        JsonObject textures = properties.getAsJsonObject("textures");
+                        JsonArray value = textures.getAsJsonArray("value");
+                        JsonObject entry = (JsonObject) value.get(0);
+                        String texture = entry.get("Value").getAsString();
+                        if (texture.equals(player.getTextureValue()) || Creative.getInstance().getHeadUtil().getHashes().contains(texture)) {
+                            valid = true;
                         }
                     } catch (Exception e) {
+                        e.printStackTrace();
                         valid = false;
                     }
                     if (!valid) {

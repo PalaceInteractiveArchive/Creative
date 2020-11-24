@@ -1,7 +1,14 @@
 package network.palace.creative.utils;
 
+import com.comphenix.protocol.wrappers.nbt.NbtCompound;
+import com.comphenix.protocol.wrappers.nbt.NbtFactory;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
 import lombok.Getter;
+import network.palace.core.Core;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.inventory.Menu;
@@ -69,15 +76,32 @@ public class HeadUtil {
             // Column B
             List<ItemStack> list = map.get(lastCategory);
             int i2 = 0;
-            for (ItemStack it : list) {
+            for (int i = 0; i < list.size(); i++) {
+                ItemStack it = list.get(i);
                 if (it.getItemMeta().getDisplayName().equals(lastName)) {
-                    list.remove(i2);
                     String hash = (String) code.get("$t");
-                    hashes.add(hash);
-                    list.add(network.palace.core.utils.HeadUtil.getPlayerHead(hash, ChatColor.GREEN + lastName));
+                    ItemStack head = network.palace.core.utils.HeadUtil.getPlayerHead(hash, ChatColor.GREEN + lastName);
+                    try {
+                        NbtCompound compound = (NbtCompound) NbtFactory.fromItemTag(head);
+                        JsonReader reader = new JsonReader(new StringReader(String.valueOf(compound.getValue("SkullOwner").getValue())));
+                        reader.setLenient(true);
+                        JsonObject object = (JsonObject) new JsonParser().parse(reader);
+                        JsonObject properties = object.getAsJsonObject("Properties");
+                        JsonObject textures = properties.getAsJsonObject("textures");
+                        JsonArray value = textures.getAsJsonArray("value");
+                        JsonObject entry = (JsonObject) value.get(0);
+                        String texture = entry.get("Value").getAsString();
+                        hashes.add(texture);
+                    } catch (Exception e) {
+                        Core.logMessage("HeadShop", "Error loading head '" + lastName + "'!");
+                        e.printStackTrace();
+                        continue;
+                    }
+                    list.set(i, head);
                 }
                 i2++;
             }
+//            map.put(lastCategory, clone);
         }
     }
 

@@ -4,6 +4,7 @@ import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
+import network.palace.core.player.Rank;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.PlayerData;
 import org.bukkit.Bukkit;
@@ -50,6 +51,10 @@ public class PlayerInteract implements Listener {
             return;
         }
         if (!event.getAction().name().toLowerCase().contains("block")) {
+            return;
+        }
+        if (player.getRank().getRankId() < Rank.MOD.getRankId() && event.getAction().equals(Action.RIGHT_CLICK_BLOCK) && event.getClickedBlock().getType().equals(Material.BEACON)) {
+            event.setCancelled(true);
             return;
         }
         if (!event.getClickedBlock().getType().name().toLowerCase().contains("sign")) {

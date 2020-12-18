@@ -37,11 +37,9 @@ public class BlockEdit implements Listener {
     private final List<Material> itemBlackList = new ArrayList<>();
 
     public BlockEdit() {
-        blockBlackList.add(Material.BARRIER);
         blockBlackList.add(Material.LAVA_BUCKET);
         blockBlackList.add(Material.LAVA);
         blockBlackList.add(Material.STATIONARY_LAVA);
-        blockBlackList.add(Material.BEACON);
         blockBlackList.add(Material.BEDROCK);
         blockBlackList.add(Material.COMMAND);
         blockBlackList.add(Material.DRAGON_EGG);

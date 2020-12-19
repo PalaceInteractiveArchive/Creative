@@ -3,15 +3,6 @@ package network.palace.creative.show;
 import com.google.common.collect.ImmutableMap;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import network.palace.audio.Audio;
 import network.palace.audio.handlers.AudioArea;
 import network.palace.core.Core;
@@ -31,12 +22,8 @@ import network.palace.creative.show.handlers.PlotArea;
 import network.palace.creative.show.ticker.TickEvent;
 import network.palace.creative.show.ticker.Ticker;
 import network.palace.creative.utils.TextInput;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.FireworkEffect;
+import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
-import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -45,6 +32,14 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.MetadataValue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Marc on 12/11/15
@@ -403,6 +398,12 @@ public class ShowManager implements Listener {
         new Menu(Bukkit.createInventory(player, 36, ChatColor.BLUE + "Select Track"), player, buttons);
     }
 
+    private void removeTrack(Player player, Show show) {
+        show.setAudioTrack("none");
+        show.saveFile();
+        editShow(player, 1, show);
+    }
+
     private void editAction(Player player, Show show, ShowAction action) {
         ItemStack setTimeItem = ItemUtil.create(Material.WATCH, ChatColor.GREEN + "Set Time",
                 Arrays.asList(ChatColor.YELLOW + "Time in seconds after start of", ChatColor.YELLOW +
@@ -419,9 +420,9 @@ public class ShowManager implements Listener {
                     return;
                 }
 
-                if (time > 1200) {
-                    ply.sendMessage(ChatColor.RED + "Shows cannot be longer than 20 Minutes!");
-                    time = 1200D;
+                if (time > 2700) {
+                    ply.sendMessage(ChatColor.RED + "Shows cannot be longer than 45 Minutes!");
+                    time = 2700D;
                 }
 
                 action.setTime(time);
@@ -663,6 +664,7 @@ public class ShowManager implements Listener {
     private void openAddAction(Player player, Show show) {
         List<MenuButton> buttons = new ArrayList<>();
         ItemStack text = ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Text Action");
+        ItemStack removeMusic = ItemUtil.create(Material.BARRIER, ChatColor.RED + "Remove Music Track");
         ItemStack music = ItemUtil.create(Material.RECORD_4, ChatColor.GREEN + "Set Music");
         ItemStack particle = ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Particle Action");
         ItemStack fw = ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Firework Action");
@@ -671,6 +673,10 @@ public class ShowManager implements Listener {
             show.actions.add(action);
             editAction(p, show, action);
         })));
+
+        if (show.getAudioTrack() != null && !show.getAudioTrack().equals("none"))
+            buttons.add(new MenuButton(3, removeMusic, ImmutableMap.of(ClickType.LEFT, p -> removeTrack(p, show))));
+
         buttons.add(new MenuButton(12, music, ImmutableMap.of(ClickType.LEFT, p -> selectTrack(p, 1, show))));
         buttons.add(new MenuButton(14, particle, ImmutableMap.of(ClickType.LEFT, p -> {
             ParticleAction action = new ParticleAction(show, null, null, player.getLocation(),

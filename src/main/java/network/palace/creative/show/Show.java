@@ -3,21 +3,6 @@ package network.palace.creative.show;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
 import com.intellectualcrafters.plot.object.PlotId;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
 import network.palace.audio.Audio;
@@ -34,28 +19,26 @@ import network.palace.creative.show.actions.ShowAction;
 import network.palace.creative.show.actions.TextAction;
 import network.palace.creative.show.handlers.AudioTrack;
 import network.palace.creative.utils.ParticleUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Effect;
-import org.bukkit.FireworkEffect;
+import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
-import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import java.io.*;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class Show {
-    private UUID owner;
+    private final UUID owner;
     private String name;
-    private PlotId plotId;
-    private World world;
+    private final PlotId plotId;
+    private final World world;
     private final long startTime;
     public List<ShowAction> actions;
-    private HashMap<String, String> invalidLines;
+    private final HashMap<String, String> invalidLines;
     private long lastPlayerListUpdate = System.currentTimeMillis();
     private List<UUID> nearbyPlayers = new ArrayList<>();
-    private String audioTrack = "none";
+    @Setter private String audioTrack = "none";
     public long musicTime = 0;
     @Getter @Setter private boolean saving = false;
 
@@ -70,8 +53,7 @@ public class Show {
         if (name == null) {
             if (file == null) {
                 name = "New Show";
-            }
-            else {
+            } else {
                 name = file.getName().replace(".show", "");
             }
         }
@@ -432,8 +414,8 @@ public class Show {
                     name = name.replace(" .show", ".show");
                 }
 
-                BufferedWriter bw = new BufferedWriter(new FileWriter(new File("plugins/Creative/shows/" + getOwner().toString() + "/"
-                        + name + ".show"), false));
+                BufferedWriter bw = new BufferedWriter(new FileWriter("plugins/Creative/shows/" + getOwner().toString() + "/"
+                        + name + ".show", false));
                 bw.write("Name " + name);
                 bw.newLine();
                 if (!audioTrack.equals("none")) {
@@ -483,16 +465,12 @@ public class Show {
         if (area == null) return;
         area.triggerPlayer(tp);
         tp.sendMessage(ChatColor.GREEN + "Syncing your audio!");
-        Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () -> area.sync(((System.currentTimeMillis() - musicTime + 300) / 1000), tp), 20L);
+        Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () -> area.sync(((System.currentTimeMillis() - musicTime + 300) / 1000.0), tp), 20L);
     }
 
     public void setName(String name) {
         new File("plugins/Creative/shows/" + getOwner().toString() + "/" + ChatColor.stripColor(getNameColored()) + ".show").delete();
         this.name = name;
-    }
-
-    public void setAudioTrack(String audioTrack) {
-        this.audioTrack = audioTrack;
     }
 
     public String getAudioTrack() {

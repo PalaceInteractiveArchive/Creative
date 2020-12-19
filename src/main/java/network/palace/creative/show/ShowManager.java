@@ -3,15 +3,6 @@ package network.palace.creative.show;
 import com.google.common.collect.ImmutableMap;
 import com.intellectualcrafters.plot.api.PlotAPI;
 import com.intellectualcrafters.plot.object.Plot;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import network.palace.audio.Audio;
 import network.palace.audio.handlers.AudioArea;
 import network.palace.core.Core;
@@ -31,12 +22,8 @@ import network.palace.creative.show.handlers.PlotArea;
 import network.palace.creative.show.ticker.TickEvent;
 import network.palace.creative.show.ticker.Ticker;
 import network.palace.creative.utils.TextInput;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.FireworkEffect;
+import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
-import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -45,6 +32,14 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.MetadataValue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Marc on 12/11/15
@@ -419,9 +414,9 @@ public class ShowManager implements Listener {
                     return;
                 }
 
-                if (time > 1200) {
-                    ply.sendMessage(ChatColor.RED + "Shows cannot be longer than 20 Minutes!");
-                    time = 1200D;
+                if (time > 2700) {
+                    ply.sendMessage(ChatColor.RED + "Shows cannot be longer than 45 Minutes!");
+                    time = 2700D;
                 }
 
                 action.setTime(time);

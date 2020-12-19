@@ -398,6 +398,12 @@ public class ShowManager implements Listener {
         new Menu(Bukkit.createInventory(player, 36, ChatColor.BLUE + "Select Track"), player, buttons);
     }
 
+    private void removeTrack(Player player, Show show) {
+        show.setAudioTrack("none");
+        show.saveFile();
+        editShow(player, 1, show);
+    }
+
     private void editAction(Player player, Show show, ShowAction action) {
         ItemStack setTimeItem = ItemUtil.create(Material.WATCH, ChatColor.GREEN + "Set Time",
                 Arrays.asList(ChatColor.YELLOW + "Time in seconds after start of", ChatColor.YELLOW +
@@ -658,6 +664,7 @@ public class ShowManager implements Listener {
     private void openAddAction(Player player, Show show) {
         List<MenuButton> buttons = new ArrayList<>();
         ItemStack text = ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Text Action");
+        ItemStack removeMusic = ItemUtil.create(Material.BARRIER, ChatColor.RED + "Remove Music Track");
         ItemStack music = ItemUtil.create(Material.RECORD_4, ChatColor.GREEN + "Set Music");
         ItemStack particle = ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Particle Action");
         ItemStack fw = ItemUtil.create(Material.FIREWORK, ChatColor.GREEN + "Firework Action");
@@ -666,6 +673,10 @@ public class ShowManager implements Listener {
             show.actions.add(action);
             editAction(p, show, action);
         })));
+
+        if (show.getAudioTrack() != null && !show.getAudioTrack().equals("none"))
+            buttons.add(new MenuButton(3, removeMusic, ImmutableMap.of(ClickType.LEFT, p -> removeTrack(p, show))));
+
         buttons.add(new MenuButton(12, music, ImmutableMap.of(ClickType.LEFT, p -> selectTrack(p, 1, show))));
         buttons.add(new MenuButton(14, particle, ImmutableMap.of(ClickType.LEFT, p -> {
             ParticleAction action = new ParticleAction(show, null, null, player.getLocation(),

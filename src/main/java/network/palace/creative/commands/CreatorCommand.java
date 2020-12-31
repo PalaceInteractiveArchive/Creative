@@ -123,39 +123,6 @@ public class CreatorCommand extends CoreCommand {
                         }
                         return;
                     }
-                    case "settag": {
-                        if (p.getRank().getRankId() < Rank.COORDINATOR.getRankId()) {
-                            helpMenu(player, p.getRank());
-                            return;
-                        }
-                        String username = args[1];
-                        Boolean value = Boolean.valueOf(args[2]);
-                        UUID uuid;
-                        Player tp = Bukkit.getPlayer(username);
-                        if (tp == null) {
-                            uuid = Core.getMongoHandler().usernameToUUID(username);
-                            if (uuid == null) {
-                                player.sendMessage(ChatColor.RED + "Player not found!");
-                                return;
-                            }
-                        } else {
-                            username = tp.getName();
-                            uuid = tp.getUniqueId();
-                            if (value) {
-                                tp.sendMessage(ChatColor.GREEN + "You now have The Creator Tag!");
-                            } else {
-                                tp.sendMessage(ChatColor.RED + "You no longer have The Creator Tag!");
-                            }
-                            Creative.getInstance().getPlayerData(uuid).setCreatorTag(value);
-                        }
-                        Core.getMongoHandler().setCreativeValue(uuid, "creatortag", value);
-                        if (value) {
-                            player.sendMessage(ChatColor.GREEN + username + " now has The Creator Tag!");
-                        } else {
-                            player.sendMessage(ChatColor.RED + username + " no longer has The Creator Tag!");
-                        }
-                        return;
-                    }
                 }
                 helpMenu(player, p.getRank());
                 return;
@@ -234,8 +201,6 @@ public class CreatorCommand extends CoreCommand {
         player.sendMessage(ChatColor.GREEN + "The Creator Project Commands:");
         player.sendMessage(ChatColor.GREEN + "/creator plot " + ChatColor.AQUA + "- Bring you to your Creator Plot");
         if (rank.getRankId() >= Rank.COORDINATOR.getRankId()) {
-            player.sendMessage(ChatColor.GREEN + "/creator settag [Username] [true/false] " + ChatColor.AQUA +
-                    "- Add or remove The Creator Tag from a Guest");
             player.sendMessage(ChatColor.GREEN + "/creator set [Username] [true/false] " + ChatColor.AQUA +
                     "- Add or remove a Guest from The Creator Project");
             player.sendMessage(ChatColor.GREEN + "/creator list " + ChatColor.AQUA +

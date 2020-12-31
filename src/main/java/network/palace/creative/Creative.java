@@ -260,7 +260,7 @@ public class Creative extends Plugin {
         PlayerData data = new PlayerData(uuid, p,
                 dataDocument.getBoolean("rptag"), dataDocument.getBoolean("showcreator"),
                 dataDocument.getInteger("rplimit"), dataDocument.getBoolean("creator"),
-                dataDocument.getBoolean("creatortag"), dataDocument.getString("resourcepack"));
+                dataDocument.getString("resourcepack"));
         playerData.remove(uuid);
         playerData.put(uuid, data);
         return data;

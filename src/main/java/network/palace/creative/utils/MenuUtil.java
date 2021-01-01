@@ -867,11 +867,6 @@ public class MenuUtil implements Listener {
             msg = event.getMessage();
         }
         ComponentBuilder builder = new ComponentBuilder("");
-        if (data.hasCreatorTag()) {
-            builder.append("[").color(net.md_5.bungee.api.ChatColor.WHITE)
-                    .append("Creator").color(net.md_5.bungee.api.ChatColor.BLUE)
-                    .append("] ").color(net.md_5.bungee.api.ChatColor.WHITE);
-        }
         BaseComponent[] messageToSend = builder.append(RankTag.formatChat(cplayer.getTags())).event(getPlayerHover(cplayer))
                 .append(rank.getFormattedName() + " ")
                 .append(cplayer.getName() + ": ").color(net.md_5.bungee.api.ChatColor.GRAY)

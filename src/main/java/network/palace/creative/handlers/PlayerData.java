@@ -13,22 +13,17 @@ public class PlayerData {
     private boolean rptag;
     private boolean showCreator;
     private int rplimit;
-    private boolean creator;
-    private boolean creatorTag;
     private long onlineTime = 0;
     private long lastAction = 0;
     private boolean isAFK = false;
     private String resourcePack;
 
-    public PlayerData(UUID uuid, Particle particle, boolean rptag, boolean showCreator, int rplimit,
-                      boolean creator, boolean creatorTag, String resourcePack) {
+    public PlayerData(UUID uuid, Particle particle, boolean rptag, boolean showCreator, int rplimit, String resourcePack) {
         this.uuid = uuid;
         this.particle = particle;
         this.rptag = rptag;
         this.showCreator = showCreator;
         this.rplimit = rplimit;
-        this.creator = creator;
-        this.creatorTag = creatorTag;
         this.resourcePack = resourcePack;
     }
 
@@ -46,18 +41,6 @@ public class PlayerData {
 
     public boolean hasShowCreator() {
         return showCreator;
-    }
-
-    public boolean isCreator() {
-        return creator;
-    }
-
-    public boolean hasCreatorTag() {
-        return creatorTag;
-    }
-
-    public void setCreator(boolean creator) {
-        this.creator = creator;
     }
 
     public int getRPLimit() {
@@ -78,10 +61,6 @@ public class PlayerData {
 
     public void setHasShowCreator(boolean b) {
         this.showCreator = b;
-    }
-
-    public void setCreatorTag(boolean creatorTag) {
-        this.creatorTag = creatorTag;
     }
 
     public void addOnlineTime(long amount) {

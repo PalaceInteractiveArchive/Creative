@@ -13,20 +13,17 @@ public class PlayerData {
     private boolean rptag;
     private boolean showCreator;
     private int rplimit;
-    private boolean creator;
     private long onlineTime = 0;
     private long lastAction = 0;
     private boolean isAFK = false;
     private String resourcePack;
 
-    public PlayerData(UUID uuid, Particle particle, boolean rptag, boolean showCreator, int rplimit,
-                      boolean creator, String resourcePack) {
+    public PlayerData(UUID uuid, Particle particle, boolean rptag, boolean showCreator, int rplimit, String resourcePack) {
         this.uuid = uuid;
         this.particle = particle;
         this.rptag = rptag;
         this.showCreator = showCreator;
         this.rplimit = rplimit;
-        this.creator = creator;
         this.resourcePack = resourcePack;
     }
 
@@ -44,15 +41,6 @@ public class PlayerData {
 
     public boolean hasShowCreator() {
         return showCreator;
-    }
-
-    public boolean isCreator() {
-        return creator;
-    }
-
-
-    public void setCreator(boolean creator) {
-        this.creator = creator;
     }
 
     public int getRPLimit() {

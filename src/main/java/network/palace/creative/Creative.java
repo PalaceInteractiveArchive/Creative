@@ -218,6 +218,7 @@ public class Creative extends Plugin {
         registerCommand(new ShopCommand());
         registerCommand(new ShowCommand());
         registerCommand(new SpawnCommand());
+        registerCommand(new SpeedCommand());
         registerCommand(new StarCommand());
         registerCommand(new TpaCommand());
         registerCommand(new TpAcceptCommand());

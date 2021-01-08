@@ -7,9 +7,6 @@ import com.intellectualcrafters.plot.object.PlotArea;
 import com.intellectualcrafters.plot.object.PlotId;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.plotsquared.bukkit.util.BukkitUtil;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import network.palace.core.Core;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
@@ -24,14 +21,18 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 /**
  * Created by Marc on 1/21/16
  */
 @CommandMeta(description = "Creator Project", rank = Rank.SETTLER)
 public class CreatorCommand extends CoreCommand {
     private static FormattedMessage msg = new FormattedMessage("Learn how to join The Creator Project: ")
-            .color(ChatColor.YELLOW).style(ChatColor.BOLD).then("https://palace.network/cc").color(ChatColor.AQUA)
-            .link("https://palace.network/cc").tooltip(ChatColor.GREEN + "Click to visit https://palace.network/cc");
+            .color(ChatColor.YELLOW).style(ChatColor.BOLD).then("https://palnet.us/creator").color(ChatColor.AQUA)
+            .link("https://palnet.us/creator").tooltip(ChatColor.GREEN + "Click to visit https://palnet.us/creator");
     private static PlotAPI api = new PlotAPI();
 
     public CreatorCommand() {

@@ -7,13 +7,16 @@ import com.intellectualcrafters.plot.object.PlotArea;
 import com.intellectualcrafters.plot.object.PlotId;
 import com.intellectualcrafters.plot.object.PlotPlayer;
 import com.plotsquared.bukkit.util.BukkitUtil;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import network.palace.core.Core;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
 import network.palace.core.command.CoreCommand;
 import network.palace.core.message.FormattedMessage;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
-import network.palace.core.player.RankTag;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.PlayerData;
 import org.bukkit.Bukkit;
@@ -21,17 +24,14 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by Marc on 1/21/16
  */
 @CommandMeta(description = "Creator Project", rank = Rank.SETTLER)
 public class CreatorCommand extends CoreCommand {
     private static FormattedMessage msg = new FormattedMessage("Learn how to join The Creator Project: ")
-            .color(ChatColor.YELLOW).style(ChatColor.BOLD).then("https://palnet.us/creator").color(ChatColor.AQUA)
-            .link("https://palnet.us/creator").tooltip(ChatColor.GREEN + "Click to visit https://palnet.us/creator");
+            .color(ChatColor.YELLOW).style(ChatColor.BOLD).then("https://palace.network/cc").color(ChatColor.AQUA)
+            .link("https://palace.network/cc").tooltip(ChatColor.GREEN + "Click to visit https://palace.network/cc");
     private static PlotAPI api = new PlotAPI();
 
     public CreatorCommand() {
@@ -42,33 +42,90 @@ public class CreatorCommand extends CoreCommand {
     protected void handleCommand(CPlayer p, String[] args) throws CommandException {
         Player player = p.getBukkitPlayer();
         PlayerData data = Creative.getInstance().getPlayerData(player.getUniqueId());
-        if (!p.hasTag(RankTag.CREATOR) && p.getRank().getRankId() < Rank.COORDINATOR.getRankId()) {
+        if (!data.isCreator() && p.getRank().getRankId() < Rank.COORDINATOR.getRankId()) {
             msg.send(player);
             return;
         }
 
-        if (args.length >= 1) {
-            switch (args[0].toLowerCase()) {
-                case "plot": {
-                    List<Plot> plots = new ArrayList<>(api.getPlayerPlots(Bukkit.getWorld("creator"), player));
-                    if (plots.isEmpty()) {
-                        giveCreatorPlot(player);
-                    } else {
-                        Plot plot = plots.get(0);
-                        Location loc = Creative.getInstance().getMenuUtil().getHome(plot);
-                        player.teleport(loc);
+        switch (args.length) {
+            case 1: {
+                switch (args[0].toLowerCase()) {
+                    case "plot": {
+                        List<Plot> plots = new ArrayList<>(api.getPlayerPlots(Bukkit.getWorld("creator"), player));
+                        if (plots.isEmpty()) {
+                            giveCreatorPlot(player);
+                        } else {
+                            Plot plot = plots.get(0);
+                            Location loc = Creative.getInstance().getMenuUtil().getHome(plot);
+                            player.teleport(loc);
+                        }
+                        return;
                     }
-                    return;
+                    case "list": {
+                        if (p.getRank().getRankId() < Rank.COORDINATOR.getRankId()) {
+                            helpMenu(player, p.getRank());
+                            return;
+                        }
+                        List<String> names = Core.getMongoHandler().getCreatorMembers();
+                        names.sort(String.CASE_INSENSITIVE_ORDER);
+                        if (names.isEmpty()) {
+                            player.sendMessage(ChatColor.RED + "There is no one in The Creator Project!");
+                        } else {
+                            StringBuilder s = new StringBuilder(ChatColor.GREEN + "The Creator Project Members:\n");
+                            for (int i = 0; i < names.size(); i++) {
+                                String name = names.get(i);
+                                if (i == (names.size() - 1)) {
+                                    s.append(name);
+                                    continue;
+                                }
+                                s.append(name).append(", ");
+                            }
+                            player.sendMessage(s.toString());
+                        }
+                        return;
+                    }
                 }
-                case "list": {
-                    player.sendMessage(ChatColor.AQUA + "This command has changed! To list members of the creator project, run " + ChatColor.YELLOW + "/perm tag creator members");
-                    return;
+                helpMenu(player, p.getRank());
+                return;
+            }
+            case 3: {
+                switch (args[0].toLowerCase()) {
+                    case "set": {
+                        if (p.getRank().getRankId() < Rank.COORDINATOR.getRankId()) {
+                            helpMenu(player, p.getRank());
+                            return;
+                        }
+                        String username = args[1];
+                        Boolean value = Boolean.valueOf(args[2]);
+                        UUID uuid;
+                        Player tp = Bukkit.getPlayer(username);
+                        if (tp == null) {
+                            uuid = Core.getMongoHandler().usernameToUUID(username);
+                            if (uuid == null) {
+                                player.sendMessage(ChatColor.RED + "Player not found!");
+                                return;
+                            }
+                        } else {
+                            username = tp.getName();
+                            uuid = tp.getUniqueId();
+                            if (value) {
+                                tp.sendMessage(ChatColor.GREEN + "You are now part of The Creator Project!");
+                            } else {
+                                tp.sendMessage(ChatColor.RED + "You are no longer a part of The Creator Project!");
+                            }
+                            Creative.getInstance().getPlayerData(uuid).setCreator(value);
+                        }
+                        Core.getMongoHandler().setCreativeValue(uuid, "creator", value);
+                        if (value) {
+                            player.sendMessage(ChatColor.GREEN + username + " is now part of The Creator Project!");
+                        } else {
+                            player.sendMessage(ChatColor.RED + username + " is no longer a part of The Creator Project!");
+                        }
+                        return;
+                    }
                 }
-                case "set": {
-                    player.sendMessage(ChatColor.AQUA + "This command has changed! To add/remove members from the creator project, use " +
-                            ChatColor.YELLOW + "/perm player [username] addtag creator" + ChatColor.AQUA + " and " + ChatColor.YELLOW + "/perm player [username] removetag creator");
-                    return;
-                }
+                helpMenu(player, p.getRank());
+                return;
             }
         }
         helpMenu(player, p.getRank());

@@ -1,11 +1,10 @@
 package network.palace.creative.listeners;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import network.palace.core.events.IncomingPacketEvent;
+import network.palace.core.events.IncomingMessageEvent;
 import network.palace.creative.Creative;
-import network.palace.creative.packets.PacketIgnoreList;
-import network.palace.creative.packets.PacketMuteChat;
+import network.palace.creative.packets.ChatMutePacket;
+import network.palace.creative.packets.IgnoreListPacket;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
@@ -16,25 +15,28 @@ import java.util.UUID;
 public class PacketListener implements Listener {
 
     @EventHandler
-    public void onIncomingPacket(IncomingPacketEvent event) {
-        String data = event.getPacket();
-        JsonObject object = (JsonObject) new JsonParser().parse(data);
-        switch (event.getId()) {
-            case 61: {
-                PacketMuteChat packet = new PacketMuteChat().fromJSON(object);
-                Creative.getInstance().getMenuUtil().setChatMuted(packet.isMute());
-                break;
-            }
-            case 72: {
-                PacketIgnoreList packet = new PacketIgnoreList().fromJSON(object);
+    public void onIncomingMessage(IncomingMessageEvent event) {
+        JsonObject object = event.getPacket();
+        if (!object.has("id")) return;
+        int id = object.get("id").getAsInt();
+        switch (id) {
+            case 11: {
+                IgnoreListPacket packet = new IgnoreListPacket(object);
                 List<UUID> list = new ArrayList<>();
-                for (String s : packet.getIgnoreList()) {
+                for (UUID uuid : packet.getPlayers()) {
                     try {
-                        list.add(UUID.fromString(s));
+                        list.add(uuid);
                     } catch (IllegalArgumentException ignored) {
                     }
                 }
-                Creative.getInstance().getIgnoreUtil().addData(packet.getUniqueId(), list);
+                Creative.getInstance().getIgnoreUtil().addData(packet.getUuid(), list);
+                break;
+            }
+            case 17: {
+                ChatMutePacket packet = new ChatMutePacket(object);
+                String channel = packet.getChannel();
+                if (!channel.equals("Creative")) return;
+                Creative.getInstance().getMenuUtil().setChatMuted(packet.isMuted());
                 break;
             }
         }

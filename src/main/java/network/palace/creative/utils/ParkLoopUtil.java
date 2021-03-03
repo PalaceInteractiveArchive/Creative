@@ -49,16 +49,12 @@ public class ParkLoopUtil {
         UUID owner = plot.getOwners().iterator().next();
         PlotId plotId = plot.getId();
         String audioAreaName = registeredAudioAreas.get(plotId);
-        if (audioAreaName == null) {
-            return;
-        }
+        if (audioAreaName == null) return;
 
         AudioArea audioArea = Audio.getInstance().getByName(audioAreaName);
-        if (audioArea == null) {
-            return;
-        }
+        if (audioArea == null) return;
 
-        audioArea.setEnabled(true);
+        audioArea.setEnabled(false);
         audioArea.removeAllPlayers(true);
         disabledLoops.put(owner, plotId);
     }

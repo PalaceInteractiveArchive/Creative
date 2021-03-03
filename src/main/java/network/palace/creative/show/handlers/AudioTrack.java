@@ -8,9 +8,9 @@ import java.util.Random;
  * Created by Marc on 6/16/16
  */
 public class AudioTrack {
-    private String name;
-    private String audioPath;
-    private int itemID;
+    private final String name;
+    private final String audioPath;
+    private final int itemID;
 
     public AudioTrack(String name, String audioPath) {
         this.name = name;

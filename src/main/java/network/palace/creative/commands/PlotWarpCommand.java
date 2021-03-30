@@ -18,7 +18,7 @@ import network.palace.creative.utils.MenuUtil;
 import network.palace.creative.utils.PlotWarpUtil;
 import org.bukkit.ChatColor;
 
-@CommandMeta(description = "Player submitted warps to plots.", rank = Rank.SETTLER)
+@CommandMeta(description = "Player submitted warps to plots.", rank = Rank.Guest)
 public class PlotWarpCommand extends CoreCommand {
 
     public PlotWarpCommand() {

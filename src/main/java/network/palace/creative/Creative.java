@@ -324,7 +324,7 @@ public class Creative extends Plugin {
             YamlConfiguration warpList = YamlConfiguration.loadConfiguration(warpFile);
             List<String> list = warpList.getStringList("warps");
             for (String item : list) {
-                Rank rank = Rank.SETTLER;
+                Rank rank = Rank.Guest;
                 if (warpList.contains("warp." + item + ".rank")) {
                     rank = Rank.fromString(warpList.getString("warp." + item + ".rank"));
                 }

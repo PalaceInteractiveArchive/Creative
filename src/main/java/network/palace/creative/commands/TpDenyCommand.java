@@ -10,7 +10,7 @@ import network.palace.creative.utils.TpaUtil;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Deny a teleport request", rank = Rank.SETTLER)
+@CommandMeta(description = "Deny a teleport request", rank = Rank.Guest)
 public class TpDenyCommand extends CoreCommand {
 
     public TpDenyCommand() {

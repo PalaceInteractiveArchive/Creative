@@ -81,7 +81,7 @@ public class PlotWarpUtil {
             Warp w = new Warp(name, warp.getDouble("x"),
                     warp.getDouble("y"), warp.getDouble("z"),
                     (float) warp.getInt("yaw"), (float) warp.getInt("pitch"),
-                    warp.getString("world"), Rank.SETTLER);
+                    warp.getString("world"), Rank.Guest);
             map.put(uuid, w);
         });
     }
@@ -185,7 +185,7 @@ public class PlotWarpUtil {
 
     public void submitWarp(String name, Player player) throws IOException {
         Location loc = player.getLocation();
-        pendingWarps.put(player.getUniqueId(), new Warp(name, loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch(), player.getWorld().getName(), Rank.SETTLER));
+        pendingWarps.put(player.getUniqueId(), new Warp(name, loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch(), player.getWorld().getName(), Rank.Guest));
         File file = new File(Creative.getInstance().getDataFolder(), "plot_warps.yml");
         if (!file.exists()) {
             file.createNewFile();
@@ -218,7 +218,7 @@ public class PlotWarpUtil {
             yaml.set(path + "yaw", warp.getYaw());
             yaml.set(path + "pitch", warp.getPitch());
             yaml.set(path + "world", warp.getWorld().getName());
-            yaml.set(path + "rank", Rank.SETTLER.toString());
+            yaml.set(path + "rank", Rank.Guest.toString());
         });
     }
 

@@ -20,7 +20,7 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 11/16/15
  */
-@CommandMeta(description = "Role Play commands", aliases = "roleplay", rank = Rank.SETTLER)
+@CommandMeta(description = "Role Play commands", aliases = "roleplay", rank = Rank.Guest)
 public class RoleCommand extends CoreCommand {
 
     public RoleCommand() {

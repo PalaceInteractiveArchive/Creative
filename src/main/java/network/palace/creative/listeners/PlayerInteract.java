@@ -53,7 +53,7 @@ public class PlayerInteract implements Listener {
         if (!event.getAction().name().toLowerCase().contains("block")) {
             return;
         }
-        if (player.getRank().getRankId() < Rank.MOD.getRankId() && event.getAction().equals(Action.RIGHT_CLICK_BLOCK) && event.getClickedBlock().getType().equals(Material.BEACON)) {
+        if (player.getRank().getRankId() < Rank.CM.getRankId() && event.getAction().equals(Action.RIGHT_CLICK_BLOCK) && event.getClickedBlock().getType().equals(Material.BEACON)) {
             event.setCancelled(true);
             return;
         }

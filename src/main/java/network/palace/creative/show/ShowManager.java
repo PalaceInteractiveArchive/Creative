@@ -1,23 +1,7 @@
 package network.palace.creative.show;
 
 import com.google.common.collect.ImmutableMap;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
-import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.plotsquared.bukkit.player.BukkitPlayer;
 import com.plotsquared.core.player.PlotPlayer;
 import com.plotsquared.core.plot.Plot;
 import network.palace.audio.Audio;
@@ -135,7 +119,7 @@ public class ShowManager implements Listener {
             return null;
         }
 
-        PlotPlayer plotPlayer = PlotPlayer.wrap(player.getBukkitPlayer());
+        BukkitPlayer plotPlayer = (BukkitPlayer) PlotPlayer.wrap(player.getBukkitPlayer());
         Plot plot = plotPlayer.getCurrentPlot();
         boolean owns = false;
         if (plot == null) {
@@ -410,7 +394,7 @@ public class ShowManager implements Listener {
         new Menu(36, ChatColor.BLUE + "Select Track", player, buttons).open();
     }
 
-    private void removeTrack(Player player, Show show) {
+    private void removeTrack(CPlayer player, Show show) {
         show.setAudioTrack("none");
         show.saveFile();
         editShow(player, 1, show);

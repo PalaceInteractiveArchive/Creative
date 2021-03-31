@@ -1,12 +1,18 @@
 package network.palace.creative.utils;
 
 import com.google.common.collect.ImmutableMap;
+import com.plotsquared.bukkit.player.BukkitPlayer;
 import com.plotsquared.core.PlotSquared;
 import com.plotsquared.core.player.PlotPlayer;
 import com.plotsquared.core.plot.Plot;
+import com.plotsquared.core.plot.PlotArea;
+import com.plotsquared.core.plot.PlotId;
 import com.plotsquared.core.plot.PlotWeather;
 import com.plotsquared.core.plot.flag.PlotFlag;
 import com.plotsquared.core.plot.flag.implementations.FlyFlag;
+import com.plotsquared.core.plot.flag.implementations.TimeFlag;
+import com.plotsquared.core.plot.flag.implementations.WeatherFlag;
+import com.sk89q.worldedit.world.biome.BiomeType;
 import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -111,7 +117,6 @@ public class MenuUtil implements Listener {
     public MenuUtil() {
         plotSquared = PlotSquared.get();
         BannerMeta bm = (BannerMeta) bannerCreator.getItemMeta();
-        bm.setBaseColor(DyeColor.BLUE);
         bm.addPattern(new Pattern(DyeColor.RED, PatternType.TRIANGLE_BOTTOM));
         bm.addPattern(new Pattern(DyeColor.RED, PatternType.TRIANGLE_TOP));
         bm.addPattern(new Pattern(DyeColor.ORANGE, PatternType.CIRCLE_MIDDLE));
@@ -311,7 +316,7 @@ public class MenuUtil implements Listener {
                     newValue = FlyFlag.FLIGHT_FLAG_ENABLED;
             }
             plot.setFlag(newValue);
-            plot.getPlayersInPlot().stream().map(ply -> Bukkit.getPlayer(ply.getUUID())).filter(Objects::nonNull).filter(ply -> !plot.getOwners().contains(ply.getUniqueId()) && !isStaff(ply)).forEach(ply -> ply.setAllowFlight(newValue == FlyFlag.FLIGHT_FLAG_ENABLED));
+            plot.getPlayersInPlot().stream().map(ply -> Bukkit.getPlayer(ply.getUUID())).filter(Objects::nonNull).filter(ply -> !plot.getOwners().contains(ply.getUniqueId()) && !isStaff(player)).forEach(ply -> ply.setAllowFlight(newValue == FlyFlag.FLIGHT_FLAG_ENABLED));
             if (newValue == FlyFlag.FLIGHT_FLAG_DISABLED) {
                 p.sendMessage(ChatColor.GREEN + "You have disabled flight for visitors of your plot.");
             } else {
@@ -337,12 +342,9 @@ public class MenuUtil implements Listener {
         new Menu(27, ChatColor.BLUE + "Plot Settings", player, buttons).open();
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     private Map<ClickType, Consumer<CPlayer>> getTimeAction(Plot plot, long time) {
         return ImmutableMap.of(ClickType.LEFT, p -> {
-            PlotFlag flag = FlagManager.getFlag("time");//new Flag(FlagManager.getFlag("time", true), time);
-            Object parsed = flag.parseValue(String.valueOf(time));
-            if (plot.setFlag(flag, parsed)) {
+            if (plot.setFlag(TimeFlag.class, String.valueOf(time))) {
                 p.sendMessage(ChatColor.GREEN + "Set Plot Time to " + time + "!");
                 openMenu(p);
             } else {
@@ -353,30 +355,33 @@ public class MenuUtil implements Listener {
 
     public void openChangeBiome(CPlayer player, Plot plot) {
         List<MenuButton> buttons = new ArrayList<>();
-        String biome = plot.getBiome();
-        List<String> empty = new ArrayList<>();
-        List<String> selected = Collections.singletonList(ChatColor.YELLOW + "Currently Selected");
-        buttons.add(new MenuButton(10, ItemUtil.create(Material.DEAD_BUSH, 1, ChatColor.GREEN +
-                "Plains", biome.equalsIgnoreCase("plains") ? selected : empty), getBiomeAction("plains", plot)));
-        buttons.add(new MenuButton(11, ItemUtil.create(Material.DEAD_BUSH, ChatColor.YELLOW + "Desert",
-                biome.equalsIgnoreCase("desert") ? selected : empty), getBiomeAction("desert", plot)));
-        buttons.add(new MenuButton(12, ItemUtil.create(Material.SPRUCE_SAPLING, 1, ChatColor.DARK_GREEN +
-                "Forest", biome.equalsIgnoreCase("forest") ? selected : empty), getBiomeAction("forest", plot)));
-        buttons.add(new MenuButton(13, ItemUtil.create(Material.VINE, ChatColor.DARK_GREEN + "Swampland",
-                biome.equalsIgnoreCase("swampland") ? selected : empty), getBiomeAction("swampland", plot)));
-        buttons.add(new MenuButton(14, ItemUtil.create(Material.JUNGLE_SAPLING, 1, ChatColor.DARK_GREEN +
-                "Jungle", biome.equalsIgnoreCase("jungle") ? selected : empty), getBiomeAction("jungle", plot)));
-        buttons.add(new MenuButton(15, ItemUtil.create(Material.ORANGE_TERRACOTTA, 1, ChatColor.GOLD +
-                "Mesa", biome.equalsIgnoreCase("mesa") ? selected : empty), getBiomeAction("mesa", plot)));
-        buttons.add(new MenuButton(16, ItemUtil.create(Material.PACKED_ICE, ChatColor.AQUA + "Ice Plains (Snow)",
-                biome.equalsIgnoreCase("ice_flats") ? selected : empty), getBiomeAction("ice_flats", plot)));
-        buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, this::openPlotSettings)));
-        new Menu(27, ChatColor.BLUE + "Change Biome", player, buttons).open();
+        plot.getBiome(biomeType -> {
+            String biome = biomeType.toString();
+            List<String> empty = new ArrayList<>();
+            List<String> selected = Collections.singletonList(ChatColor.YELLOW + "Currently Selected");
+            buttons.add(new MenuButton(10, ItemUtil.create(Material.DEAD_BUSH, 1, ChatColor.GREEN +
+                    "Plains", biome.equalsIgnoreCase("plains") ? selected : empty), getBiomeAction("plains", plot)));
+            buttons.add(new MenuButton(11, ItemUtil.create(Material.DEAD_BUSH, ChatColor.YELLOW + "Desert",
+                    biome.equalsIgnoreCase("desert") ? selected : empty), getBiomeAction("desert", plot)));
+            buttons.add(new MenuButton(12, ItemUtil.create(Material.SPRUCE_SAPLING, 1, ChatColor.DARK_GREEN +
+                    "Forest", biome.equalsIgnoreCase("forest") ? selected : empty), getBiomeAction("forest", plot)));
+            buttons.add(new MenuButton(13, ItemUtil.create(Material.VINE, ChatColor.DARK_GREEN + "Swampland",
+                    biome.equalsIgnoreCase("swampland") ? selected : empty), getBiomeAction("swampland", plot)));
+            buttons.add(new MenuButton(14, ItemUtil.create(Material.JUNGLE_SAPLING, 1, ChatColor.DARK_GREEN +
+                    "Jungle", biome.equalsIgnoreCase("jungle") ? selected : empty), getBiomeAction("jungle", plot)));
+            buttons.add(new MenuButton(15, ItemUtil.create(Material.ORANGE_TERRACOTTA, 1, ChatColor.GOLD +
+                    "Mesa", biome.equalsIgnoreCase("mesa") ? selected : empty), getBiomeAction("mesa", plot)));
+            buttons.add(new MenuButton(16, ItemUtil.create(Material.PACKED_ICE, ChatColor.AQUA + "Ice Plains (Snow)",
+                    biome.equalsIgnoreCase("ice_flats") ? selected : empty), getBiomeAction("ice_flats", plot)));
+            buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, MenuUtil.this::openPlotSettings)));
+            new Menu(27, ChatColor.BLUE + "Change Biome", player, buttons).open();
+        });
     }
 
-    private Map<ClickType, Consumer<CPlayer>> getBiomeAction(String biome, Plot plot) {
-        return ImmutableMap.of(ClickType.LEFT, p -> {
-            if (plot.getBiome().equalsIgnoreCase(biome)) {
+    private Map<ClickType, Consumer<CPlayer>> getBiomeAction(String newBiome, Plot plot) {
+        return ImmutableMap.of(ClickType.LEFT, p -> plot.getBiome(biomeType -> {
+            String biome = biomeType.toString();
+            if (biome.equalsIgnoreCase(newBiome)) {
                 p.sendMessage(ChatColor.RED + "Your plot is already set to this biome!");
                 return;
             }
@@ -387,17 +392,16 @@ public class MenuUtil implements Listener {
             p.sendMessage(ChatColor.GREEN + "Changing your plot's biome...");
             p.closeInventory();
             plot.addRunning();
-            plot.setBiome(biome.toUpperCase(), () -> {
+            plot.setBiome(BiomeType.REGISTRY.get(newBiome), () -> {
                 plot.removeRunning();
-                p.sendMessage(ChatColor.GREEN + "Your plot's biome was set to " + ChatColor.YELLOW +
-                        biome.toLowerCase());
+                p.sendMessage(ChatColor.GREEN + "Your plot's biome was set to " + ChatColor.YELLOW + newBiome.toLowerCase());
             });
-        });
+        }));
     }
 
     private Map<ClickType, Consumer<CPlayer>> getWeatherAction(Plot plot, PlotWeather plotWeather) {
         return ImmutableMap.of(ClickType.LEFT, p -> {
-            if (plot.setFlag(FlagManager.getFlag("weather"), plotWeather)) {
+            if (plot.setFlag(WeatherFlag.class, String.valueOf(WeatherFlag.PLOT_WEATHER_FLAG_CLEAR.merge(plotWeather)))) {
                 p.sendMessage(ChatColor.GREEN + "Set Plot Weather to " + StringUtils.capitalize(plotWeather.toString().toLowerCase()) + "!");
                 openMenu(p);
             } else {
@@ -590,9 +594,8 @@ public class MenuUtil implements Listener {
     }
 
     public Location getHome(Plot plot) {
-        com.github.intellectualsites.plotsquared.plot.object.Location home = plot.getHome();
-        return new Location(Bukkit.getWorld(home.getWorld()), home.getX(), home.getY(), home.getZ(),
-                home.getYaw(), home.getPitch());
+        com.plotsquared.core.location.Location home = plot.getHomeSynchronous();
+        return new Location(Bukkit.getWorld(home.getWorld()), home.getX(), home.getY(), home.getZ(), home.getYaw(), home.getPitch());
     }
 
     private void openAddOrTrust(CPlayer tp, Plot plot) {
@@ -629,9 +632,8 @@ public class MenuUtil implements Listener {
                     return;
                 }
                 plot.addMember(op.getUniqueId());
-                EventUtil.manager.callMember(PlotPlayer.wrap(ply), plot, op.getUniqueId(), true);
-                ply.sendMessage(ChatColor.GREEN + "Successfully added " + op.getName() + " to Plot " +
-                        plot.getId().toString());
+                PlotSquared.get().getEventDispatcher().callMember(PlotPlayer.wrap(ply), plot, op.getUniqueId(), true);
+                ply.sendMessage(ChatColor.GREEN + "Successfully added " + op.getName() + " to Plot " + plot.getId().toString());
                 op.sendMessage(ChatColor.GREEN + "You were added to " + ChatColor.YELLOW + owner + "'s Plot! " +
                         ChatColor.GREEN + "Use /menu to get to it.");
             });
@@ -668,9 +670,8 @@ public class MenuUtil implements Listener {
                     return;
                 }
                 plot.addTrusted(op.getUniqueId());
-                EventUtil.manager.callTrusted(PlotPlayer.wrap(ply), plot, op.getUniqueId(), true);
-                ply.sendMessage(ChatColor.GREEN + "Successfully trusted " + op.getName() + " to Plot " +
-                        plot.getId().toString());
+                PlotSquared.get().getEventDispatcher().callTrusted(PlotPlayer.wrap(ply), plot, op.getUniqueId(), true);
+                ply.sendMessage(ChatColor.GREEN + "Successfully trusted " + op.getName() + " to Plot " + plot.getId().toString());
                 op.sendMessage(ChatColor.GREEN + "You were " + ChatColor.GOLD + ChatColor.ITALIC + "trusted " + ChatColor.GREEN
                         + "to " + ChatColor.YELLOW + owner + "'s Plot! " + ChatColor.GREEN + "Use /menu to get to it.");
             });
@@ -685,10 +686,8 @@ public class MenuUtil implements Listener {
             return;
         }
 
-        PlotPlayer plotPlayer = PlotPlayer.wrap(player);
-        if (plotPlayer == null) {
-            return;
-        }
+        BukkitPlayer plotPlayer = (BukkitPlayer) PlotPlayer.wrap(player);
+        if (plotPlayer == null) return;
 
         List<MenuButton> buttons = new ArrayList<>();
         buttons.add(new MenuButton(9, HeadUtil.getPlayerHead(player.getTextureValue(), ChatColor.GREEN + "Add a Player"), ImmutableMap.of(ClickType.LEFT, p -> openAddOrTrust(p, plot))));
@@ -751,9 +750,8 @@ public class MenuUtil implements Listener {
         player.closeInventory();
         final long time = System.currentTimeMillis();
         player.sendMessage(ChatColor.GREEN + "Finding you a plot right now...");
-        PlotPlayer plr = PlotPlayer.wrap(player);
+        BukkitPlayer plr = (BukkitPlayer) PlotPlayer.wrap(player);
         String world;
-        //TODO need to test
         Set<String> worlds = plotSquared.worlds.getConfigurationSection("worlds").getKeys(false);
         if (worlds.size() == 1) {
             world = worlds.iterator().next();
@@ -776,13 +774,13 @@ public class MenuUtil implements Listener {
         plotarea.setMeta("lastPlot", new PlotId(0, 0));
         while (true) {
             PlotId start = getNextPlotId(getLastPlotId(plotarea), 1);
-            PlotId end = new PlotId(start.x, start.y);
+            PlotId end = new PlotId(start.getX(), start.getY());
             plotarea.setMeta("lastPlot", start);
             if (plotarea.canClaim(plr, start, end)) {
-                for (int i = start.x; i <= end.x; i++) {
-                    for (int j = start.y; j <= end.y; j++) {
+                for (int i = start.getX(); i <= end.getX(); i++) {
+                    for (int j = start.getY(); j <= end.getY(); j++) {
                         Plot plot = plotarea.getPlotAbs(new PlotId(i, j));
-                        boolean teleport = i == end.x && j == end.y;
+                        boolean teleport = i == end.getX() && j == end.getY();
                         plot.claim(plr, teleport, null);
                     }
                 }
@@ -795,31 +793,31 @@ public class MenuUtil implements Listener {
     }
 
     public static PlotId getNextPlotId(PlotId id, int step) {
-        int absX = Math.abs(id.x);
-        int absY = Math.abs(id.y);
+        int absX = Math.abs(id.getX());
+        int absY = Math.abs(id.getY());
         if (absX > absY) {
-            if (id.x > 0) {
-                return new PlotId(id.x, id.y + 1);
+            if (id.getX() > 0) {
+                return new PlotId(id.getX(), id.getY() + 1);
             } else {
-                return new PlotId(id.x, id.y - 1);
+                return new PlotId(id.getX(), id.getY() - 1);
             }
         } else if (absY > absX) {
-            if (id.y > 0) {
-                return new PlotId(id.x - 1, id.y);
+            if (id.getY() > 0) {
+                return new PlotId(id.getX() - 1, id.getY());
             } else {
-                return new PlotId(id.x + 1, id.y);
+                return new PlotId(id.getX() + 1, id.getY());
             }
         } else {
-            if (id.x == id.y && id.x > 0) {
-                return new PlotId(id.x, id.y + step);
+            if (id.getX() == id.getY() && id.getX() > 0) {
+                return new PlotId(id.getX(), id.getY() + step);
             }
-            if (id.x == absX) {
-                return new PlotId(id.x, id.y + 1);
+            if (id.getX() == absX) {
+                return new PlotId(id.getX(), id.getY() + 1);
             }
-            if (id.y == absY) {
-                return new PlotId(id.x, id.y - 1);
+            if (id.getY() == absY) {
+                return new PlotId(id.getX(), id.getY() - 1);
             }
-            return new PlotId(id.x + 1, id.y);
+            return new PlotId(id.getX() + 1, id.getY());
         }
     }
 
@@ -968,7 +966,7 @@ public class MenuUtil implements Listener {
                         }
 
                         plot.addMember(uuid);
-                        EventUtil.manager.callTrusted(PlotPlayer.wrap(player), plot, uuid, true);
+                        PlotSquared.get().getEventDispatcher().callMember(PlotPlayer.wrap(player), plot, uuid, true);
                         player.sendMessage(ChatColor.GREEN + name + " is now a " +
                                 ChatColor.YELLOW + "Member " + ChatColor.GREEN + "on Plot " + plot.getId().toString());
                     } else if (plot.getMembers().contains(uuid)) {
@@ -979,7 +977,7 @@ public class MenuUtil implements Listener {
                         }
 
                         plot.addTrusted(uuid);
-                        EventUtil.manager.callTrusted(PlotPlayer.wrap(player), plot, uuid, true);
+                        PlotSquared.get().getEventDispatcher().callTrusted(PlotPlayer.wrap(player), plot, uuid, true);
                         player.sendMessage(ChatColor.GREEN + name + " is now a " +
                                 ChatColor.YELLOW + "Trusted " + ChatColor.GREEN + "on Plot " + plot.getId().toString());
                     }
@@ -1057,8 +1055,7 @@ public class MenuUtil implements Listener {
                 30, 0, 0, 0, 0.25f);
     }
 
-    public static boolean isStaff(Player player) {
-        CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
-        return cPlayer != null && cPlayer.getRank().getRankId() >= Rank.TRAINEE.getRankId();
+    public static boolean isStaff(CPlayer player) {
+        return player != null && player.getRank().getRankId() >= Rank.TRAINEE.getRankId();
     }
 }

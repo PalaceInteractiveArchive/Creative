@@ -21,9 +21,10 @@ public class BannedItemCheckCommand extends CoreCommand {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
         if (args.length == 0) {
-            Creative.getInstance().getItemExploitHandler().openPlayerMenu(player.getBukkitPlayer(), 0);
+            Creative.getInstance().getItemExploitHandler().openPlayerMenu(player, 0);
             return;
         }
 

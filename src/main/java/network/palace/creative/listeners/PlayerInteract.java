@@ -1,13 +1,8 @@
 package network.palace.creative.listeners;
 
-import com.github.intellectualsites.plotsquared.plot.PlotSquared;
-import com.github.intellectualsites.plotsquared.plot.object.Plot;
-import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
+import com.plotsquared.core.PlotSquared;
+import com.plotsquared.core.player.PlotPlayer;
+import com.plotsquared.core.plot.Plot;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -87,7 +82,7 @@ public class PlayerInteract implements Listener {
         }
 
         for (Plot p : PlotPlayer.wrap(player).getPlots()) {
-            if (p.getArea().worldname.equalsIgnoreCase("plotworld")) {
+            if (p.getArea().getWorldName().equalsIgnoreCase("plotworld")) {
                 player.sendMessage(ChatColor.RED +
                         "You already claimed your Free Plot! To get a second, you must purchase it in /menu.");
                 return;

@@ -1,32 +1,19 @@
 package network.palace.creative.utils;
 
-import com.plotsquared.core.PlotSquared;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Stream;
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
-import com.intellectualcrafters.plot.object.PlotId;
-import com.intellectualcrafters.plot.object.RegionWrapper;
+import com.plotsquared.core.PlotSquared;
 import com.plotsquared.core.player.PlotPlayer;
 import com.plotsquared.core.plot.Plot;
+import com.plotsquared.core.plot.PlotId;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import network.palace.audio.Audio;
 import network.palace.audio.PacketHelper;
 import network.palace.audio.handlers.AudioArea;
 import network.palace.audio.packets.PacketAreaStop;
 import network.palace.core.Core;
-import network.palace.core.dashboard.packets.audio.PacketAreaStop;
 import network.palace.core.menu.Menu;
 import network.palace.core.menu.MenuButton;
 import network.palace.core.player.CPlayer;
@@ -202,9 +189,11 @@ public class ParkLoopUtil {
     }
 
     private AudioArea createRegion(AudioTrack audioTrack, Plot plot, World world) {
-        RegionWrapper region = plot.getLargestRegion();
-        Location minLoc = new Location(world, region.minX, region.minY, region.minZ);
-        Location maxLoc = new Location(world, region.maxX, region.maxY, region.maxZ);
+        CuboidRegion region = plot.getLargestRegion();
+        BlockVector3 min = region.getMinimumPoint();
+        BlockVector3 max = region.getMaximumPoint();
+        Location minLoc = new Location(world, min.getX(), min.getY(), min.getZ());
+        Location maxLoc = new Location(world, max.getX(), max.getY(), max.getZ());
         String audioId = getAudioAreaID(plot, audioTrack.getName());
         AudioArea audioArea = new AudioArea(audioId, audioTrack.getAudioPath(), 1000, 1D, minLoc, maxLoc, true, true, world);
         registeredAudioAreas.put(plot.getId(), audioId);
@@ -228,14 +217,9 @@ public class ParkLoopUtil {
             audio.removeArea(audioArea);
             PlotSquared plotSquared = PlotSquared.get();
             plotSquared.getPlotAreas("plotworld").stream().map(plot -> plot.getPlot(plotId)).filter(Objects::nonNull)
-                    .findFirst().ifPresent(plot -> loops.values().stream().filter(audioTrack -> audioTrack.getAudioPath().equals(audioArea.getPath()))
-                    .map(AudioTrack::getAudioPath).findFirst().ifPresent(path -> audioTable.put(plot.getOwners().iterator().next(), plotId, path)));
-            PlotAPI plotAPI = new PlotAPI();
-            plotAPI.getPlotAreas(Bukkit.getWorld("plotworld")).stream().map(plot -> plot.getPlot(plotId)).filter(Objects::nonNull).findFirst().ifPresent(plot ->
-                    loops.values().stream().filter(audioTrack -> audioTrack.getAudioPath().equals(audioArea.getPath())).map(AudioTrack::getAudioPath).findFirst().ifPresent(path -> {
-                        if (plot == null || plot.getOwners() == null || plot.getOwners().isEmpty()) return;
-                        audioTable.put(plot.getOwners().iterator().next(), plotId, path);
-                    }));
+                    .findFirst().ifPresent(plot -> loops.values().stream().map(AudioTrack::getAudioPath)
+                    .filter(audioPath -> audioPath.equals(audioArea.getPath())).findFirst()
+                    .ifPresent(path -> audioTable.put(plot.getOwners().iterator().next(), plotId, path)));
         });
         audioTable.rowKeySet().forEach(uuid -> audioTable.columnKeySet().forEach(plotId -> {
             String track = audioTable.get(uuid, plotId);
@@ -254,8 +238,7 @@ public class ParkLoopUtil {
                 YamlConfiguration yaml = new YamlConfiguration();
                 yaml.set(plotId.toString(), track);
                 yaml.save(file);
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 Creative.getInstance().getLogger().warning("Failed to save plot audio for " + uuid.toString() + " at plot " + plotId.toString());
             }
         }));

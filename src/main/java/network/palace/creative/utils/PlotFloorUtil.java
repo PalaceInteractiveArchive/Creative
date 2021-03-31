@@ -1,21 +1,10 @@
 package network.palace.creative.utils;
 
-import com.github.intellectualsites.plotsquared.plot.object.Plot;
-import com.github.intellectualsites.plotsquared.plot.object.PlotId;
-import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+import com.plotsquared.core.player.PlotPlayer;
+import com.plotsquared.core.plot.Plot;
+import com.plotsquared.core.plot.PlotId;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import network.palace.core.menu.Menu;
@@ -33,26 +22,21 @@ import org.bukkit.block.data.AnaloguePowerable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Powerable;
 import org.bukkit.block.data.Waterlogged;
-import org.bukkit.block.data.type.Bed;
-import org.bukkit.block.data.type.CommandBlock;
-import org.bukkit.block.data.type.CoralWallFan;
-import org.bukkit.block.data.type.Door;
-import org.bukkit.block.data.type.Fence;
-import org.bukkit.block.data.type.Gate;
-import org.bukkit.block.data.type.GlassPane;
-import org.bukkit.block.data.type.Piston;
-import org.bukkit.block.data.type.Sapling;
-import org.bukkit.block.data.type.Sign;
-import org.bukkit.block.data.type.Slab;
-import org.bukkit.block.data.type.Stairs;
-import org.bukkit.block.data.type.TechnicalPiston;
-import org.bukkit.block.data.type.WallSign;
+import org.bukkit.block.data.type.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class PlotFloorUtil {
 
@@ -93,61 +77,44 @@ public class PlotFloorUtil {
                     BlockData data = material.createBlockData();
                     if (data instanceof AnaloguePowerable) {
                         return false;
-                    }
-                    else if (data instanceof Bed) {
+                    } else if (data instanceof Bed) {
                         return false;
-                    }
-                    else if (data instanceof CommandBlock) {
+                    } else if (data instanceof CommandBlock) {
                         return false;
-                    }
-                    else if (data instanceof CoralWallFan) {
+                    } else if (data instanceof CoralWallFan) {
                         return false;
-                    }
-                    else if (data instanceof Door) {
+                    } else if (data instanceof Door) {
                         return false;
-                    }
-                    else if (data instanceof Fence) {
+                    } else if (data instanceof Fence) {
                         return false;
-                    }
-                    else if (data instanceof Gate) {
+                    } else if (data instanceof Gate) {
                         return false;
-                    }
-                    else if (data instanceof GlassPane) {
+                    } else if (data instanceof GlassPane) {
                         return false;
-                    }
-                    else if (data instanceof Piston) {
+                    } else if (data instanceof Piston) {
                         return false;
-                    }
-                    else if (data instanceof Powerable) {
+                    } else if (data instanceof Powerable) {
                         return false;
-                    }
-                    else if (data instanceof Sapling) {
+                    } else if (data instanceof Sapling) {
                         return false;
-                    }
-                    else if (data instanceof Sign) {
+                    } else if (data instanceof Sign) {
                         return false;
-                    }
-                    else if (data instanceof Slab) {
+                    } else if (data instanceof Slab) {
                         return false;
-                    }
-                    else if (data instanceof Stairs) {
+                    } else if (data instanceof Stairs) {
                         return false;
-                    }
-                    else if (data instanceof TechnicalPiston) {
+                    } else if (data instanceof TechnicalPiston) {
                         return false;
-                    }
-                    else if (data instanceof WallSign) {
+                    } else if (data instanceof WallSign) {
                         return false;
-                    }
-                    else if (data instanceof Waterlogged) {
+                    } else if (data instanceof Waterlogged) {
                         return false;
                     }
 
                     ItemMeta itemMeta = new ItemStack(material).getItemMeta();
                     if (itemMeta instanceof BlockStateMeta && ((BlockStateMeta) itemMeta).getBlockState() instanceof Container) {
                         return false;
-                    }
-                    else {
+                    } else {
                         return !(itemMeta instanceof BannerMeta);
                     }
                 })
@@ -167,8 +134,7 @@ public class PlotFloorUtil {
             file.getParentFile().mkdirs();
             try {
                 file.createNewFile();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 logger.warning("Failed to load plot floor logs!");
                 return;
             }
@@ -181,8 +147,7 @@ public class PlotFloorUtil {
                 Material block = Material.valueOf(logs.getString(key + ".block"));
                 UUID uuid = UUID.fromString(key);
                 this.logs.put(uuid, new LogSection(timeStamp, block, uuid));
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 logger.warning("Failed to load log for " + key + "!");
             }
         });
@@ -193,15 +158,13 @@ public class PlotFloorUtil {
         Material block = logSection.block;
         UUID uuid = logSection.uuid;
         logs.put(uuid, logSection);
-        Creative plugin = Creative.getInstance();
-        Logger logger = plugin.getLogger();
-        File file = new File(plugin.getDataFolder(), "plot_floor_logs.yml");
+        Logger logger = Creative.getInstance().getLogger();
+        File file = new File(Creative.getInstance().getDataFolder(), "plot_floor_logs.yml");
         if (!file.exists()) {
             file.getParentFile().mkdirs();
             try {
                 file.createNewFile();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 logger.warning("Failed to load plot floor logs!");
                 return;
             }
@@ -212,8 +175,7 @@ public class PlotFloorUtil {
         logs.set(uuid.toString() + ".block", block.toString());
         try {
             logs.save(file);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             logger.warning("Failed to update log for " + uuid.toString() + "!");
         }
     }
@@ -268,8 +230,7 @@ public class PlotFloorUtil {
                     p.closeInventory();
                     p.sendMessage(ChatColor.GREEN + "We are updating the floor to your plot. This may take a few moments.");
                 })));
-            }
-            catch (IndexOutOfBoundsException ignored) {
+            } catch (IndexOutOfBoundsException ignored) {
 
             }
         }
@@ -280,25 +241,22 @@ public class PlotFloorUtil {
         }
 
         buttons.add(new MenuButton(49, menuUtil.back, ImmutableMap.of(ClickType.LEFT, menuUtil::openMenu)));
-        if (page + 1 <= new Double(Math.ceil(materials.size() / 45D)).intValue()) {
+        if (page + 1 <= (int) (Math.ceil(materials.size() / 45D))) {
             buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, p -> open(p, page + 1))));
         }
 
         new Menu(54, ChatColor.BLUE + "Set the floor of your plot.", player, buttons).open();
     }
 
-    private Location getFloorCorner(com.github.intellectualsites.plotsquared.plot.object.Location psLocation) {
+    private Location getFloorCorner(com.plotsquared.core.location.Location psLocation) {
         return new Location(Bukkit.getWorld(psLocation.getWorld()), psLocation.getX(), 64, psLocation.getZ());
     }
 
+    @Getter
     @AllArgsConstructor
-    public class LogSection {
-
-        @Getter
+    public static class LogSection {
         private final long timeStamp;
-        @Getter
         private final Material block;
-        @Getter
         private final UUID uuid;
     }
 }

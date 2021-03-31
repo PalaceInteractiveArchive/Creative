@@ -9,9 +9,9 @@ import org.bukkit.Material;
  * Created by Marc on 6/16/16
  */
 public class AudioTrack {
-    private String name;
-    private String audioPath;
-    private Material material;
+    private final String name;
+    private final String audioPath;
+    private final Material material;
 
     public AudioTrack(String name, String audioPath) {
         this.name = name;

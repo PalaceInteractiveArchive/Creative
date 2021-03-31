@@ -1,26 +1,24 @@
 package network.palace.creative.utils;
 
-import com.github.intellectualsites.plotsquared.plot.PlotSquared;
-import com.github.intellectualsites.plotsquared.plot.flag.BooleanFlag;
-import com.github.intellectualsites.plotsquared.plot.flag.Flag;
-import com.github.intellectualsites.plotsquared.plot.flag.FlagManager;
-import com.github.intellectualsites.plotsquared.plot.flag.Flags;
-import com.github.intellectualsites.plotsquared.plot.object.Plot;
-import com.github.intellectualsites.plotsquared.plot.object.PlotArea;
-import com.github.intellectualsites.plotsquared.plot.object.PlotId;
-import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
-import com.github.intellectualsites.plotsquared.plot.util.EventUtil;
-import com.github.intellectualsites.plotsquared.plot.util.PlotWeather;
 import com.google.common.collect.ImmutableMap;
+import com.plotsquared.core.PlotSquared;
+import com.plotsquared.core.player.PlotPlayer;
+import com.plotsquared.core.plot.Plot;
+import com.plotsquared.core.plot.PlotWeather;
+import com.plotsquared.core.plot.flag.PlotFlag;
+import com.plotsquared.core.plot.flag.implementations.FlyFlag;
 import lombok.Getter;
 import lombok.Setter;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
 import network.palace.core.Core;
-import network.palace.core.economy.CurrencyType;
+import network.palace.core.economy.currency.CurrencyType;
 import network.palace.core.menu.Menu;
 import network.palace.core.menu.MenuButton;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
-import network.palace.core.player.SponsorTier;
+import network.palace.core.player.RankTag;
 import network.palace.core.utils.HeadUtil;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
@@ -56,58 +54,58 @@ import java.util.function.Consumer;
  */
 @SuppressWarnings("deprecation")
 public class MenuUtil implements Listener {
-    private ItemStack bannerCreator = new ItemStack(Material.BLUE_BANNER);
-    private ItemStack plotTime = ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "Plot Settings");
-    private ItemStack myPlots = ItemUtil.create(Material.GRASS, ChatColor.GREEN + "My Plots");
-    private ItemStack spawn = ItemUtil.create(Material.ENDER_PEARL, ChatColor.GREEN + "Spawn");
-    private ItemStack buildingPlots = ItemUtil.create(Material.DIRT, ChatColor.GREEN + "Building Plots");
-    private ItemStack headShop;
-    private ItemStack showCreator = ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Show Creator");
-    private ItemStack teleport = ItemUtil.create(Material.ENDER_PEARL, ChatColor.GREEN + "Teleport to Plot");
-    private ItemStack deny = ItemUtil.create(Material.BARRIER, ChatColor.GREEN + "Deny a Player");
-    private ItemStack members = ItemUtil.create(Material.BOOK, ChatColor.GREEN + "Added Players");
-    private ItemStack denied = ItemUtil.create(Material.BOOK, ChatColor.GREEN + "Denied Players");
-    private ItemStack purchase = ItemUtil.create(Material.DIAMOND, ChatColor.GREEN + "Purchase Second Plot",
+    private final ItemStack bannerCreator = new ItemStack(Material.BLUE_BANNER);
+    private final ItemStack plotTime = ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "Plot Settings");
+    private final ItemStack myPlots = ItemUtil.create(Material.GRASS, ChatColor.GREEN + "My Plots");
+    private final ItemStack spawn = ItemUtil.create(Material.ENDER_PEARL, ChatColor.GREEN + "Spawn");
+    private final ItemStack buildingPlots = ItemUtil.create(Material.DIRT, ChatColor.GREEN + "Building Plots");
+    private final ItemStack headShop;
+    private final ItemStack showCreator = ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Show Creator");
+    private final ItemStack teleport = ItemUtil.create(Material.ENDER_PEARL, ChatColor.GREEN + "Teleport to Plot");
+    private final ItemStack deny = ItemUtil.create(Material.BARRIER, ChatColor.GREEN + "Deny a Player");
+    private final ItemStack members = ItemUtil.create(Material.BOOK, ChatColor.GREEN + "Added Players");
+    private final ItemStack denied = ItemUtil.create(Material.BOOK, ChatColor.GREEN + "Denied Players");
+    private final ItemStack purchase = ItemUtil.create(Material.DIAMOND, ChatColor.GREEN + "Purchase Second Plot",
             Collections.singletonList(ChatColor.GRAY + "Cost: " + ChatColor.GREEN + "$5000"));
-    private ItemStack particles = ItemUtil.create(Material.BLAZE_POWDER, ChatColor.GREEN + "Particles");
-    private ItemStack shop = ItemUtil.create(Material.EMERALD, ChatColor.GREEN + "Creative Shop");
+    private final ItemStack particles = ItemUtil.create(Material.BLAZE_POWDER, ChatColor.GREEN + "Particles");
+    private final ItemStack shop = ItemUtil.create(Material.EMERALD, ChatColor.GREEN + "Creative Shop");
     public ItemStack next = ItemUtil.create(Material.ARROW, ChatColor.GREEN + "Next Page");
     public ItemStack back = ItemUtil.create(Material.ARROW, ChatColor.GREEN + "Back");
     public ItemStack last = ItemUtil.create(Material.ARROW, ChatColor.GREEN + "Last Page");
-    private ItemStack loading = ItemUtil.create(Material.CYAN_TERRACOTTA, 1, ChatColor.AQUA + "Loading...", new ArrayList<>());
-    private ItemStack more = ItemUtil.create(Material.YELLOW_TERRACOTTA, 1, ChatColor.RED + "Too many!",
+    private final ItemStack loading = ItemUtil.create(Material.CYAN_TERRACOTTA, 1, ChatColor.AQUA + "Loading...", new ArrayList<>());
+    private final ItemStack more = ItemUtil.create(Material.YELLOW_TERRACOTTA, 1, ChatColor.RED + "Too many!",
             Arrays.asList(ChatColor.RED + "We can only list up to", ChatColor.RED +
                             "45 Plots here. You're added", ChatColor.RED + "to more than 45 Plots. To",
                     ChatColor.RED + "get to a Plot you're added to", ChatColor.RED +
                             "that isn't listed here, you have", ChatColor.RED + "to send a /tpa request to the",
                     ChatColor.RED + "Plot Owner"));
-    private ItemStack member = ItemUtil.create(Material.REDSTONE_TORCH, ChatColor.GREEN + "Member",
+    private final ItemStack member = ItemUtil.create(Material.REDSTONE_TORCH, ChatColor.GREEN + "Member",
             Arrays.asList(ChatColor.YELLOW + "This type of Member can only", ChatColor.YELLOW +
                     "build when you are online."));
-    private ItemStack trusted = ItemUtil.create(Material.TORCH, ChatColor.GOLD + "Trusted",
+    private final ItemStack trusted = ItemUtil.create(Material.TORCH, ChatColor.GOLD + "Trusted",
             Arrays.asList(ChatColor.YELLOW + "This type of Member can build", ChatColor.YELLOW +
                     "even if you're not online."));
-    private ItemStack note = ItemUtil.create(Material.NOTE_BLOCK, ChatColor.GREEN + "Notes",
+    private final ItemStack note = ItemUtil.create(Material.NOTE_BLOCK, ChatColor.GREEN + "Notes",
             new ArrayList<>());
-    private ItemStack spark = ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Firework Spark",
+    private final ItemStack spark = ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Firework Spark",
             new ArrayList<>());
-    private ItemStack mickey = ItemUtil.create(Material.APPLE, ChatColor.GREEN + "Mickey Head",
+    private final ItemStack mickey = ItemUtil.create(Material.APPLE, ChatColor.GREEN + "Mickey Head",
             new ArrayList<>());
-    private ItemStack enchant = ItemUtil.create(Material.ENCHANTING_TABLE, ChatColor.GREEN + "Enchantment",
+    private final ItemStack enchant = ItemUtil.create(Material.ENCHANTING_TABLE, ChatColor.GREEN + "Enchantment",
             new ArrayList<>());
-    private ItemStack flame = ItemUtil.create(Material.FLINT_AND_STEEL, ChatColor.GREEN + "Flame",
+    private final ItemStack flame = ItemUtil.create(Material.FLINT_AND_STEEL, ChatColor.GREEN + "Flame",
             new ArrayList<>());
-    private ItemStack heart = ItemUtil.create(Material.DIAMOND, ChatColor.GREEN + "Hearts",
+    private final ItemStack heart = ItemUtil.create(Material.DIAMOND, ChatColor.GREEN + "Hearts",
             new ArrayList<>());
-    private ItemStack portal = ItemUtil.create(Material.BLAZE_POWDER, ChatColor.GREEN + "Portal",
+    private final ItemStack portal = ItemUtil.create(Material.BLAZE_POWDER, ChatColor.GREEN + "Portal",
             new ArrayList<>());
-    private ItemStack lava = ItemUtil.create(Material.LAVA_BUCKET, ChatColor.GREEN + "Lava",
+    private final ItemStack lava = ItemUtil.create(Material.LAVA_BUCKET, ChatColor.GREEN + "Lava",
             new ArrayList<>());
-    private ItemStack witch = new ItemStack(Material.POTION);
-    private ItemStack none = ItemUtil.create(Material.WHITE_STAINED_GLASS, ChatColor.RED + "Clear Particle",
+    private final ItemStack witch = new ItemStack(Material.POTION);
+    private final ItemStack none = ItemUtil.create(Material.WHITE_STAINED_GLASS, ChatColor.RED + "Clear Particle",
             new ArrayList<>());
-    private PlotSquared plotSquared;
-    private List<UUID> denyTask = new ArrayList<>();
+    private final PlotSquared plotSquared;
+    private final List<UUID> denyTask = new ArrayList<>();
     @Getter @Setter private boolean chatMuted = false;
 
     public MenuUtil() {
@@ -135,16 +133,12 @@ public class MenuUtil implements Listener {
                 tp.teleport(Creative.getInstance().getSpawn());
             }
         }, 0L, 20L);
-        Flags.registerFlag(new BooleanFlag("flight"));
     }
 
     public void openMenu(CPlayer player) {
         Creative plugin = Creative.getInstance();
         PlayerData data = plugin.getPlayerData(player.getUniqueId());
-        if (data == null) {
-            return;
-        }
-
+        if (data == null) return;
         Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
         boolean owns = false;
         if (plot != null) {
@@ -284,17 +278,17 @@ public class MenuUtil implements Listener {
 
     public void openPlotSettings(CPlayer player) {
         Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
-        HashMap<Flag<?>, Object> flags = plot.getFlags();
+        Set<PlotFlag<?, ?>> flags = plot.getFlags();
         long time = 3000;
         boolean flightEnabled = false;
         PlotWeather weather = PlotWeather.CLEAR;
-        for (Map.Entry<Flag<?>, Object> entry : flags.entrySet()) {
-            if (entry.getKey().getName().equalsIgnoreCase("time")) {
-                time = (long) entry.getValue();
-            } else if (entry.getKey().getName().equalsIgnoreCase("weather")) {
-                weather = (PlotWeather) entry.getValue();
-            } else if (entry.getKey().getName().equalsIgnoreCase("flight")) {
-                flightEnabled = (boolean) entry.getValue();
+        for (PlotFlag<?, ?> flag : flags) {
+            if (flag.getName().equalsIgnoreCase("time")) {
+                time = (long) flag.getValue();
+            } else if (flag.getName().equalsIgnoreCase("weather")) {
+                weather = (PlotWeather) flag.getValue();
+            } else if (flag.getName().equalsIgnoreCase("flight")) {
+                flightEnabled = (boolean) flag.getValue();
             }
         }
         List<String> current = Collections.singletonList(ChatColor.YELLOW + "Currently Selected!");
@@ -305,11 +299,20 @@ public class MenuUtil implements Listener {
         buttons.add(new MenuButton(4, ItemUtil.create(Material.DEAD_BUSH, 1, ChatColor.DARK_GREEN + "Change Biome", new ArrayList<>()), ImmutableMap.of(ClickType.LEFT, p -> openChangeBiome(p, plot))));
         buttons.add(new MenuButton(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain", weather.equals(PlotWeather.RAIN) ? current : not), getWeatherAction(plot, PlotWeather.RAIN)));
         buttons.add(new MenuButton(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? Collections.singletonList(ChatColor.GRAY + "Visitors can not fly.") : Collections.singletonList(ChatColor.YELLOW + "Visitors can fly.")), ImmutableMap.of(ClickType.LEFT, p -> {
-            BooleanFlag flag = (BooleanFlag) FlagManager.getFlag("flight");
-            boolean flight = plot.getFlag(flag, true);
-            plot.setFlag(FlagManager.getFlag("flight"), !flight);
-            plot.getPlayersInPlot().stream().map(ply -> Bukkit.getPlayer(ply.getUUID())).filter(Objects::nonNull).filter(ply -> !plot.getOwners().contains(ply.getUniqueId()) && !isStaff(ply)).forEach(ply -> ply.setAllowFlight(!flight));
-            if (!flight) {
+            FlyFlag.FlyStatus flight = plot.getFlag(FlyFlag.class);
+            FlyFlag newValue;
+            switch (flight) {
+                case ENABLED:
+                    newValue = FlyFlag.FLIGHT_FLAG_DISABLED;
+                    break;
+                case DISABLED:
+                case DEFAULT:
+                default:
+                    newValue = FlyFlag.FLIGHT_FLAG_ENABLED;
+            }
+            plot.setFlag(newValue);
+            plot.getPlayersInPlot().stream().map(ply -> Bukkit.getPlayer(ply.getUUID())).filter(Objects::nonNull).filter(ply -> !plot.getOwners().contains(ply.getUniqueId()) && !isStaff(ply)).forEach(ply -> ply.setAllowFlight(newValue == FlyFlag.FLIGHT_FLAG_ENABLED));
+            if (newValue == FlyFlag.FLIGHT_FLAG_DISABLED) {
                 p.sendMessage(ChatColor.GREEN + "You have disabled flight for visitors of your plot.");
             } else {
                 p.sendMessage(ChatColor.GREEN + "You have enabled flight for visitors of your plot.");
@@ -334,9 +337,10 @@ public class MenuUtil implements Listener {
         new Menu(27, ChatColor.BLUE + "Plot Settings", player, buttons).open();
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private Map<ClickType, Consumer<CPlayer>> getTimeAction(Plot plot, long time) {
         return ImmutableMap.of(ClickType.LEFT, p -> {
-            Flag flag = FlagManager.getFlag("time");//new Flag(FlagManager.getFlag("time", true), time);
+            PlotFlag flag = FlagManager.getFlag("time");//new Flag(FlagManager.getFlag("time", true), time);
             Object parsed = flag.parseValue(String.valueOf(time));
             if (plot.setFlag(flag, parsed)) {
                 p.sendMessage(ChatColor.GREEN + "Set Plot Time to " + time + "!");
@@ -634,7 +638,7 @@ public class MenuUtil implements Listener {
         })));
         buttons.add(new MenuButton(15, trusted, ImmutableMap.of(ClickType.LEFT, p -> {
             p.closeInventory();
-            p.getBukkitPlayer().sendTitle(ChatColor.GREEN + "Add a Member", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
+            p.getTitle().show(ChatColor.GREEN + "Add a Member", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
             new TextInput(p, (ply, s) -> {
                 String owner = getOwner(plot);
                 if (s.equalsIgnoreCase(ply.getName()) && plot.getOwners().contains(ply.getUniqueId())) {
@@ -729,7 +733,7 @@ public class MenuUtil implements Listener {
                         plot.getId().toString());
             });
             p.closeInventory();
-            p.getBukkitPlayer().sendTitle(ChatColor.RED + "Deny a Player", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
+            p.getTitle().show(ChatColor.RED + "Deny a Player", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
         })));
         buttons.add(new MenuButton(13, teleport, ImmutableMap.of(ClickType.LEFT, p -> {
             Location location = getHome(plot);
@@ -850,7 +854,7 @@ public class MenuUtil implements Listener {
         }
 
         Rank rank = cplayer.getRank();
-        SponsorTier tier = cplayer.getSponsorTier();
+        List<RankTag> tags = cplayer.getTags();
         if (isChatMuted() && rank.getRankId() < Rank.TRAINEE.getRankId()) {
             cplayer.sendMessage(ChatColor.RED + "Chat is muted right now! (You can still add/remove players and use Show Creator)");
             return;
@@ -862,9 +866,11 @@ public class MenuUtil implements Listener {
         } else {
             msg = event.getMessage();
         }
-        String messageToSend = (data.hasCreatorTag() ? (ChatColor.WHITE + "[" + ChatColor.BLUE + "Creator"
-                + ChatColor.WHITE + "] ") : "") + tier.getChatTag(true) + rank.getFormattedName() +
-                " " + ChatColor.GRAY + player.getName() + ": " + rank.getChatColor() + msg;
+        ComponentBuilder builder = new ComponentBuilder("");
+        BaseComponent[] messageToSend = builder.append(RankTag.formatChat(cplayer.getTags())).event(getPlayerHover(cplayer))
+                .append(rank.getFormattedName() + " ")
+                .append(cplayer.getName() + ": ").color(net.md_5.bungee.api.ChatColor.GRAY)
+                .append(msg, ComponentBuilder.FormatRetention.NONE).color(net.md_5.bungee.api.ChatColor.getByChar(rank.getChatColor().getChar())).create();
         RolePlayUtil rolePlayUtil = Creative.getInstance().getRolePlayUtil();
         IgnoreUtil ignoreUtil = Creative.getInstance().getIgnoreUtil();
         for (CPlayer tp : Core.getPlayerManager().getOnlinePlayers()) {
@@ -873,8 +879,18 @@ public class MenuUtil implements Listener {
                             cplayer.getRank().getRankId() < Rank.TRAINEE.getRankId() &&
                             tp.getRank().getRankId() < Rank.TRAINEE.getRankId()))
                 continue;
-            tp.sendMessage(messageToSend);
+            tp.getBukkitPlayer().spigot().sendMessage(messageToSend);
         }
+    }
+
+    private HoverEvent getPlayerHover(CPlayer player) {
+        ComponentBuilder builder = new ComponentBuilder(player.getRank().getFormattedName())
+                .append(" " + player.getName() + "\n").color(net.md_5.bungee.api.ChatColor.GRAY);
+        for (RankTag tag : player.getTags()) {
+            builder.append(tag.getName() + "\n").color(net.md_5.bungee.api.ChatColor.getByChar(tag.getColor().getChar())).italic(true);
+        }
+        builder.append("Server: ", ComponentBuilder.FormatRetention.NONE).color(net.md_5.bungee.api.ChatColor.AQUA).append("Creative").color(net.md_5.bungee.api.ChatColor.GREEN);
+        return new HoverEvent(HoverEvent.Action.SHOW_TEXT, builder.create());
     }
 
     private boolean isAdded(Plot plot, Player tp) {
@@ -1043,23 +1059,6 @@ public class MenuUtil implements Listener {
 
     public static boolean isStaff(Player player) {
         CPlayer cPlayer = Core.getPlayerManager().getPlayer(player);
-        if (cPlayer == null) {
-            return false;
-        }
-
-        return isStaff(cPlayer);
-    }
-
-    public static boolean isStaff(CPlayer player) {
-        switch (player.getRank()) {
-            case SETTLER:
-            case DWELLER:
-            case NOBLE:
-            case MAJESTIC:
-            case HONORABLE:
-                return false;
-            default:
-                return true;
-        }
+        return cPlayer != null && cPlayer.getRank().getRankId() >= Rank.TRAINEE.getRankId();
     }
 }

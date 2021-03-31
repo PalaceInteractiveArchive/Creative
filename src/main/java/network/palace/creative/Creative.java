@@ -20,6 +20,7 @@ import org.bson.Document;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -29,10 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Created by Marc on 12/14/14
- */
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.8.6-1.13", apiversion = "1.13.2")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.9.16")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -52,7 +50,7 @@ public class Creative extends Plugin {
     @Getter private ItemExploitHandler itemExploitHandler;
     @Getter private PlotFloorUtil plotFloorUtil;
     @Getter private PlotWarpUtil plotWarpUtil;
-    @Getter private HashMap<UUID, PlayerData> playerData = new HashMap<>();
+    @Getter private final HashMap<UUID, PlayerData> playerData = new HashMap<>();
 
     @Getter private PlayParticle playParticle;
 
@@ -75,6 +73,7 @@ public class Creative extends Plugin {
         plotFloorUtil = new PlotFloorUtil();
         plotWarpUtil = new PlotWarpUtil();
         playParticle = new PlayParticle();
+        itemExploitHandler = new ItemExploitHandler();
 
         Core.runTaskTimer(this, playParticle, 0L, 2L);
 
@@ -195,8 +194,7 @@ public class Creative extends Plugin {
         registerCommand(new CreatorCommand());
         registerCommand(new CReloadCommand());
         registerCommand(new DelWarpCommand());
-        //TODO broken until needed to fix
-        //registerCommand(new DownloadCommand());
+        registerCommand(new DownloadCommand());
         registerCommand(new GiveCommand());
         registerCommand(new HeadCommand());
         registerCommand(new HealCommand());
@@ -205,7 +203,7 @@ public class Creative extends Plugin {
         registerCommand(new ManageCommand());
         registerCommand(new MenuCommand());
         registerCommand(new MoreCommand());
-        registerCommand(new MsgCommand());
+        registerCommand(new MyHeadCommand());
         registerCommand(new NightvisionCommand());
         registerCommand(new PackCommand());
         registerCommand(new PlotFloorLogCommand());
@@ -220,8 +218,8 @@ public class Creative extends Plugin {
         registerCommand(new ShopCommand());
         registerCommand(new ShowCommand());
         registerCommand(new SpawnCommand());
+        registerCommand(new SpeedCommand());
         registerCommand(new StarCommand());
-        registerCommand(new TpCommand());
         registerCommand(new TpaCommand());
         registerCommand(new TpAcceptCommand());
         registerCommand(new TpDenyCommand());
@@ -244,7 +242,7 @@ public class Creative extends Plugin {
         registerListener(new WorldListener());
         registerListener(showManager);
         registerListener(menuUtil);
-        registerListener(itemExploitHandler = new ItemExploitHandler());
+        registerListener(itemExploitHandler);
     }
 
     public static Creative getInstance() {
@@ -254,10 +252,16 @@ public class Creative extends Plugin {
     public PlayerData login(UUID uuid) {
         Document dataDocument = Core.getMongoHandler().getCreativeData(uuid);
         if (dataDocument == null) return null;
-        PlayerData data = new PlayerData(uuid, ParticleUtil.getParticle(dataDocument.getString("particle")),
+        Particle p;
+        try {
+            p = ParticleUtil.getParticle(dataDocument.getString("particle"));
+        } catch (Exception e) {
+            p = null;
+        }
+        PlayerData data = new PlayerData(uuid, p,
                 dataDocument.getBoolean("rptag"), dataDocument.getBoolean("showcreator"),
                 dataDocument.getInteger("rplimit"), dataDocument.getBoolean("creator"),
-                dataDocument.getBoolean("creatortag"), dataDocument.getString("resourcepack"));
+                dataDocument.getString("resourcepack"));
         playerData.remove(uuid);
         playerData.put(uuid, data);
         return data;

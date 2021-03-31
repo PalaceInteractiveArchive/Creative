@@ -23,11 +23,6 @@ public class NightvisionCommand extends CoreCommand {
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        if (player.getRank().getRankId() < Rank.DWELLER.getRankId()) {
-            player.sendMessage(ChatColor.RED + "You must be the " + Rank.DWELLER.getFormattedName()
-                    + ChatColor.RED + " rank or above to use this!");
-            return;
-        }
         Collection<PotionEffect> effects = player.getBukkitPlayer().getActivePotionEffects();
         boolean contains = false;
         for (PotionEffect e : effects) {

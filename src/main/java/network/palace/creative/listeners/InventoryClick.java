@@ -1,7 +1,5 @@
 package network.palace.creative.listeners;
 
-import java.util.Arrays;
-import java.util.List;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -18,13 +16,16 @@ import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Created by Marc on 6/12/15
  */
 public class InventoryClick implements Listener {
     private List<Material> clickBlacklist = Arrays.asList(Material.SPAWNER, Material.NETHER_PORTAL, Material.END_PORTAL,
             Material.DRAGON_EGG, Material.COMMAND_BLOCK, Material.CHAIN_COMMAND_BLOCK, Material.REPEATING_COMMAND_BLOCK,
-            Material.COMMAND_BLOCK_MINECART, Material.BARRIER, Material.END_GATEWAY, Material.END_CRYSTAL,
+            Material.COMMAND_BLOCK_MINECART, Material.END_GATEWAY, Material.END_CRYSTAL,
             Material.STRUCTURE_BLOCK, Material.STRUCTURE_VOID);
     private ItemStack air = ItemUtil.create(Material.AIR);
 
@@ -37,7 +38,7 @@ public class InventoryClick implements Listener {
             return;
         ItemStack cursor = event.getCursor();
         Material type = cursor.getType();
-        if (clickBlacklist.contains(type)) {
+        if (type != null && clickBlacklist.contains(type)) {
             event.setCancelled(true);
             event.setCursor(air);
         }

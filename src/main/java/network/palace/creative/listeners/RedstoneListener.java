@@ -4,9 +4,11 @@ import network.palace.core.player.CPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
 
 import java.util.ArrayList;
@@ -45,5 +47,10 @@ public class RedstoneListener implements Listener {
         }
         player.sendMessage(ChatColor.RED + "Added to Log Lag Mode!");
         uuids.add(uuid);
+    }
+
+    @EventHandler
+    public void onBlockDispense(BlockDispenseEvent event) {
+        if (event.getItem().getType().equals(Material.LAVA_BUCKET)) event.setCancelled(true);
     }
 }

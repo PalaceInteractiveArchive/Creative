@@ -1,7 +1,5 @@
 package network.palace.creative.show;
 
-import com.github.intellectualsites.plotsquared.plot.object.Plot;
-import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +17,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.plotsquared.core.player.PlotPlayer;
+import com.plotsquared.core.plot.Plot;
 import network.palace.audio.Audio;
 import network.palace.audio.handlers.AudioArea;
 import network.palace.core.Core;
@@ -38,12 +39,8 @@ import network.palace.creative.show.handlers.PlotArea;
 import network.palace.creative.show.ticker.TickEvent;
 import network.palace.creative.show.ticker.Ticker;
 import network.palace.creative.utils.TextInput;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.FireworkEffect;
+import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
-import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -56,13 +53,21 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Created by Marc on 12/11/15
  */
 public class ShowManager implements Listener {
     private final File showsDir = new File(Creative.getInstance().getDataFolder(), "shows");
     public HashMap<UUID, Show> shows = new HashMap<>();
-    private TreeMap<String, AudioTrack> audioTracks = new TreeMap<>();
+    private final TreeMap<String, AudioTrack> audioTracks = new TreeMap<>();
 
     public ShowManager() {
         Bukkit.getScheduler().runTaskTimer(Creative.getInstance(), new Ticker(), 1, 1);
@@ -88,7 +93,6 @@ public class ShowManager implements Listener {
         }
 
         List<String> tracks = new ArrayList<>(config.getConfigurationSection("tracks").getKeys(false));
-        Collections.sort(tracks);
         for (String s : tracks) {
             AudioTrack audioTrack = new AudioTrack(config.getString("tracks." + s + ".name"),
                     config.getString("tracks." + s + ".path"));
@@ -175,7 +179,7 @@ public class ShowManager implements Listener {
             if (temp != null) {
                 area = (PlotArea) temp;
             } else {
-                Audio.getInstance().removeArea(temp);
+                Audio.getInstance().removeArea(null);
                 area = new PlotArea(plot.getId(), player, show.getAudioTrack(), player.getWorld());
             }
             if (Audio.getInstance().getByName(area.getAreaName()) == null) Audio.getInstance().addArea(area);
@@ -244,8 +248,7 @@ public class ShowManager implements Listener {
                                 p.closeInventory();
                                 p.sendMessage(ChatColor.GREEN + "Show successfully deleted.");
                             })));
-                }
-                catch (IndexOutOfBoundsException ignored) {
+                } catch (IndexOutOfBoundsException ignored) {
 
                 }
             }
@@ -254,7 +257,7 @@ public class ShowManager implements Listener {
         if (showCount <= maxShows) {
             buttons.add(new MenuButton(7, ItemUtil.create(Material.EMERALD_BLOCK, ChatColor.GREEN + "New Show"), ImmutableMap.of(ClickType.LEFT, p -> {
                 p.closeInventory();
-                p.getBukkitPlayer().sendTitle(ChatColor.GREEN + "Set Show Name", ChatColor.GREEN + "Type the name you want for your show.", 0, 0, 200);
+                p.getTitle().show(ChatColor.GREEN + "Set Show Name", ChatColor.GREEN + "Type the name you want for your show.", 0, 0, 200);
                 new TextInput(p, (ply, msg) -> {
                     try {
                         String name = ChatColor.stripColor(msg);
@@ -273,8 +276,7 @@ public class ShowManager implements Listener {
                         }
 
                         ply.sendMessage(ChatColor.RED + " A show named " + name + " already exists.");
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         ply.sendMessage(ChatColor.RED + "There was an error! Please try again.");
                     }
                 });
@@ -325,8 +327,7 @@ public class ShowManager implements Listener {
                     show.saveFile();
                     editShow(p, page, show);
                 })));
-            }
-            catch (IndexOutOfBoundsException ignored) {
+            } catch (IndexOutOfBoundsException ignored) {
 
             }
         }
@@ -334,7 +335,7 @@ public class ShowManager implements Listener {
         if (page - 1 > 0) {
             buttons.add(new MenuButton(48, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, page - 1, show))));
         }
-        if (page + 1 <= new Double(Math.ceil(actions.size() / 45D)).intValue()) {
+        if (page + 1 <= (int) Math.ceil(actions.size() / 45D)) {
             buttons.add(new MenuButton(50, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, page + 1, show))));
         }
         buttons.add(new MenuButton(53, ItemUtil.create(Material.LIME_TERRACOTTA, 1, ChatColor.GREEN + "Add Action", Collections.singletonList(ChatColor.GREEN + "Click to add a new Action!")), ImmutableMap.of(ClickType.LEFT, p -> openAddAction(p, show))));
@@ -385,6 +386,7 @@ public class ShowManager implements Listener {
     private void selectTrack(CPlayer player, int page, Show show) {
         List<MenuButton> buttons = new ArrayList<>();
         List<AudioTrack> audioTracks = new ArrayList<>(this.audioTracks.values());
+        audioTracks.sort(Comparator.comparing(AudioTrack::getName));
         for (int x = 0; x < 27; x++) {
             try {
                 AudioTrack track = audioTracks.get(x + (page - 1) * 27);
@@ -393,8 +395,7 @@ public class ShowManager implements Listener {
                     show.saveFile();
                     editShow(p, 1, show);
                 })));
-            }
-            catch (IndexOutOfBoundsException ignored) {
+            } catch (IndexOutOfBoundsException ignored) {
 
             }
         }
@@ -403,10 +404,16 @@ public class ShowManager implements Listener {
             buttons.add(new MenuButton(27, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> selectTrack(p, page - 1, show))));
         }
         buttons.add(new MenuButton(31, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, 1, show))));
-        if (page + 1 <= new Double(Math.ceil(audioTracks.size() / 27D)).intValue()) {
+        if (page + 1 <= (int) Math.ceil(audioTracks.size() / 27D)) {
             buttons.add(new MenuButton(35, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> selectTrack(p, page + 1, show))));
         }
         new Menu(36, ChatColor.BLUE + "Select Track", player, buttons).open();
+    }
+
+    private void removeTrack(Player player, Show show) {
+        show.setAudioTrack("none");
+        show.saveFile();
+        editShow(player, 1, show);
     }
 
     private void editAction(CPlayer player, Show show, ShowAction action) {
@@ -415,20 +422,19 @@ public class ShowManager implements Listener {
                         "Show for an Action to execute."));
         Map<ClickType, Consumer<CPlayer>> setTimeActions = ImmutableMap.of(ClickType.LEFT, p -> {
             p.closeInventory();
-            p.getBukkitPlayer().sendTitle(ChatColor.GREEN + "Set a Time", ChatColor.GREEN + "Enter a number for the action to execute at", 0, 0, 200);
+            p.getTitle().show(ChatColor.GREEN + "Set a Time", ChatColor.GREEN + "Enter a number for the action to execute at", 0, 0, 200);
             new TextInput(p, (ply, msg) -> {
                 double time;
                 try {
                     time = Double.parseDouble(msg);
-                }
-                catch (NumberFormatException e) {
+                } catch (NumberFormatException e) {
                     ply.sendMessage(ChatColor.RED + msg + " is not a number! Please specify a number for the action to execute at.");
                     return;
                 }
 
-                if (time > 1200) {
-                    ply.sendMessage(ChatColor.RED + "Shows cannot be longer than 20 Minutes!");
-                    time = 1200D;
+                if (time > 2700) {
+                    ply.sendMessage(ChatColor.RED + "Shows cannot be longer than 45 Minutes!");
+                    time = 2700D;
                 }
 
                 action.setTime(time);
@@ -441,8 +447,8 @@ public class ShowManager implements Listener {
         if (action instanceof TextAction) {
             buttons.add(new MenuButton(11, setTimeItem, setTimeActions));
             buttons.add(new MenuButton(15, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Set Text", Collections.singletonList(ChatColor.YELLOW + "Supports Color Codes!")), ImmutableMap.of(ClickType.LEFT, p -> {
-                        p.closeInventory();
-                p.getBukkitPlayer().sendTitle(ChatColor.GREEN + "Set Text Message", ChatColor.GREEN +
+                p.closeInventory();
+                p.getTitle().show(ChatColor.GREEN + "Set Text Message", ChatColor.GREEN +
                         "Type a message to be displayed (Color Codes work!)", 0, 0, 200);
                 new TextInput(p, (ply, msg) -> {
                     ((TextAction) action).setText(msg);
@@ -467,18 +473,18 @@ public class ShowManager implements Listener {
             buttons.add(new MenuButton(15, ItemUtil.create(Material.GLOWSTONE_DUST, 1, ChatColor.GREEN + "Flicker",
                     Arrays.asList(a.isFlicker() ? ChatColor.GREEN + "True" : ChatColor.RED + "False",
                             ChatColor.YELLOW + "Click to cycle options")), ImmutableMap.of(ClickType.LEFT, p -> {
-                                FireworkAction fa = (FireworkAction) action;
-                                fa.getShowData().setFlicker(!fa.isFlicker());
-                                show.saveFile();
-                                editAction(p, show, action);
+                FireworkAction fa = (FireworkAction) action;
+                fa.getShowData().setFlicker(!fa.isFlicker());
+                show.saveFile();
+                editAction(p, show, action);
             })));
             buttons.add(new MenuButton(16, ItemUtil.create(Material.FEATHER, 1, ChatColor.GREEN + "Trail",
                     Arrays.asList(a.isTrail() ? ChatColor.GREEN + "True" : ChatColor.RED + "False",
                             ChatColor.YELLOW + "Click to cycle options")), ImmutableMap.of(ClickType.LEFT, p -> {
-                            FireworkAction fa = (FireworkAction) action;
-                            fa.getShowData().setTrail(!fa.isTrail());
-                            show.saveFile();
-                            editAction(p, show, action);
+                FireworkAction fa = (FireworkAction) action;
+                fa.getShowData().setTrail(!fa.isTrail());
+                show.saveFile();
+                editAction(p, show, action);
             })));
             new Menu(27, ChatColor.BLUE + "Edit Firework Action", player, buttons).open();
         }
@@ -627,6 +633,7 @@ public class ShowManager implements Listener {
     private void openAddAction(CPlayer player, Show show) {
         List<MenuButton> buttons = new ArrayList<>();
         ItemStack text = ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Text Action");
+        ItemStack removeMusic = ItemUtil.create(Material.BARRIER, ChatColor.RED + "Remove Music Track");
         ItemStack music = ItemUtil.create(Material.MUSIC_DISC_CHIRP, ChatColor.GREEN + "Set Music");
         ItemStack particle = ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Particle Action");
         ItemStack fw = ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Firework Action");
@@ -635,6 +642,10 @@ public class ShowManager implements Listener {
             show.actions.add(action);
             editAction(p, show, action);
         })));
+
+        if (show.getAudioTrack() != null && !show.getAudioTrack().equals("none"))
+            buttons.add(new MenuButton(3, removeMusic, ImmutableMap.of(ClickType.LEFT, p -> removeTrack(p, show))));
+
         buttons.add(new MenuButton(12, music, ImmutableMap.of(ClickType.LEFT, p -> selectTrack(p, 1, show))));
         buttons.add(new MenuButton(14, particle, ImmutableMap.of(ClickType.LEFT, p -> {
             ParticleAction action = new ParticleAction(show, null, null, player.getLocation(),

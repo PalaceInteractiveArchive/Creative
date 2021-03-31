@@ -1,6 +1,5 @@
 package network.palace.creative.commands;
 
-import java.util.Optional;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
 import network.palace.core.command.CoreCommand;
@@ -12,7 +11,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 
-@CommandMeta(description = "Check if a user has been caught with banned/hacked items.", aliases = "bic", usage = "/bic [player]", rank = Rank.SRMOD)
+import java.util.Optional;
+
+@CommandMeta(description = "Check if a user has been caught with banned/hacked items.", aliases = "bic", rank = Rank.COORDINATOR)
 public class BannedItemCheckCommand extends CoreCommand {
 
     public BannedItemCheckCommand() {
@@ -22,7 +23,7 @@ public class BannedItemCheckCommand extends CoreCommand {
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
         if (args.length == 0) {
-            player.sendMessage(ChatColor.RED + "/bic [player]");
+            Creative.getInstance().getItemExploitHandler().openPlayerMenu(player.getBukkitPlayer(), 0);
             return;
         }
 

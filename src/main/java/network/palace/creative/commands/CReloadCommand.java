@@ -13,7 +13,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-@CommandMeta(description = "Reload Creative configs.", usage = "/creload <banneditems | config | loops | plotwarps | warps>", rank = Rank.SRMOD)
+@CommandMeta(description = "Reload Creative configs.", usage = "/creload <banneditems | config | loops | plotwarps | warps>", rank = Rank.COORDINATOR)
 public class CReloadCommand extends CoreCommand {
 
     public CReloadCommand() {

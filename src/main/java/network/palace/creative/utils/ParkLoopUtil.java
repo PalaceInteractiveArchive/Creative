@@ -1,10 +1,6 @@
 package network.palace.creative.utils;
 
-import com.github.intellectualsites.plotsquared.plot.PlotSquared;
-import com.github.intellectualsites.plotsquared.plot.object.Plot;
-import com.github.intellectualsites.plotsquared.plot.object.PlotId;
-import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
-import com.github.intellectualsites.plotsquared.plot.object.RegionWrapper;
+import com.plotsquared.core.PlotSquared;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
@@ -19,9 +15,16 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
+import com.intellectualcrafters.plot.api.PlotAPI;
+import com.intellectualcrafters.plot.object.Plot;
+import com.intellectualcrafters.plot.object.PlotId;
+import com.intellectualcrafters.plot.object.RegionWrapper;
+import com.plotsquared.core.player.PlotPlayer;
+import com.plotsquared.core.plot.Plot;
 import network.palace.audio.Audio;
 import network.palace.audio.PacketHelper;
 import network.palace.audio.handlers.AudioArea;
+import network.palace.audio.packets.PacketAreaStop;
 import network.palace.core.Core;
 import network.palace.core.dashboard.packets.audio.PacketAreaStop;
 import network.palace.core.menu.Menu;
@@ -30,13 +33,14 @@ import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.show.handlers.AudioTrack;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.inventory.ClickType;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Stream;
 
 public class ParkLoopUtil {
 
@@ -59,16 +63,12 @@ public class ParkLoopUtil {
         UUID owner = plot.getOwners().iterator().next();
         PlotId plotId = plot.getId();
         String audioAreaName = registeredAudioAreas.get(plotId);
-        if (audioAreaName == null) {
-            return;
-        }
+        if (audioAreaName == null) return;
 
         AudioArea audioArea = Audio.getInstance().getByName(audioAreaName);
-        if (audioArea == null) {
-            return;
-        }
+        if (audioArea == null) return;
 
-        audioArea.setEnabled(true);
+        audioArea.setEnabled(false);
         audioArea.removeAllPlayers(true);
         disabledLoops.put(owner, plotId);
     }
@@ -95,8 +95,7 @@ public class ParkLoopUtil {
         if (!file.exists()) {
             try {
                 file.createNewFile();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
             return;
@@ -128,10 +127,7 @@ public class ParkLoopUtil {
                     String[] keySplit = key.split(";");
                     plotSquared.getPlotAreas("plotworld").stream().map(plotArea -> plotArea.getPlot(new PlotId(Integer.parseInt(keySplit[0]), Integer.parseInt(keySplit[1])))).filter(Objects::nonNull).forEach(plot -> {
                         Optional<AudioTrack> audioTrack = loops.values().stream().filter(at -> at.getAudioPath().equals(yaml.getString(key))).findFirst();
-                        if (!audioTrack.isPresent()) {
-                            Creative.getInstance().getLogger().warning("Failed to create audio region for plot " + plot.getId().toString());
-                            return;
-                        }
+                        if (audioTrack.isEmpty()) return;
 
                         createRegion(audioTrack.get(), plot, Bukkit.getWorld("plotworld"));
                     });
@@ -145,6 +141,7 @@ public class ParkLoopUtil {
     public void open(CPlayer player, int page) {
         List<MenuButton> buttons = new ArrayList<>();
         List<AudioTrack> loops = new ArrayList<>(this.loops.values());
+        loops.sort(Comparator.comparing(AudioTrack::getName));
         for (int x = 0; x < 27; x++) {
             try {
                 AudioTrack track = loops.get(x + (page - 1) * 27);
@@ -167,8 +164,7 @@ public class ParkLoopUtil {
                     player.sendMessage(ChatColor.GREEN + "Plot audio loop updated to " + track.getName());
                     player.closeInventory();
                 })));
-            }
-            catch (IndexOutOfBoundsException ignored) {
+            } catch (IndexOutOfBoundsException ignored) {
 
             }
         }
@@ -177,7 +173,7 @@ public class ParkLoopUtil {
             buttons.add(new MenuButton(27, Creative.getInstance().getMenuUtil().last, ImmutableMap.of(ClickType.LEFT, p -> open(p, page - 1))));
         }
 
-        buttons.add(new MenuButton(30, ItemUtil.create(Material.BARRIER, ChatColor. GREEN + "None"), ImmutableMap.of(ClickType.LEFT, p -> {
+        buttons.add(new MenuButton(30, ItemUtil.create(Material.BARRIER, ChatColor.GREEN + "None"), ImmutableMap.of(ClickType.LEFT, p -> {
             Plot plot = PlotPlayer.wrap(p).getCurrentPlot();
             if (!plot.getOwners().contains(player.getUniqueId())) {
                 player.sendMessage(ChatColor.RED + "You don't have permission to change this plot's audio.");
@@ -199,7 +195,7 @@ public class ParkLoopUtil {
             player.closeInventory();
         })));
         buttons.add(new MenuButton(32, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, Creative.getInstance().getMenuUtil()::openMenu)));
-        if (page + 1 <= new Double(Math.ceil(loops.size() / 27D)).intValue()) {
+        if (page + 1 <= Double.valueOf(Math.ceil(loops.size() / 27D)).intValue()) {
             buttons.add(new MenuButton(35, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> open(p, page + 1))));
         }
         new Menu(36, ChatColor.BLUE + "Select Park Loop", player, buttons).open();
@@ -224,10 +220,9 @@ public class ParkLoopUtil {
         Audio audio = Audio.getInstance();
         Table<UUID, PlotId, String> audioTable = HashBasedTable.create();
         registeredAudioAreas.forEach((plotId, track) -> {
+            if (plotId == null || track == null) return;
             AudioArea audioArea = audio.getByName(track);
-            if (audioArea == null) {
-                return;
-            }
+            if (audioArea == null) return;
 
             audioArea.removeAllPlayers(true);
             audio.removeArea(audioArea);
@@ -235,6 +230,12 @@ public class ParkLoopUtil {
             plotSquared.getPlotAreas("plotworld").stream().map(plot -> plot.getPlot(plotId)).filter(Objects::nonNull)
                     .findFirst().ifPresent(plot -> loops.values().stream().filter(audioTrack -> audioTrack.getAudioPath().equals(audioArea.getPath()))
                     .map(AudioTrack::getAudioPath).findFirst().ifPresent(path -> audioTable.put(plot.getOwners().iterator().next(), plotId, path)));
+            PlotAPI plotAPI = new PlotAPI();
+            plotAPI.getPlotAreas(Bukkit.getWorld("plotworld")).stream().map(plot -> plot.getPlot(plotId)).filter(Objects::nonNull).findFirst().ifPresent(plot ->
+                    loops.values().stream().filter(audioTrack -> audioTrack.getAudioPath().equals(audioArea.getPath())).map(AudioTrack::getAudioPath).findFirst().ifPresent(path -> {
+                        if (plot == null || plot.getOwners() == null || plot.getOwners().isEmpty()) return;
+                        audioTable.put(plot.getOwners().iterator().next(), plotId, path);
+                    }));
         });
         audioTable.rowKeySet().forEach(uuid -> audioTable.columnKeySet().forEach(plotId -> {
             String track = audioTable.get(uuid, plotId);

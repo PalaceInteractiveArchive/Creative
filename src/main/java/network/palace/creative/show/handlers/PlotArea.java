@@ -1,9 +1,10 @@
 package network.palace.creative.show.handlers;
 
-import com.github.intellectualsites.plotsquared.plot.PlotSquared;
-import com.github.intellectualsites.plotsquared.plot.object.Plot;
-import com.github.intellectualsites.plotsquared.plot.object.PlotId;
-import com.github.intellectualsites.plotsquared.plot.object.PlotPlayer;
+import com.plotsquared.core.PlotSquared;
+import com.plotsquared.core.api.PlotAPI;
+import com.plotsquared.core.player.PlotPlayer;
+import com.plotsquared.core.plot.Plot;
+import com.plotsquared.core.plot.PlotId;
 import lombok.Getter;
 import network.palace.audio.handlers.AudioArea;
 import network.palace.core.Core;
@@ -14,6 +15,8 @@ import org.bukkit.World;
 
 import java.util.ArrayList;
 
+import java.util.Collections;
+
 /**
  * Created by Marc on 6/16/16
  */
@@ -23,7 +26,7 @@ public class PlotArea extends AudioArea {
     private CPlayer owner;
 
     public PlotArea(PlotId plotId, CPlayer owner, String soundname, World world) {
-        super(owner.getUniqueId().toString(), soundname, 750, 1.0, new ArrayList<>(), true, false, world);
+        super(owner.getUniqueId().toString(), soundname, 750, 1.0, Collections.emptyList(), true, false, world);
         this.plotId = plotId;
         this.owner = owner;
         for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
@@ -41,7 +44,7 @@ public class PlotArea extends AudioArea {
 
     @Override
     public String getRegionNames() {
-        return plotId.toString();
+        return "Plot ID " + plotId.toString();
     }
 
     @Override

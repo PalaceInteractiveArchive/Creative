@@ -103,7 +103,7 @@ public class BlockEdit implements Listener {
         itemBlackList.add(Material.WITHER_SKELETON_SPAWN_EGG);
         itemBlackList.add(Material.WOLF_SPAWN_EGG);
         itemBlackList.add(Material.ZOMBIE_HORSE_SPAWN_EGG);
-        itemBlackList.add(Material.ZOMBIE_PIGMAN_SPAWN_EGG);
+        itemBlackList.add(Material.ZOMBIFIED_PIGLIN_SPAWN_EGG);
         itemBlackList.add(Material.ZOMBIE_SPAWN_EGG);
         itemBlackList.add(Material.ZOMBIE_VILLAGER_SPAWN_EGG);
         itemBlackList.add(Material.SNOWBALL);

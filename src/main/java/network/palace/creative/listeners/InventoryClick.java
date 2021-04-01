@@ -67,8 +67,7 @@ public class InventoryClick implements Listener {
                 if (cp == null)
                     continue;
                 if (cp.getRank().getRankId() >= Rank.DEVELOPER.getRankId()) {
-                    cp.sendMessage(ChatColor.RED + "Click event took " + diff + "ms! " + ChatColor.GREEN +
-                            event.getWhoClicked().getName() + " " + ChatColor.stripColor(inv.getTitle()) + " ");
+                    cp.sendMessage(ChatColor.RED + "Click event took " + diff + "ms! " + ChatColor.GREEN + event.getWhoClicked().getName());
                 }
             }
         }

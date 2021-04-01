@@ -81,7 +81,7 @@ public class PlayerInteract implements Listener {
             return;
         }
 
-        for (Plot p : PlotPlayer.wrap(player).getPlots()) {
+        for (Plot p : PlotPlayer.wrap(player.getBukkitPlayer()).getPlots()) {
             if (p.getArea().getWorldName().equalsIgnoreCase("plotworld")) {
                 player.sendMessage(ChatColor.RED +
                         "You already claimed your Free Plot! To get a second, you must purchase it in /menu.");

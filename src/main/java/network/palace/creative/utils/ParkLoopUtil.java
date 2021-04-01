@@ -133,7 +133,7 @@ public class ParkLoopUtil {
             try {
                 AudioTrack track = loops.get(x + (page - 1) * 27);
                 buttons.add(new MenuButton(x, ItemUtil.create(track.getItem(), ChatColor.GREEN + track.getName()), ImmutableMap.of(ClickType.LEFT, p -> {
-                    Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
+                    Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
                     String oldAudioName = registeredAudioAreas.get(plot.getId());
                     Audio audio = Audio.getInstance();
                     AudioArea audioArea = audio.getByName(oldAudioName);
@@ -161,7 +161,7 @@ public class ParkLoopUtil {
         }
 
         buttons.add(new MenuButton(30, ItemUtil.create(Material.BARRIER, ChatColor.GREEN + "None"), ImmutableMap.of(ClickType.LEFT, p -> {
-            Plot plot = PlotPlayer.wrap(p).getCurrentPlot();
+            Plot plot = PlotPlayer.wrap(p.getBukkitPlayer()).getCurrentPlot();
             if (!plot.getOwners().contains(player.getUniqueId())) {
                 player.sendMessage(ChatColor.RED + "You don't have permission to change this plot's audio.");
                 player.closeInventory();

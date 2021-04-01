@@ -23,7 +23,7 @@ public class TextAction extends ShowAction {
 
     @Override
     public ItemStack getItem() {
-        return ItemUtil.create(Material.SIGN, ChatColor.AQUA + "Text Action", Collections.singletonList(ChatColor.GREEN + "Time: " + (time / 1000) + " Text: \"" + text + ChatColor.GREEN + "\""));
+        return ItemUtil.create(Material.OAK_SIGN, ChatColor.AQUA + "Text Action", Collections.singletonList(ChatColor.GREEN + "Time: " + (time / 1000) + " Text: \"" + text + ChatColor.GREEN + "\""));
     }
 
     @Override

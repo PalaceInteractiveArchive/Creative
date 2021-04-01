@@ -16,7 +16,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
 import org.bukkit.block.data.AnaloguePowerable;
 import org.bukkit.block.data.BlockData;
@@ -181,7 +180,7 @@ public class PlotFloorUtil {
     }
 
     public void open(CPlayer player, int page) {
-        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
+        Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
         if (plot == null || !plot.getOwners().contains(player.getUniqueId())) {
             player.sendMessage(ChatColor.RED + "You must be in your own plot to do this.");
             return;
@@ -192,7 +191,7 @@ public class PlotFloorUtil {
             try {
                 ItemStack itemStack = materials.get(i + (page - 1) * 45);
                 buttons.add(new MenuButton(i, itemStack, ImmutableMap.of(ClickType.LEFT, p -> {
-                    if (PlotPlayer.wrap(p).getCurrentPlot().getId() != plot.getId()) {
+                    if (PlotPlayer.wrap(p.getBukkitPlayer()).getCurrentPlot().getId() != plot.getId()) {
                         p.sendMessage(ChatColor.RED + "You must be in your own plot to do this.");
                         p.closeInventory();
                         return;
@@ -217,10 +216,7 @@ public class PlotFloorUtil {
                     List<List<Location>> lines = Lists.partition(locations, 10);
                     IntStream.range(0, lines.size()).forEach(j -> Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> lines.get(j).forEach(location -> {
                         Block original = location.getBlock();
-                        BlockState block = original.getState();
-                        block.setType(itemStack.getType());
-                        block.setData(itemStack.getData());
-                        block.update(true);
+                        original.setType(itemStack.getType());
                     }), j));
                     Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> {
                         p.sendMessage(ChatColor.GREEN + "Floor update complete.");

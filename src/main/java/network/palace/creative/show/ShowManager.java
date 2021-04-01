@@ -170,7 +170,7 @@ public class ShowManager implements Listener {
             for (CPlayer p : Core.getPlayerManager().getOnlinePlayers()) {
                 if (p == null || p.getBukkitPlayer() == null)
                     continue;
-                Plot pl = PlotPlayer.wrap(p).getCurrentPlot();
+                Plot pl = PlotPlayer.wrap(p.getBukkitPlayer()).getCurrentPlot();
                 if (pl == null)
                     continue;
                 if (pl.getId().equals(plot.getId())) {
@@ -206,7 +206,7 @@ public class ShowManager implements Listener {
     }
 
     public void selectShow(CPlayer player) {
-        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
+        Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
         if (plot == null || !plot.getOwners().contains(player.getUniqueId())) {
             player.closeInventory();
             player.sendMessage(ChatColor.RED + "You must edit shows on your own Plot!");
@@ -430,7 +430,7 @@ public class ShowManager implements Listener {
         buttons.add(new MenuButton(22, Creative.getInstance().getMenuUtil().back, ImmutableMap.of(ClickType.LEFT, p -> editShow(p, 1, show))));
         if (action instanceof TextAction) {
             buttons.add(new MenuButton(11, setTimeItem, setTimeActions));
-            buttons.add(new MenuButton(15, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Set Text", Collections.singletonList(ChatColor.YELLOW + "Supports Color Codes!")), ImmutableMap.of(ClickType.LEFT, p -> {
+            buttons.add(new MenuButton(15, ItemUtil.create(Material.OAK_SIGN, ChatColor.GREEN + "Set Text", Collections.singletonList(ChatColor.YELLOW + "Supports Color Codes!")), ImmutableMap.of(ClickType.LEFT, p -> {
                 p.closeInventory();
                 p.getTitle().show(ChatColor.GREEN + "Set Text Message", ChatColor.GREEN +
                         "Type a message to be displayed (Color Codes work!)", 0, 0, 200);
@@ -616,7 +616,7 @@ public class ShowManager implements Listener {
 
     private void openAddAction(CPlayer player, Show show) {
         List<MenuButton> buttons = new ArrayList<>();
-        ItemStack text = ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Text Action");
+        ItemStack text = ItemUtil.create(Material.OAK_SIGN, ChatColor.GREEN + "Text Action");
         ItemStack removeMusic = ItemUtil.create(Material.BARRIER, ChatColor.RED + "Remove Music Track");
         ItemStack music = ItemUtil.create(Material.MUSIC_DISC_CHIRP, ChatColor.GREEN + "Set Music");
         ItemStack particle = ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Particle Action");

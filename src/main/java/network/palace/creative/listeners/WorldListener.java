@@ -11,7 +11,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -19,23 +18,6 @@ import org.bukkit.inventory.PlayerInventory;
  * Created by Marc on 1/3/17.
  */
 public class WorldListener implements Listener {
-    private static boolean plotsLoaded = false;
-    private static boolean creatorLoaded = false;
-
-    @EventHandler
-    public void onWorldLoad(WorldLoadEvent event) {
-        World world = event.getWorld();
-        world.setTime(2000);
-        String name = world.getName();
-        switch (name.toLowerCase()) {
-            case "plotworld":
-                plotsLoaded = true;
-                break;
-            case "creator":
-                creatorLoaded = true;
-                break;
-        }
-    }
 
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
@@ -65,9 +47,5 @@ public class WorldListener implements Listener {
                 e.remove();
             }
         }
-    }
-
-    public static boolean isAllLoaded() {
-        return plotsLoaded && creatorLoaded;
     }
 }

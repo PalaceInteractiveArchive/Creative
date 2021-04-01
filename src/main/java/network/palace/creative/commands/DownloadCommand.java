@@ -43,7 +43,7 @@ public class DownloadCommand extends CoreCommand {
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
+        Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
         if (!plot.getOwners().contains(player.getUniqueId())) {
             player.sendMessage(ChatColor.RED + "Only the Plot Owner can download a schematic of the plot!");
             return;

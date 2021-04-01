@@ -62,7 +62,7 @@ import java.util.function.Consumer;
 public class MenuUtil implements Listener {
     private final ItemStack bannerCreator = new ItemStack(Material.BLUE_BANNER);
     private final ItemStack plotTime = ItemUtil.create(Material.CLOCK, ChatColor.GREEN + "Plot Settings");
-    private final ItemStack myPlots = ItemUtil.create(Material.GRASS, ChatColor.GREEN + "My Plots");
+    private final ItemStack myPlots = ItemUtil.create(Material.GRASS_BLOCK, ChatColor.GREEN + "My Plots");
     private final ItemStack spawn = ItemUtil.create(Material.ENDER_PEARL, ChatColor.GREEN + "Spawn");
     private final ItemStack buildingPlots = ItemUtil.create(Material.DIRT, ChatColor.GREEN + "Building Plots");
     private final ItemStack headShop;
@@ -144,10 +144,10 @@ public class MenuUtil implements Listener {
         Creative plugin = Creative.getInstance();
         PlayerData data = plugin.getPlayerData(player.getUniqueId());
         if (data == null) return;
-        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
+        Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
         boolean owns = false;
         if (plot != null) {
-            for (Plot pl : PlotPlayer.wrap(player).getPlots("plotworld")) {
+            for (Plot pl : PlotPlayer.wrap(player.getBukkitPlayer()).getPlots("plotworld")) {
                 if (plot.getId().equals(pl.getId())) {
                     owns = true;
                     break;
@@ -212,13 +212,13 @@ public class MenuUtil implements Listener {
                         player.sendMessage(ChatColor.GREEN + "Teleported to " + getOwner(plot) + "'s Plot");
                     });
                     if (plot.getMembers().contains(player.getUniqueId())) {
-                        menu.setButton(new MenuButton(i++, ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(plot) + "'s Plot " +
+                        menu.setButton(new MenuButton(i++, ItemUtil.create(Material.GRASS_BLOCK, ChatColor.GREEN + getOwner(plot) + "'s Plot " +
                                 plot.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
                                 ChatColor.YELLOW + "Member")), actions));
                     }
 
                     if (plot.getTrusted().contains(player.getUniqueId())) {
-                        menu.setButton(new MenuButton(i++, ItemUtil.create(Material.GRASS, ChatColor.GREEN + getOwner(plot) + "'s Plot " +
+                        menu.setButton(new MenuButton(i++, ItemUtil.create(Material.GRASS_BLOCK, ChatColor.GREEN + getOwner(plot) + "'s Plot " +
                                 plot.getId().toString(), Collections.singletonList(ChatColor.GREEN + "Rank: " +
                                 ChatColor.GOLD + "" + ChatColor.ITALIC + "Trusted")), actions));
                     }
@@ -257,7 +257,7 @@ public class MenuUtil implements Listener {
 
     public void openMyPlots(CPlayer player) {
         List<MenuButton> buttons = new ArrayList<>();
-        List<Plot> plots = new ArrayList<>(PlotPlayer.wrap(player).getPlots("plotworld"));
+        List<Plot> plots = new ArrayList<>(PlotPlayer.wrap(player.getBukkitPlayer()).getPlots("plotworld"));
         if (plots.isEmpty()) {
             ItemStack empty = ItemUtil.create(Material.RED_WOOL, 1, ChatColor.RED +
                     "You don't have any plots!", Arrays.asList(ChatColor.GREEN + "Click here to get",
@@ -265,14 +265,10 @@ public class MenuUtil implements Listener {
             buttons.add(new MenuButton(13, empty));
         } else {
             for (int i = 0; i < plots.size(); i++) {
-                if (i >= 7) {
-                    break;
-                }
-
+                if (i >= 7) break;
                 Plot plot = plots.get(i);
-                ItemStack stack = ItemUtil.create(Material.GRASS, ChatColor.GREEN + "Plot ID: " +
-                        plot.getId().toString(), Collections.singletonList(ChatColor.GOLD +
-                        "Click to Manage this Plot!"));
+                ItemStack stack = ItemUtil.create(Material.GRASS_BLOCK, ChatColor.GREEN + "Plot ID: " +
+                        plot.getId().toString(), Collections.singletonList(ChatColor.GOLD + "Click to Manage this Plot!"));
                 buttons.add(new MenuButton(i + 10, stack, ImmutableMap.of(ClickType.LEFT, p -> openManagePlot(p, plot))));
             }
         }
@@ -282,28 +278,26 @@ public class MenuUtil implements Listener {
     }
 
     public void openPlotSettings(CPlayer player) {
-        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
+        Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
         Set<PlotFlag<?, ?>> flags = plot.getFlags();
         long time = 3000;
-        boolean flightEnabled = false;
+        boolean flightEnabled = plot.getFlag(FlyFlag.class) == null || plot.getFlag(FlyFlag.class) == FlyFlag.FlyStatus.ENABLED;
         PlotWeather weather = PlotWeather.CLEAR;
         for (PlotFlag<?, ?> flag : flags) {
             if (flag.getName().equalsIgnoreCase("time")) {
                 time = (long) flag.getValue();
             } else if (flag.getName().equalsIgnoreCase("weather")) {
                 weather = (PlotWeather) flag.getValue();
-            } else if (flag.getName().equalsIgnoreCase("flight")) {
-                flightEnabled = (boolean) flag.getValue();
             }
         }
         List<String> current = Collections.singletonList(ChatColor.YELLOW + "Currently Selected!");
         List<String> not = Collections.singletonList(ChatColor.GRAY + "Click to Select!");
         List<MenuButton> buttons = new ArrayList<>();
-        buttons.add(new MenuButton(2, ItemUtil.create(Material.GRASS, ChatColor.GREEN + "Set the floor of your plot."), ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getPlotFloorUtil().open(p, 1))));
+        buttons.add(new MenuButton(2, ItemUtil.create(Material.GRASS_BLOCK, ChatColor.GREEN + "Set the floor of your plot"), ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getPlotFloorUtil().open(p, 1))));
         buttons.add(new MenuButton(3, ItemUtil.create(Material.SUNFLOWER, ChatColor.GREEN + "Clear", weather.equals(PlotWeather.CLEAR) ? current : not), getWeatherAction(plot, PlotWeather.CLEAR)));
         buttons.add(new MenuButton(4, ItemUtil.create(Material.DEAD_BUSH, 1, ChatColor.DARK_GREEN + "Change Biome", new ArrayList<>()), ImmutableMap.of(ClickType.LEFT, p -> openChangeBiome(p, plot))));
         buttons.add(new MenuButton(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain", weather.equals(PlotWeather.RAIN) ? current : not), getWeatherAction(plot, PlotWeather.RAIN)));
-        buttons.add(new MenuButton(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? Collections.singletonList(ChatColor.GRAY + "Visitors can not fly.") : Collections.singletonList(ChatColor.YELLOW + "Visitors can fly.")), ImmutableMap.of(ClickType.LEFT, p -> {
+        buttons.add(new MenuButton(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? Collections.singletonList(ChatColor.YELLOW + "Visitors can fly") : Collections.singletonList(ChatColor.GRAY + "Visitors cannot fly")), ImmutableMap.of(ClickType.LEFT, p -> {
             FlyFlag.FlyStatus flight = plot.getFlag(FlyFlag.class);
             FlyFlag newValue;
             switch (flight) {
@@ -493,10 +487,10 @@ public class MenuUtil implements Listener {
         }
 
         if (data.hasRPTag()) {
-            buttons.add(new MenuButton(11, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Role Play Tag",
+            buttons.add(new MenuButton(11, ItemUtil.create(Material.OAK_SIGN, ChatColor.GREEN + "Role Play Tag",
                     Collections.singletonList(ChatColor.GREEN + "You own this!"))));
         } else {
-            buttons.add(new MenuButton(11, ItemUtil.create(Material.SIGN, ChatColor.GREEN + "Role Play Tag",
+            buttons.add(new MenuButton(11, ItemUtil.create(Material.OAK_SIGN, ChatColor.GREEN + "Role Play Tag",
                     Arrays.asList(ChatColor.YELLOW + "Price: " + ChatColor.GREEN + "✪ 100", ChatColor.RED +
                             "This can't be undone!")), ImmutableMap.of(ClickType.LEFT, p -> {
                 int tokens = Core.getMongoHandler().getCurrency(p.getUniqueId(), CurrencyType.TOKENS);
@@ -516,7 +510,7 @@ public class MenuUtil implements Listener {
             })));
         }
 
-        if (PlotPlayer.wrap(player).getPlots("plotworld").size() == 1) {
+        if (PlotPlayer.wrap(player.getBukkitPlayer()).getPlots("plotworld").size() == 1) {
             buttons.add(new MenuButton(13, purchase, ImmutableMap.of(ClickType.LEFT, p -> {
                 if (balance < 5000) {
                     p.sendMessage(ChatColor.RED + "You cannot afford a Second Plot! You need "
@@ -632,7 +626,7 @@ public class MenuUtil implements Listener {
                     return;
                 }
                 plot.addMember(op.getUniqueId());
-                PlotSquared.get().getEventDispatcher().callMember(PlotPlayer.wrap(ply), plot, op.getUniqueId(), true);
+                PlotSquared.get().getEventDispatcher().callMember(PlotPlayer.wrap(ply.getBukkitPlayer()), plot, op.getUniqueId(), true);
                 ply.sendMessage(ChatColor.GREEN + "Successfully added " + op.getName() + " to Plot " + plot.getId().toString());
                 op.sendMessage(ChatColor.GREEN + "You were added to " + ChatColor.YELLOW + owner + "'s Plot! " +
                         ChatColor.GREEN + "Use /menu to get to it.");
@@ -670,7 +664,7 @@ public class MenuUtil implements Listener {
                     return;
                 }
                 plot.addTrusted(op.getUniqueId());
-                PlotSquared.get().getEventDispatcher().callTrusted(PlotPlayer.wrap(ply), plot, op.getUniqueId(), true);
+                PlotSquared.get().getEventDispatcher().callTrusted(PlotPlayer.wrap(ply.getBukkitPlayer()), plot, op.getUniqueId(), true);
                 ply.sendMessage(ChatColor.GREEN + "Successfully trusted " + op.getName() + " to Plot " + plot.getId().toString());
                 op.sendMessage(ChatColor.GREEN + "You were " + ChatColor.GOLD + ChatColor.ITALIC + "trusted " + ChatColor.GREEN
                         + "to " + ChatColor.YELLOW + owner + "'s Plot! " + ChatColor.GREEN + "Use /menu to get to it.");
@@ -686,7 +680,7 @@ public class MenuUtil implements Listener {
             return;
         }
 
-        BukkitPlayer plotPlayer = (BukkitPlayer) PlotPlayer.wrap(player);
+        BukkitPlayer plotPlayer = (BukkitPlayer) PlotPlayer.wrap(player.getBukkitPlayer());
         if (plotPlayer == null) return;
 
         List<MenuButton> buttons = new ArrayList<>();
@@ -750,7 +744,7 @@ public class MenuUtil implements Listener {
         player.closeInventory();
         final long time = System.currentTimeMillis();
         player.sendMessage(ChatColor.GREEN + "Finding you a plot right now...");
-        BukkitPlayer plr = (BukkitPlayer) PlotPlayer.wrap(player);
+        BukkitPlayer plr = (BukkitPlayer) PlotPlayer.wrap(player.getBukkitPlayer());
         String world;
         Set<String> worlds = plotSquared.worlds.getConfigurationSection("worlds").getKeys(false);
         if (worlds.size() == 1) {
@@ -966,7 +960,7 @@ public class MenuUtil implements Listener {
                         }
 
                         plot.addMember(uuid);
-                        PlotSquared.get().getEventDispatcher().callMember(PlotPlayer.wrap(player), plot, uuid, true);
+                        PlotSquared.get().getEventDispatcher().callMember(PlotPlayer.wrap(player.getBukkitPlayer()), plot, uuid, true);
                         player.sendMessage(ChatColor.GREEN + name + " is now a " +
                                 ChatColor.YELLOW + "Member " + ChatColor.GREEN + "on Plot " + plot.getId().toString());
                     } else if (plot.getMembers().contains(uuid)) {
@@ -977,7 +971,7 @@ public class MenuUtil implements Listener {
                         }
 
                         plot.addTrusted(uuid);
-                        PlotSquared.get().getEventDispatcher().callTrusted(PlotPlayer.wrap(player), plot, uuid, true);
+                        PlotSquared.get().getEventDispatcher().callTrusted(PlotPlayer.wrap(player.getBukkitPlayer()), plot, uuid, true);
                         player.sendMessage(ChatColor.GREEN + name + " is now a " +
                                 ChatColor.YELLOW + "Trusted " + ChatColor.GREEN + "on Plot " + plot.getId().toString());
                     }

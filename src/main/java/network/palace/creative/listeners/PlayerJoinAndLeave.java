@@ -39,10 +39,6 @@ public class PlayerJoinAndLeave implements Listener {
             event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_OTHER);
             event.setKickMessage(ChatColor.RED + "There was an error loading your Player Data!");
         }
-        if (!WorldListener.isAllLoaded()) {
-            event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_OTHER);
-            event.setKickMessage(ChatColor.RED + "We're still loading all of the worlds!");
-        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

@@ -13,7 +13,7 @@ import org.bukkit.potion.PotionEffectType;
 /**
  * Created by Marc on 5/25/15
  */
-@CommandMeta(description = "Enable Night Vision", rank = Rank.DWELLER)
+@CommandMeta(description = "Enable Night Vision", rank = Rank.PASSHOLDER)
 public class NightvisionCommand extends CoreCommand {
 
     public NightvisionCommand() {

@@ -15,7 +15,7 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Return to Spawn", rank = Rank.SETTLER)
+@CommandMeta(description = "Return to Spawn", rank = Rank.GUEST)
 public class SpawnCommand extends CoreCommand {
 
     public SpawnCommand() {
@@ -41,7 +41,7 @@ public class SpawnCommand extends CoreCommand {
         if (player == null) {
             return;
         }
-        if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
+        if (player.getRank().getRankId() < Rank.CM.getRankId()) {
             player.teleport(Creative.getInstance().getSpawn());
             return;
         }

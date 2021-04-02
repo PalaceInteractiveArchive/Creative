@@ -10,7 +10,7 @@ import network.palace.creative.utils.TpaUtil;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Accept a teleport request", rank = Rank.SETTLER)
+@CommandMeta(description = "Accept a teleport request", rank = Rank.GUEST)
 public class TpAcceptCommand extends CoreCommand {
 
     public TpAcceptCommand() {

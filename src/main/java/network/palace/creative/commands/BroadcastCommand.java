@@ -11,7 +11,7 @@ import org.bukkit.command.CommandSender;
 /**
  * Created by Marc on 2/6/15
  */
-@CommandMeta(description = "Broadcast to the whole server", rank = Rank.MOD)
+@CommandMeta(description = "Broadcast to the whole server", rank = Rank.CM)
 public class BroadcastCommand extends CoreCommand {
 
     public BroadcastCommand() {

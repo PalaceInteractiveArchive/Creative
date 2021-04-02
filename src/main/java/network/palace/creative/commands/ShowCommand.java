@@ -24,7 +24,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 /**
  * Created by Marc on 12/11/15
  */
-@CommandMeta(description = "Show Manager", rank = Rank.SETTLER)
+@CommandMeta(description = "Show Manager", rank = Rank.GUEST)
 public class ShowCommand extends CoreCommand {
     private FormattedMessage msg = new FormattedMessage("[Show] ").color(ChatColor.BLUE)
             .then("Purchase the Show Creator in the Creative Shop to use this! ").color(ChatColor.YELLOW)
@@ -137,7 +137,7 @@ public class ShowCommand extends CoreCommand {
                 return;
             }
             case "reload": {
-                if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
+                if (player.getRank().getRankId() < Rank.CM.getRankId()) {
                     helpMenu(player);
                     return;
                 }
@@ -155,7 +155,7 @@ public class ShowCommand extends CoreCommand {
         player.sendMessage(ChatColor.GREEN + "/show start [name]" + ChatColor.AQUA + "- Start your coded Show");
         player.sendMessage(ChatColor.GREEN + "/show stop " + ChatColor.AQUA + "- Stop your coded Show");
         player.sendMessage(ChatColor.GREEN + "/show edit [name]" + ChatColor.AQUA + "- Edit your Show");
-        if (player.getRank().getRankId() >= Rank.MOD.getRankId()) {
+        if (player.getRank().getRankId() >= Rank.CM.getRankId()) {
             player.sendMessage(ChatColor.GREEN + "/show reload " + ChatColor.AQUA + "- Reload track list");
         }
     }

@@ -11,7 +11,7 @@ import network.palace.creative.handlers.BannerInventoryType;
 /**
  * Created by Marc on 6/12/15
  */
-@CommandMeta(description = "Open the Banner Creator", rank = Rank.SETTLER)
+@CommandMeta(description = "Open the Banner Creator", rank = Rank.GUEST)
 public class BannerCommand extends CoreCommand {
 
     public BannerCommand() {

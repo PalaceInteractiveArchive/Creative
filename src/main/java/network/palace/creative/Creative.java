@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.9.16")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.9.17")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -324,7 +324,7 @@ public class Creative extends Plugin {
             YamlConfiguration warpList = YamlConfiguration.loadConfiguration(warpFile);
             List<String> list = warpList.getStringList("warps");
             for (String item : list) {
-                Rank rank = Rank.SETTLER;
+                Rank rank = Rank.GUEST;
                 if (warpList.contains("warp." + item + ".rank")) {
                     rank = Rank.fromString(warpList.getString("warp." + item + ".rank"));
                 }

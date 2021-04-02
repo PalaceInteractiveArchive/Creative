@@ -10,7 +10,7 @@ import network.palace.creative.Creative;
 /**
  * Created by Marc on 9/6/15
  */
-@CommandMeta(description = "Open Particle Menu", rank = Rank.SETTLER)
+@CommandMeta(description = "Open Particle Menu", rank = Rank.GUEST)
 public class PTCommand extends CoreCommand {
 
     public PTCommand() {

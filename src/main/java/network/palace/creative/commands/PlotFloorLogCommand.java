@@ -14,7 +14,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-@CommandMeta(aliases = {"pfl"}, description = "Check the last time a person set the floor of their plot.", rank = Rank.MOD)
+@CommandMeta(aliases = {"pfl"}, description = "Check the last time a person set the floor of their plot.", rank = Rank.CM)
 public class PlotFloorLogCommand extends CoreCommand {
 
     public PlotFloorLogCommand() {

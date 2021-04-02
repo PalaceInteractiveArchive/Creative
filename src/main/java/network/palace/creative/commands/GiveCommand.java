@@ -11,7 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-@CommandMeta(description = "Give yourself an item", aliases = {"item", "i"}, rank = Rank.MOD)
+@CommandMeta(description = "Give yourself an item", aliases = {"item", "i"}, rank = Rank.CM)
 public class GiveCommand extends CoreCommand {
 
     public GiveCommand() {

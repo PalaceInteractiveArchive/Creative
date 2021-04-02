@@ -18,7 +18,7 @@ import network.palace.creative.utils.MenuUtil;
 import network.palace.creative.utils.PlotWarpUtil;
 import org.bukkit.ChatColor;
 
-@CommandMeta(description = "Player submitted warps to plots.", rank = Rank.SETTLER)
+@CommandMeta(description = "Player submitted warps to plots.", rank = Rank.GUEST)
 public class PlotWarpCommand extends CoreCommand {
 
     public PlotWarpCommand() {
@@ -32,7 +32,7 @@ public class PlotWarpCommand extends CoreCommand {
         if (args.length > 0) {
             String name = args[0];
             if (args.length > 1) {
-                if (player.getRank().getRankId() < Rank.HONORABLE.getRankId()) {
+                if (player.getRank().getRankId() < Rank.CLUB.getRankId()) {
                     player.sendMessage(ChatColor.RED + "You must be Honorable+ to use this command.");
                     return;
                 }

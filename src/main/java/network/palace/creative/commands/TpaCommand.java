@@ -14,7 +14,7 @@ import org.bukkit.ChatColor;
 /**
  * Created by Marc on 2/6/15
  */
-@CommandMeta(description = "Send a teleport request", rank = Rank.SETTLER)
+@CommandMeta(description = "Send a teleport request", rank = Rank.GUEST)
 public class TpaCommand extends CoreCommand {
 
     public TpaCommand() {

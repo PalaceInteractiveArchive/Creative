@@ -19,7 +19,7 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Warp to a location", rank = Rank.SETTLER)
+@CommandMeta(description = "Warp to a location", rank = Rank.GUEST)
 public class WarpCommand extends CoreCommand {
 
     public WarpCommand() {
@@ -53,7 +53,7 @@ public class WarpCommand extends CoreCommand {
         CPlayer player = Core.getPlayerManager().getPlayer((Player) sender);
         if (player == null)
             return;
-        if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
+        if (player.getRank().getRankId() < Rank.CM.getRankId()) {
             if (args.length == 0) {
                 listWarps(player, 1);
                 return;

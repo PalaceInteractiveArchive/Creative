@@ -129,7 +129,7 @@ public class BlockEdit implements Listener {
             event.getPlayer().sendMessage(ChatColor.RED + "You cannot place blocks right now! (Error Code 107)");
             return;
         }
-        if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
+        if (player.getRank().getRankId() < Rank.CM.getRankId()) {
             if (event.getBlock().getType().equals(Material.BEDROCK)) {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You cannot place or break Bedrock!");
@@ -145,7 +145,7 @@ public class BlockEdit implements Listener {
             event.getPlayer().sendMessage(ChatColor.RED + "You cannot place blocks right now! (Error Code 107)");
             return;
         }
-        if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
+        if (player.getRank().getRankId() < Rank.CM.getRankId()) {
             PlayerInventory inv = player.getInventory();
             Material main = inv.getItemInMainHand().getType();
             Material offhand = inv.getItemInOffHand().getType();

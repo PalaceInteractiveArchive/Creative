@@ -321,7 +321,7 @@ public class MenuUtil implements Listener {
             return;
         }
 
-        if (cPlayer.getRank() != Rank.SETTLER) {
+        if (cPlayer.getRank() != Rank.GUEST) {
             buttons.add(new MenuButton(13, ItemUtil.create(Material.GREEN_RECORD, ChatColor.GREEN + "Set park loop music."), ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParkLoopUtil().open(p, 1))));
         }
 

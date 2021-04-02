@@ -83,6 +83,7 @@ public class PlayerJoinAndLeave implements Listener {
         }
         Creative.getInstance().getParticleManager().join(player);
         player.sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.AQUA + "" + ChatColor.BOLD + "Palace Creative!");
+        if (!Creative.getInstance().getMotd().equals("blank")) player.sendMessage(Creative.getInstance().getMotd());
     }
 
     @EventHandler

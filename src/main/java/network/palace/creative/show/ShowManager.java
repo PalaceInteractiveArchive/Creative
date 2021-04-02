@@ -276,13 +276,13 @@ public class ShowManager implements Listener {
 
     public int getMaxShowAmount(CPlayer player) {
         switch (player.getRank()) {
-            case SETTLER:
+            case GUEST:
                 return 1;
-            case DWELLER:
+            case PASSHOLDER:
                 return 2;
-            case NOBLE:
+            case PASSPORT:
                 return 3;
-            case MAJESTIC:
+            case DVC:
                 return 4;
             default:
                 return 5;

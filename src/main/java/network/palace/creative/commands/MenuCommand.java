@@ -11,7 +11,7 @@ import org.bukkit.ChatColor;
 /**
  * Created by Marc on 7/29/15
  */
-@CommandMeta(description = "Open Creative Menu", rank = Rank.Guest)
+@CommandMeta(description = "Open Creative Menu", rank = Rank.GUEST)
 public class MenuCommand extends CoreCommand {
 
     public MenuCommand() {

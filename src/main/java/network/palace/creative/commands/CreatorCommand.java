@@ -28,7 +28,7 @@ import java.util.UUID;
 /**
  * Created by Marc on 1/21/16
  */
-@CommandMeta(description = "Creator Project", rank = Rank.Guest)
+@CommandMeta(description = "Creator Project", rank = Rank.GUEST)
 public class CreatorCommand extends CoreCommand {
     private static FormattedMessage msg = new FormattedMessage("Learn how to join The Creator Project: ")
             .color(ChatColor.YELLOW).style(ChatColor.BOLD).then("https://palnet.us/creator").color(ChatColor.AQUA)

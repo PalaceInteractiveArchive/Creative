@@ -19,7 +19,7 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Warp to a location", rank = Rank.Guest)
+@CommandMeta(description = "Warp to a location", rank = Rank.GUEST)
 public class WarpCommand extends CoreCommand {
 
     public WarpCommand() {

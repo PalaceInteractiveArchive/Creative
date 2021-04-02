@@ -13,7 +13,7 @@ import org.bukkit.inventory.PlayerInventory;
 /**
  * Created by Marc on 6/27/16
  */
-@CommandMeta(description = "Replace the Creative Star", rank = Rank.Guest)
+@CommandMeta(description = "Replace the Creative Star", rank = Rank.GUEST)
 public class StarCommand extends CoreCommand {
 
     public StarCommand() {

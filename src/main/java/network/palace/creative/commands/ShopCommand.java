@@ -10,7 +10,7 @@ import network.palace.creative.Creative;
 /**
  * Created by Marc on 12/27/15
  */
-@CommandMeta(description = "Open Creative Shop", rank = Rank.Guest)
+@CommandMeta(description = "Open Creative Shop", rank = Rank.GUEST)
 public class ShopCommand extends CoreCommand {
 
     public ShopCommand() {

@@ -24,7 +24,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 /**
  * Created by Marc on 12/11/15
  */
-@CommandMeta(description = "Show Manager", rank = Rank.Guest)
+@CommandMeta(description = "Show Manager", rank = Rank.GUEST)
 public class ShowCommand extends CoreCommand {
     private FormattedMessage msg = new FormattedMessage("[Show] ").color(ChatColor.BLUE)
             .then("Purchase the Show Creator in the Creative Shop to use this! ").color(ChatColor.YELLOW)

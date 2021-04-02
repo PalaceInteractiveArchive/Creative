@@ -15,7 +15,7 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Return to Spawn", rank = Rank.Guest)
+@CommandMeta(description = "Return to Spawn", rank = Rank.GUEST)
 public class SpawnCommand extends CoreCommand {
 
     public SpawnCommand() {

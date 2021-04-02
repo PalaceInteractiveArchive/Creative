@@ -127,7 +127,6 @@ public class BlockEdit implements Listener {
                 event.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "You are not permitted to place " + ChatColor.GREEN + block.getType().toString() + "!");
             }
-        } else {
             if (!event.isCancelled() && event.getBlock().getType().equals(Material.PLAYER_HEAD)) {
                 ItemStack item = player.getItemInMainHand();
                 if (!item.getType().equals(Material.PLAYER_HEAD)) {
@@ -160,6 +159,8 @@ public class BlockEdit implements Listener {
                     }
                 }
             }
+        } else {
+            event.setCancelled(false);
         }
     }
 

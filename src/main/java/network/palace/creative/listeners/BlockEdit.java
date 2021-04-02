@@ -1,5 +1,6 @@
 package network.palace.creative.listeners;
 
+import com.comphenix.protocol.wrappers.nbt.NbtBase;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtFactory;
 import com.google.gson.JsonArray;
@@ -136,11 +137,11 @@ public class BlockEdit implements Listener {
                     boolean valid = false;
                     try {
                         NbtCompound compound = (NbtCompound) NbtFactory.fromItemTag(item);
-                        JsonReader reader = new JsonReader(new StringReader(String.valueOf(compound.getValue("SkullOwner").getValue())));
+                        NbtCompound skullOwner = (NbtCompound) ((NbtBase<?>) compound.getValue("SkullOwner"));
+                        JsonReader reader = new JsonReader(new StringReader(skullOwner.getValue("Properties").toString()));
                         reader.setLenient(true);
                         JsonObject object = (JsonObject) new JsonParser().parse(reader);
-                        JsonObject properties = object.getAsJsonObject("Properties");
-                        JsonObject textures = properties.getAsJsonObject("textures");
+                        JsonObject textures = object.getAsJsonObject("textures");
                         JsonArray value = textures.getAsJsonArray("value");
                         JsonObject entry = (JsonObject) value.get(0);
                         String texture = entry.get("Value").getAsString();

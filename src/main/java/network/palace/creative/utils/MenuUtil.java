@@ -36,6 +36,7 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -50,6 +51,8 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 import java.util.Map.Entry;
@@ -298,6 +301,7 @@ public class MenuUtil implements Listener {
         buttons.add(new MenuButton(4, ItemUtil.create(Material.DEAD_BUSH, 1, ChatColor.DARK_GREEN + "Change Biome", new ArrayList<>()), ImmutableMap.of(ClickType.LEFT, p -> openChangeBiome(p, plot))));
         buttons.add(new MenuButton(5, ItemUtil.create(Material.WATER_BUCKET, ChatColor.GREEN + "Rain", weather.equals(PlotWeather.RAIN) ? current : not), getWeatherAction(plot, PlotWeather.RAIN)));
         buttons.add(new MenuButton(6, ItemUtil.create(Material.ELYTRA, ChatColor.GREEN + "Toggle Flight", flightEnabled ? Collections.singletonList(ChatColor.YELLOW + "Visitors can fly") : Collections.singletonList(ChatColor.GRAY + "Visitors cannot fly")), ImmutableMap.of(ClickType.LEFT, p -> {
+            if (plot == null) return;
             FlyFlag.FlyStatus flight = plot.getFlag(FlyFlag.class);
             FlyFlag newValue;
             switch (flight) {
@@ -318,6 +322,57 @@ public class MenuUtil implements Listener {
             }
 
             p.closeInventory();
+        })));
+        buttons.add(new MenuButton(8, ItemUtil.create(Material.BARRIER, ChatColor.RED + "Delete Plot", Arrays.asList(ChatColor.GRAY + "" + ChatColor.BOLD + "This is not reversible!", "", ChatColor.GRAY + "You will be asked to confirm", ChatColor.GRAY + "before your plot is cleared.")), ImmutableMap.of(ClickType.LEFT, pl -> {
+            if (plot == null) return;
+            new Menu(27, ChatColor.RED + "Clear Plot " + plot.getId().toString() + "?", pl, Arrays.asList(
+                    new MenuButton(12, ItemUtil.create(Material.GRAY_TERRACOTTA, ChatColor.GRAY + "Cancel - Do Not Clear Plot"), ImmutableMap.of(ClickType.LEFT, CPlayer::closeInventory)),
+                    new MenuButton(14, ItemUtil.create(Material.YELLOW_TERRACOTTA, ChatColor.YELLOW + "Confirm - Clear Plot", Collections.singletonList(ChatColor.RED + "" + ChatColor.BOLD + "This is " + ChatColor.ITALIC + "not" + ChatColor.RED + "" + ChatColor.BOLD + " reversible!")), ImmutableMap.of(ClickType.LEFT, p -> {
+                        p.closeInventory();
+                        File plotClearsFile = new File("plugins/Creative/plot_clear_delays.yml");
+                        if (!plotClearsFile.exists()) {
+                            try {
+                                plotClearsFile.createNewFile();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                p.sendMessage(ChatColor.RED + "An error occurred while processing that task!");
+                                return;
+                            }
+                        }
+                        YamlConfiguration config = YamlConfiguration.loadConfiguration(plotClearsFile);
+                        if (config.contains(p.getUniqueId().toString())) {
+                            long lastClear = config.getLong(p.getUniqueId().toString());
+                            if (System.currentTimeMillis() - lastClear < (1000 * 60 * 60 * 24)) {
+                                int hours = (int) ((System.currentTimeMillis() - lastClear) / (1000 * 60 * 60));
+                                int minutes = ((int) ((System.currentTimeMillis() - lastClear) / (1000 * 60))) - (hours * 60);
+                                p.sendMessage(ChatColor.RED + "You must wait 24 hours between plot clears.");
+                                p.sendMessage(ChatColor.RED + "You can clear a plot again in " + ChatColor.YELLOW + hours + " hours and " + minutes + " minutes.");
+                                return;
+                            }
+                        }
+                        if (plot == null) return;
+                        if (!plot.getOwners().contains(p.getUniqueId())) {
+                            p.sendMessage(ChatColor.RED + "Only the plot owner can clear the plot!");
+                            return;
+                        }
+                        if (plot.getRunning() > 0) {
+                            p.sendMessage(ChatColor.RED + "Your plot is currently executing a task, try again in a few minutes.");
+                            return;
+                        }
+                        config.set(p.getUniqueId().toString(), System.currentTimeMillis());
+                        try {
+                            config.save(plotClearsFile);
+                            p.sendMessage(ChatColor.YELLOW + "The plot clear process will start shortly...");
+                            plot.clear(true, false, () -> {
+                                plot.removeRunning();
+                                p.sendMessage(ChatColor.YELLOW + "Your plot has finished being cleared.");
+                            });
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            p.sendMessage(ChatColor.RED + "An error occurred while processing that task!");
+                        }
+                    }))
+            )).open();
         })));
 
         if (player.getRank() != Rank.SETTLER) {

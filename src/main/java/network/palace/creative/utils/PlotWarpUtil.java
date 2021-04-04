@@ -2,18 +2,6 @@ package network.palace.creative.utils;
 
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableMap;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.UUID;
 import network.palace.core.menu.Menu;
 import network.palace.core.menu.MenuButton;
 import network.palace.core.player.CPlayer;
@@ -30,6 +18,11 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class PlotWarpUtil {
 
@@ -57,12 +50,10 @@ public class PlotWarpUtil {
         if (!file.exists()) {
             try {
                 file.createNewFile();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        else {
+        } else {
             warps.clear();
             YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
             loadWarps(yaml.getConfigurationSection("warps"), warps);
@@ -81,7 +72,7 @@ public class PlotWarpUtil {
             Warp w = new Warp(name, warp.getDouble("x"),
                     warp.getDouble("y"), warp.getDouble("z"),
                     (float) warp.getInt("yaw"), (float) warp.getInt("pitch"),
-                    warp.getString("world"), Rank.SETTLER);
+                    warp.getString("world"), Rank.GUEST);
             map.put(uuid, w);
         });
     }
@@ -99,8 +90,7 @@ public class PlotWarpUtil {
                     p.teleport(w.getLocation());
                     p.sendMessage(ChatColor.GREEN + "You have been warped to " + ChatColor.GOLD + w.getName());
                 })));
-            }
-            catch (IndexOutOfBoundsException ignored) {
+            } catch (IndexOutOfBoundsException ignored) {
 
             }
         }
@@ -114,7 +104,7 @@ public class PlotWarpUtil {
             buttons.add(new MenuButton(45, menuUtil.last, ImmutableMap.of(ClickType.LEFT, p -> openWarpsMenu(p, page - 1))));
         }
         buttons.add(new MenuButton(49, menuUtil.back, ImmutableMap.of(ClickType.LEFT, CPlayer::closeInventory)));
-        if (page <= new Double(Math.ceil(warps.size() / 45D)).intValue()) {
+        if (page <= (int) (Math.ceil(warps.size() / 45D))) {
             buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, p -> openWarpsMenu(p, page + 1))));
         }
         new Menu(54, ChatColor.BLUE + "Plot Warps", player, buttons).open();
@@ -136,8 +126,7 @@ public class PlotWarpUtil {
                     warps.put(uuid, warp);
                     try {
                         save();
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         p.sendMessage(ChatColor.RED + "An error has occurred. Please alert a dev!");
                         e.printStackTrace();
                         return;
@@ -149,8 +138,7 @@ public class PlotWarpUtil {
                     p.sendMessage(ChatColor.RED + "Warp denied!");
                     try {
                         save();
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         p.sendMessage(ChatColor.RED + "An error has occurred. Please alert a dev!");
                         e.printStackTrace();
                         return;
@@ -158,8 +146,7 @@ public class PlotWarpUtil {
 
                     openWarpsReviewMenu(p, page);
                 })));
-            }
-            catch (IndexOutOfBoundsException ignored) {
+            } catch (IndexOutOfBoundsException ignored) {
 
             }
         }
@@ -170,7 +157,7 @@ public class PlotWarpUtil {
         }
 
         buttons.add(new MenuButton(49, menuUtil.back, ImmutableMap.of(ClickType.LEFT, p -> openWarpsMenu(p, 1))));
-        if (page <= new Double(Math.ceil(pendingWarps.size() / 45D)).intValue()) {
+        if (page <= (int) (Math.ceil(pendingWarps.size() / 45D))) {
             buttons.add(new MenuButton(53, menuUtil.next, ImmutableMap.of(ClickType.LEFT, p -> openWarpsReviewMenu(p, page + 1))));
         }
 
@@ -179,7 +166,7 @@ public class PlotWarpUtil {
 
     public void submitWarp(String name, Player player) throws IOException {
         Location loc = player.getLocation();
-        pendingWarps.put(player.getUniqueId(), new Warp(name, loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch(), player.getWorld().getName(), Rank.SETTLER));
+        pendingWarps.put(player.getUniqueId(), new Warp(name, loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch(), player.getWorld().getName(), Rank.GUEST));
         File file = new File(Creative.getInstance().getDataFolder(), "plot_warps.yml");
         if (!file.exists()) {
             file.createNewFile();
@@ -212,7 +199,7 @@ public class PlotWarpUtil {
             yaml.set(path + "yaw", warp.getYaw());
             yaml.set(path + "pitch", warp.getPitch());
             yaml.set(path + "world", warp.getWorld().getName());
-            yaml.set(path + "rank", Rank.SETTLER.toString());
+            yaml.set(path + "rank", Rank.GUEST.toString());
         });
     }
 

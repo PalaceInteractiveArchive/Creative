@@ -10,7 +10,7 @@ import org.bukkit.ChatColor;
 
 import java.io.IOException;
 
-@CommandMeta(description = "Set the Creative MOTD", rank = Rank.MOD)
+@CommandMeta(description = "Set the Creative MOTD", rank = Rank.CM)
 public class SetMOTDCommand extends CoreCommand {
 
     public SetMOTDCommand() {
@@ -19,20 +19,23 @@ public class SetMOTDCommand extends CoreCommand {
 
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
-        if (args.length < 3) {
+        if (args.length < 1) {
             player.sendMessage(ChatColor.RED + "/setmotd [MOTD]");
             player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.ITALIC + "The MOTD is Green by default, and supports color codes.");
             player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.ITALIC + "Run '/setmotd blank' to disable the MOTD.");
             return;
         }
         StringBuilder msg = new StringBuilder();
-        for (int i = 2; i < args.length; i++) {
-            msg.append(args[i]).append(" ");
+        for (String arg : args) {
+            msg.append(arg).append(" ");
         }
-        String motd = ChatColor.AQUA + ChatColor.translateAlternateColorCodes('&', msg.toString().trim());
+        String motd;
+        if (msg.toString().trim().equalsIgnoreCase("blank")) motd = "blank";
+        else motd = ChatColor.AQUA + ChatColor.translateAlternateColorCodes('&', msg.toString().trim());
         try {
             Creative.getInstance().setMotd(motd);
-            player.sendMessage(ChatColor.GREEN + "Set the Creative MOTD to: " + motd);
+            if (motd.equals("blank")) player.sendMessage(ChatColor.GREEN + "Disabled the Creative MOTD!");
+            else player.sendMessage(ChatColor.GREEN + "Set the Creative MOTD to: " + motd);
         } catch (IOException e) {
             e.printStackTrace();
             player.sendMessage(ChatColor.RED + "Failed to set the Creative MOTD! Check console for errors.");

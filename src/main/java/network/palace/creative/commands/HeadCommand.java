@@ -11,7 +11,7 @@ import org.bukkit.command.CommandSender;
 /**
  * Created by Marc on 12/14/14
  */
-@CommandMeta(description = "Reload head database", rank = Rank.MOD)
+@CommandMeta(description = "Reload head database", rank = Rank.CM)
 public class HeadCommand extends CoreCommand {
 
     public HeadCommand() {

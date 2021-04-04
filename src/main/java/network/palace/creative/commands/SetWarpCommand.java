@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Set a warp location", rank = Rank.MOD)
+@CommandMeta(description = "Set a warp location", rank = Rank.CM)
 public class SetWarpCommand extends CoreCommand {
 
     public SetWarpCommand() {
@@ -24,7 +24,7 @@ public class SetWarpCommand extends CoreCommand {
     @Override
     protected void handleCommandUnspecific(CommandSender sender, String[] args) throws CommandException {
         Player player = (Player) sender;
-        Rank rank = Rank.SETTLER;
+        Rank rank = Rank.GUEST;
         if (args.length == 0) {
             player.sendMessage(ChatColor.RED + "/setwarp [Warp] <rank>");
             return;
@@ -43,7 +43,7 @@ public class SetWarpCommand extends CoreCommand {
                 loc.getWorld().getName(), rank);
         Creative.getInstance().createWarp(warp);
         player.sendMessage(ChatColor.GRAY + "Warp " + args[0] + " set!");
-        if (!rank.equals(Rank.SETTLER)) {
+        if (!rank.equals(Rank.GUEST)) {
             player.sendMessage(ChatColor.RED + "This warp is restricted to " + rank.getFormattedName() + ChatColor.RED + " and up!");
         }
     }

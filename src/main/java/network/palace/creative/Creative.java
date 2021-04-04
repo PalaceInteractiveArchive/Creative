@@ -309,7 +309,8 @@ public class Creative extends Plugin {
             spawn = new Location(Bukkit.getWorld(config.getString("spawn.world")), config.getDouble("spawn.x"),
                     config.getDouble("spawn.y"), config.getDouble("spawn.z"), config.getInt("spawn.yaw"),
                     config.getInt("spawn.pitch"));
-            motd = config.getString("motd");
+            if (config.contains("motd")) motd = config.getString("motd");
+            else motd = "blank";
         }
     }
 
@@ -327,7 +328,7 @@ public class Creative extends Plugin {
             YamlConfiguration warpList = YamlConfiguration.loadConfiguration(warpFile);
             List<String> list = warpList.getStringList("warps");
             for (String item : list) {
-                Rank rank = Rank.SETTLER;
+                Rank rank = Rank.GUEST;
                 if (warpList.contains("warp." + item + ".rank")) {
                     rank = Rank.fromString(warpList.getString("warp." + item + ".rank"));
                 }

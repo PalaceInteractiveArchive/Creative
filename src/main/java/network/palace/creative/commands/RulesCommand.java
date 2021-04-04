@@ -11,7 +11,7 @@ import org.bukkit.ChatColor;
 /**
  * Created by Marc on 12/27/15
  */
-@CommandMeta(description = "View Creative Rules", rank = Rank.SETTLER)
+@CommandMeta(description = "View Creative Rules", rank = Rank.GUEST)
 public class RulesCommand extends CoreCommand {
     private FormattedMessage msg = new FormattedMessage("\nClick to read the Creative Rules on our Website!\n")
             .color(ChatColor.YELLOW).style(ChatColor.BOLD).link("https://palace.network/creative/rules/");

@@ -327,7 +327,7 @@ public class MenuUtil implements Listener {
             if (plot == null) return;
             new Menu(27, ChatColor.RED + "Clear Plot " + plot.getId().toString() + "?", pl, Arrays.asList(
                     new MenuButton(12, ItemUtil.create(Material.GRAY_TERRACOTTA, ChatColor.GRAY + "Cancel - Do Not Clear Plot"), ImmutableMap.of(ClickType.LEFT, CPlayer::closeInventory)),
-                    new MenuButton(14, ItemUtil.create(Material.YELLOW_TERRACOTTA, ChatColor.YELLOW + "Confirm - Clear Plot", Collections.singletonList(ChatColor.RED + "" + ChatColor.BOLD + "This is " + ChatColor.ITALIC + "not" + ChatColor.RED + "" + ChatColor.BOLD + " reversible!")), ImmutableMap.of(ClickType.LEFT, p -> {
+                    new MenuButton(14, ItemUtil.create(Material.YELLOW_TERRACOTTA, ChatColor.YELLOW + "Confirm - Clear Plot", Arrays.asList(ChatColor.RED + "" + ChatColor.BOLD + "This is " + ChatColor.ITALIC + "not" + ChatColor.RED + "" + ChatColor.BOLD + " reversible!", "", ChatColor.RED + "" + ChatColor.BOLD + "Staff members can " + ChatColor.ITALIC + "not " + ChatColor.RED + "" + ChatColor.BOLD + "undo this!")), ImmutableMap.of(ClickType.LEFT, p -> {
                         p.closeInventory();
                         File plotClearsFile = new File("plugins/Creative/plot_clear_delays.yml");
                         if (!plotClearsFile.exists()) {
@@ -342,9 +342,10 @@ public class MenuUtil implements Listener {
                         YamlConfiguration config = YamlConfiguration.loadConfiguration(plotClearsFile);
                         if (config.contains(p.getUniqueId().toString())) {
                             long lastClear = config.getLong(p.getUniqueId().toString());
-                            if (System.currentTimeMillis() - lastClear < (1000 * 60 * 60 * 24)) {
-                                int hours = (int) ((System.currentTimeMillis() - lastClear) / (1000 * 60 * 60));
-                                int minutes = ((int) ((System.currentTimeMillis() - lastClear) / (1000 * 60))) - (hours * 60);
+                            long oneDay = 24 * 60 * 60 * 1000;
+                            if (System.currentTimeMillis() - lastClear < oneDay) {
+                                int hours = (int) (((lastClear + oneDay) - System.currentTimeMillis()) / (1000 * 60 * 60));
+                                int minutes = ((int) (((lastClear + oneDay) - System.currentTimeMillis()) / (1000 * 60))) - (hours * 60);
                                 p.sendMessage(ChatColor.RED + "You must wait 24 hours between plot clears.");
                                 p.sendMessage(ChatColor.RED + "You can clear a plot again in " + ChatColor.YELLOW + hours + " hours and " + minutes + " minutes.");
                                 return;
@@ -362,8 +363,9 @@ public class MenuUtil implements Listener {
                         config.set(p.getUniqueId().toString(), System.currentTimeMillis());
                         try {
                             config.save(plotClearsFile);
+                            plot.addRunning();
                             p.sendMessage(ChatColor.YELLOW + "The plot clear process will start shortly...");
-                            plot.clear(true, false, () -> {
+                            plot.clear(false, false, () -> {
                                 plot.removeRunning();
                                 p.sendMessage(ChatColor.YELLOW + "Your plot has finished being cleared.");
                             });
@@ -375,7 +377,7 @@ public class MenuUtil implements Listener {
             )).open();
         })));
 
-        if (player.getRank() != Rank.SETTLER) {
+        if (player.getRank() != Rank.GUEST) {
             buttons.add(new MenuButton(13, ItemUtil.create(Material.MUSIC_DISC_CAT, ChatColor.GREEN + "Set park loop music."), ImmutableMap.of(ClickType.LEFT, p -> Creative.getInstance().getParkLoopUtil().open(p, 1))));
         }
 

@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Set player time", rank = Rank.MOD)
+@CommandMeta(description = "Set player time", rank = Rank.CM)
 public class PtimeCommand extends CoreCommand {
 
     public PtimeCommand() {

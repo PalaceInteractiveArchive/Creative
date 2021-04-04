@@ -15,7 +15,7 @@ import org.bukkit.entity.Player;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@CommandMeta(aliases = {"pfl"}, description = "Check the last time a person set the floor of their plot.", rank = Rank.MOD)
+@CommandMeta(aliases = {"pfl"}, description = "Check the last time a person set the floor of their plot.", rank = Rank.CM)
 public class PlotFloorLogCommand extends CoreCommand {
 
     public PlotFloorLogCommand() {

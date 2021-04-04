@@ -43,6 +43,7 @@ public class PlotFloorUtil {
     private final List<PlotId> active = new ArrayList<>();
     private final Map<UUID, LogSection> logs = new HashMap<>();
 
+    @SuppressWarnings("deprecation")
     public PlotFloorUtil() {
         this.materials = Stream.of(Material.values()).filter(Material::isSolid).filter(material -> !material.isLegacy()).filter(material -> !material.hasGravity())
                 .filter(material -> {
@@ -191,15 +192,19 @@ public class PlotFloorUtil {
             try {
                 ItemStack itemStack = materials.get(i + (page - 1) * 45);
                 buttons.add(new MenuButton(i, itemStack, ImmutableMap.of(ClickType.LEFT, p -> {
+                    p.closeInventory();
                     if (PlotPlayer.wrap(p.getBukkitPlayer()).getCurrentPlot().getId() != plot.getId()) {
                         p.sendMessage(ChatColor.RED + "You must be in your own plot to do this.");
-                        p.closeInventory();
                         return;
                     }
 
                     if (active.contains(plot.getId())) {
                         p.sendMessage(ChatColor.RED + "The floor of your plot is still being updated. Please wait until it is completed.");
-                        p.closeInventory();
+                        return;
+                    }
+
+                    if (plot.getRunning() > 0) {
+                        p.sendMessage(ChatColor.RED + "Your plot is currently executing a task, try again in a few minutes.");
                         return;
                     }
 
@@ -211,7 +216,7 @@ public class PlotFloorUtil {
                             locations.add(new Location(p.getWorld(), x, 64, z));
                         }
                     }
-
+                    plot.addRunning();
                     log(new LogSection(System.currentTimeMillis(), itemStack.getType(), p.getUniqueId()));
                     List<List<Location>> lines = Lists.partition(locations, 10);
                     IntStream.range(0, lines.size()).forEach(j -> Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> lines.get(j).forEach(location -> {
@@ -221,9 +226,9 @@ public class PlotFloorUtil {
                     Bukkit.getScheduler().scheduleSyncDelayedTask(Creative.getInstance(), () -> {
                         p.sendMessage(ChatColor.GREEN + "Floor update complete.");
                         active.remove(plot.getId());
+                        plot.removeRunning();
                     }, lines.size());
                     active.add(plot.getId());
-                    p.closeInventory();
                     p.sendMessage(ChatColor.GREEN + "We are updating the floor to your plot. This may take a few moments.");
                 })));
             } catch (IndexOutOfBoundsException ignored) {

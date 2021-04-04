@@ -20,11 +20,11 @@ public class SpeedCommand extends CoreCommand {
     @Override
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
         if (args.length < 1) {
-            player.sendMessage(ChatColor.RED + "/speed [speed]" + (player.getRank().getRankId() >= Rank.MOD.getRankId() ? " <player>" : ""));
+            player.sendMessage(ChatColor.RED + "/speed [speed]" + (player.getRank().getRankId() >= Rank.CM.getRankId() ? " <player>" : ""));
             return;
         }
         CPlayer target;
-        if (args.length > 1 && player.getRank().getRankId() >= Rank.MOD.getRankId()) {
+        if (args.length > 1 && player.getRank().getRankId() >= Rank.CM.getRankId()) {
             target = Core.getPlayerManager().getPlayer(args[1]);
         } else {
             target = player;
@@ -46,7 +46,7 @@ public class SpeedCommand extends CoreCommand {
             sender.sendMessage(ChatColor.RED + "Player not found!");
             return;
         }
-        boolean isFlying = target.getRank().getRankId() >= Rank.SPECIALGUEST.getRankId() && target.isFlying();
+        boolean isFlying = target.getRank().getRankId() >= Rank.VIP.getRankId() && target.isFlying();
         float speed = getMoveSpeed(speedString);
         if (isFlying) {
             target.setFlySpeed(getRealMoveSpeed(speed, true));

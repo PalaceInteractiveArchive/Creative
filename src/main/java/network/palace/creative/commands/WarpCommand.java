@@ -1,7 +1,5 @@
 package network.palace.creative.commands;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import network.palace.core.Core;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
@@ -16,10 +14,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Created by Marc on 2/8/15
  */
-@CommandMeta(description = "Warp to a location", rank = Rank.SETTLER)
+@CommandMeta(description = "Warp to a location", rank = Rank.GUEST)
 public class WarpCommand extends CoreCommand {
 
     public WarpCommand() {
@@ -53,7 +54,7 @@ public class WarpCommand extends CoreCommand {
         CPlayer player = Core.getPlayerManager().getPlayer((Player) sender);
         if (player == null)
             return;
-        if (player.getRank().getRankId() < Rank.MOD.getRankId()) {
+        if (player.getRank().getRankId() < Rank.CM.getRankId()) {
             if (args.length == 0) {
                 listWarps(player, 1);
                 return;
@@ -144,7 +145,7 @@ public class WarpCommand extends CoreCommand {
             return;
         }
         int max = page * 20;
-        List<String> names = nlist.subList(20 * (page - 1), nlist.size() < max ? nlist.size() : max);
+        List<String> names = nlist.subList(20 * (page - 1), Math.min(nlist.size(), max));
         FormattedMessage msg = new FormattedMessage("Warps (Page " + page + "):\n").color(ChatColor.GRAY);
         for (int i = 0; i < names.size(); i++) {
             String warp = names.get(i);

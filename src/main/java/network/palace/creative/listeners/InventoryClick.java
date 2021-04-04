@@ -77,6 +77,6 @@ public class InventoryClick implements Listener {
 
     @EventHandler
     public void onInventoryOpen(InventoryOpenEvent event) {
-        if (event.getView().getType().equals(InventoryType.SHULKER_BOX)) event.setCancelled(true);
+//        if (event.getView().getType().equals(InventoryType.SHULKER_BOX)) event.setCancelled(true);
     }
 }

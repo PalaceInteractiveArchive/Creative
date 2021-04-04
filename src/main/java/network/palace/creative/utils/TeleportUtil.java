@@ -23,7 +23,7 @@ public class TeleportUtil {
             return;
         }
 
-        if (cPlayer.getRank().getRankId() < Rank.MOD.getRankId()) {
+        if (cPlayer.getRank().getRankId() < Rank.CM.getRankId()) {
             return;
         }
 

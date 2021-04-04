@@ -323,7 +323,7 @@ public class MenuUtil implements Listener {
 
             p.closeInventory();
         })));
-        buttons.add(new MenuButton(8, ItemUtil.create(Material.BARRIER, ChatColor.RED + "Delete Plot", Arrays.asList(ChatColor.GRAY + "" + ChatColor.BOLD + "This is not reversible!", "", ChatColor.GRAY + "You will be asked to confirm", ChatColor.GRAY + "before your plot is cleared.")), ImmutableMap.of(ClickType.LEFT, pl -> {
+        buttons.add(new MenuButton(8, ItemUtil.create(Material.BARRIER, ChatColor.RED + "Clear Plot", Arrays.asList(ChatColor.GRAY + "" + ChatColor.BOLD + "This is not reversible!", "", ChatColor.GRAY + "You will be asked to confirm", ChatColor.GRAY + "before your plot is cleared.")), ImmutableMap.of(ClickType.LEFT, pl -> {
             if (plot == null) return;
             new Menu(27, ChatColor.RED + "Clear Plot " + plot.getId().toString() + "?", pl, Arrays.asList(
                     new MenuButton(12, ItemUtil.create(Material.GRAY_TERRACOTTA, ChatColor.GRAY + "Cancel - Do Not Clear Plot"), ImmutableMap.of(ClickType.LEFT, CPlayer::closeInventory)),

@@ -265,7 +265,7 @@ public class MenuUtil implements Listener {
             ItemStack empty = ItemUtil.create(Material.RED_WOOL, 1, ChatColor.RED +
                     "You don't have any plots!", Arrays.asList(ChatColor.GREEN + "Click here to get",
                     ChatColor.GREEN + "your own plot!"));
-            buttons.add(new MenuButton(13, empty));
+            buttons.add(new MenuButton(13, empty, ImmutableMap.of(ClickType.LEFT, p -> givePlot(p, true))));
         } else {
             for (int i = 0; i < plots.size(); i++) {
                 if (i >= 7) break;
@@ -840,6 +840,8 @@ public class MenuUtil implements Listener {
         }
         player.sendMessage(ChatColor.GREEN + "Here's your Plot! Get to it with /menu. " + ChatColor.DARK_AQUA +
                 "(Took " + (System.currentTimeMillis() - time) + "ms)");
+        player.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "Important: " + ChatColor.LIGHT_PURPLE +
+                "If you do not connect to Creative for 180 days (6 months), your plots will be automatically deleted. This helps us keep the world size manageable.");
         Core.getPlayerManager().getPlayer(player.getUniqueId()).giveAchievement(9);
     }
 

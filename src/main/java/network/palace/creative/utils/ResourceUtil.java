@@ -1,15 +1,6 @@
 package network.palace.creative.utils;
 
 import com.google.common.collect.ImmutableMap;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.function.Consumer;
 import network.palace.core.Core;
 import network.palace.core.menu.Menu;
 import network.palace.core.menu.MenuButton;
@@ -26,6 +17,11 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Created by Marc on 1/3/17.
@@ -130,12 +126,12 @@ public class ResourceUtil {
                 return;
             }
             data.setResourcePack(pack.getName());
+            p.closeInventory();
+            p.sendMessage(ChatColor.GREEN + "You set your Creative Resource Pack to " + ChatColor.YELLOW +
+                    pack.getName() + ChatColor.GREEN + "! It will automatically download when you join Creative.");
+            p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 0);
             Bukkit.getScheduler().runTaskAsynchronously(Creative.getInstance(), () -> {
-                p.sendMessage(ChatColor.GREEN + "You set your Creative Resource Pack to " + ChatColor.YELLOW +
-                        pack.getName() + ChatColor.GREEN + "! It will automatically download when you join Creative.");
                 Core.getMongoHandler().setCreativeValue(p.getUniqueId(), "pack", pack.getName());
-                p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 0);
-                p.closeInventory();
                 if (!p.getPack().equalsIgnoreCase(pack.getName())) {
                     Core.getResourceManager().sendPack(p, pack);
                 }

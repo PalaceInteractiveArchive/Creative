@@ -49,8 +49,6 @@ public class ParticleUtil {
                 return Particle.FLAME;
             case "lava":
                 return Particle.LAVA;
-            case "footstep":
-                return Particle.FOOTSTEP;
             case "splash":
                 return Particle.WATER_SPLASH;
             case "wake":

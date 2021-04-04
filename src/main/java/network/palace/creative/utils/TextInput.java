@@ -1,5 +1,10 @@
 package network.palace.creative.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.BiConsumer;
+import network.palace.core.player.CPlayer;
 import network.palace.creative.Creative;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -9,18 +14,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.function.BiConsumer;
-
 public class TextInput implements Listener {
 
     private static final List<UUID> SESSIONS = new ArrayList<>();
-    private final Player player;
-    private final BiConsumer<Player, String> action;
+    private final CPlayer player;
+    private final BiConsumer<CPlayer, String> action;
 
-    public TextInput(Player player, BiConsumer<Player, String> action) {
+    public TextInput(CPlayer player, BiConsumer<CPlayer, String> action) {
         this.player = player;
         this.action = action;
         SESSIONS.add(player.getUniqueId());
@@ -33,7 +33,6 @@ public class TextInput implements Listener {
 
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
-        Player player = event.getPlayer();
         if (player.getUniqueId().equals(this.player.getUniqueId())) {
             event.setCancelled(true);
             action.accept(player, event.getMessage());

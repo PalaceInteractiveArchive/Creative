@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.9.17")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.9.16-1.16", apiversion = "1.16")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
@@ -52,6 +52,7 @@ public class Creative extends Plugin {
     @Getter private PlotWarpUtil plotWarpUtil;
     @Getter private final HashMap<UUID, PlayerData> playerData = new HashMap<>();
 
+    @Getter private String motd;
     @Getter private PlayParticle playParticle;
 
     @Override
@@ -75,7 +76,7 @@ public class Creative extends Plugin {
         playParticle = new PlayParticle();
         itemExploitHandler = new ItemExploitHandler();
 
-        Core.runTaskTimer(playParticle, 0L, 2L);
+        Core.runTaskTimer(this, playParticle, 0L, 2L);
 
         registerListeners();
         registerCommands();
@@ -194,7 +195,6 @@ public class Creative extends Plugin {
         registerCommand(new CreatorCommand());
         registerCommand(new CReloadCommand());
         registerCommand(new DelWarpCommand());
-        registerCommand(new DownloadCommand());
         registerCommand(new GiveCommand());
         registerCommand(new HeadCommand());
         registerCommand(new HealCommand());
@@ -213,6 +213,7 @@ public class Creative extends Plugin {
         registerCommand(new PweatherCommand());
         registerCommand(new RoleCommand());
         registerCommand(new RulesCommand());
+        registerCommand(new SetMOTDCommand());
         registerCommand(new SetSpawnCommand());
         registerCommand(new SetWarpCommand());
         registerCommand(new ShopCommand());
@@ -297,6 +298,7 @@ public class Creative extends Plugin {
                 e.printStackTrace();
             }
             config = YamlConfiguration.loadConfiguration(cnfg);
+            motd = "blank";
         } else {
             config = YamlConfiguration.loadConfiguration(cnfg);
             if (config.getString("spawn.world") == null) {
@@ -307,6 +309,8 @@ public class Creative extends Plugin {
             spawn = new Location(Bukkit.getWorld(config.getString("spawn.world")), config.getDouble("spawn.x"),
                     config.getDouble("spawn.y"), config.getDouble("spawn.z"), config.getInt("spawn.yaw"),
                     config.getInt("spawn.pitch"));
+            if (config.contains("motd")) motd = config.getString("motd");
+            else motd = "blank";
         }
     }
 
@@ -336,5 +340,17 @@ public class Creative extends Plugin {
                 warps.add(w);
             }
         }
+    }
+
+    public static com.plotsquared.core.location.Location wrapLocation(Location location) {
+        return new com.plotsquared.core.location.Location(location.getWorld().getName(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
+    }
+
+    public void setMotd(String motd) throws IOException {
+        this.motd = motd;
+        File cnfg = new File("plugins/Creative/config.yml");
+        config = YamlConfiguration.loadConfiguration(cnfg);
+        config.set("motd", motd);
+        config.save(cnfg);
     }
 }

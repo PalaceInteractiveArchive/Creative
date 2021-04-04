@@ -1,12 +1,7 @@
 package network.palace.creative.commands;
 
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.plotsquared.core.player.PlotPlayer;
+import com.plotsquared.core.plot.Plot;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
 import network.palace.core.command.CoreCommand;
@@ -17,6 +12,12 @@ import network.palace.creative.handlers.Warp;
 import network.palace.creative.utils.MenuUtil;
 import network.palace.creative.utils.PlotWarpUtil;
 import org.bukkit.ChatColor;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @CommandMeta(description = "Player submitted warps to plots.", rank = Rank.GUEST)
 public class PlotWarpCommand extends CoreCommand {
@@ -39,8 +40,7 @@ public class PlotWarpCommand extends CoreCommand {
 
                 switch (args[1].toLowerCase()) {
                     case "register":
-                        PlotAPI plotAPI = new PlotAPI();
-                        Plot plot = plotAPI.getPlot(player.getBukkitPlayer());
+                        Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
                         if (plot == null || !new ArrayList<>(plot.getOwners()).contains(player.getUniqueId())) {
                             player.sendMessage(ChatColor.RED + "You must be in a plot you own or co-own.");
                             return;
@@ -61,15 +61,14 @@ public class PlotWarpCommand extends CoreCommand {
                         try {
                             plotWarpUtil.submitWarp(args[0], player.getBukkitPlayer());
                             player.sendMessage(ChatColor.GREEN + "Your warp has been submitted. We will review it soon.");
-                        }
-                        catch (IOException e) {
+                        } catch (IOException e) {
                             player.sendMessage(ChatColor.RED + "An error has occurred. Please alert a dev!");
                             e.printStackTrace();
                         }
 
                         return;
                     case "delete":
-                        Optional<Warp> warp = plotWarpUtil.getWarp(args[0]).filter(w -> plotWarpUtil.getWarpOwner(w).equals(player.getUniqueId()) || MenuUtil.isStaff(player.getBukkitPlayer()));
+                        Optional<Warp> warp = plotWarpUtil.getWarp(args[0]).filter(w -> plotWarpUtil.getWarpOwner(w).equals(player.getUniqueId()) || MenuUtil.isStaff(player));
                         if (warp.isPresent()) {
                             plotWarpUtil.removeWarp(warp.get());
                             player.sendMessage(ChatColor.GREEN + "Warp deleted.");
@@ -97,6 +96,6 @@ public class PlotWarpCommand extends CoreCommand {
             return;
         }
 
-        plotWarpUtil.openWarpsMenu(player.getBukkitPlayer(), 1);
+        plotWarpUtil.openWarpsMenu(player, 1);
     }
 }

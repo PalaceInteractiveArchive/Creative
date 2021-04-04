@@ -1,7 +1,7 @@
 package network.palace.creative.listeners;
 
-import com.intellectualcrafters.plot.object.PlotPlayer;
-import com.plotsquared.bukkit.util.BukkitUtil;
+import com.plotsquared.bukkit.player.BukkitPlayer;
+import com.plotsquared.core.player.PlotPlayer;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.player.Rank;
@@ -39,10 +39,6 @@ public class PlayerJoinAndLeave implements Listener {
             event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_OTHER);
             event.setKickMessage(ChatColor.RED + "There was an error loading your Player Data!");
         }
-        if (!WorldListener.isAllLoaded()) {
-            event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_OTHER);
-            event.setKickMessage(ChatColor.RED + "We're still loading all of the worlds!");
-        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -53,8 +49,8 @@ public class PlayerJoinAndLeave implements Listener {
         player.getHeaderFooter().setHeader(ChatColor.GOLD + "Palace Network - A Family of Servers");
         player.getHeaderFooter().setFooter(ChatColor.LIGHT_PURPLE + "You're on the " + ChatColor.GREEN + "Creative " +
                 ChatColor.LIGHT_PURPLE + "server");
-        Core.runTaskLater(() -> {
-            PlotPlayer tp = BukkitUtil.getPlayer(player.getBukkitPlayer());
+        Core.runTaskLater(Creative.getInstance(), () -> {
+            BukkitPlayer tp = (BukkitPlayer) PlotPlayer.wrap(player.getBukkitPlayer());
             if (player.getRank().getRankId() >= Rank.TRAINEEBUILD.getRankId()) {
                 tp.setAttribute("worldedit");
             } else {
@@ -87,6 +83,7 @@ public class PlayerJoinAndLeave implements Listener {
         }
         Creative.getInstance().getParticleManager().join(player);
         player.sendMessage(ChatColor.GREEN + "Welcome to " + ChatColor.AQUA + "" + ChatColor.BOLD + "Palace Creative!");
+        if (!Creative.getInstance().getMotd().equals("blank")) player.sendMessage(Creative.getInstance().getMotd());
     }
 
     @EventHandler

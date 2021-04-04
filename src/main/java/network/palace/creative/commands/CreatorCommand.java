@@ -1,12 +1,12 @@
 package network.palace.creative.commands;
 
-import com.intellectualcrafters.plot.PS;
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
-import com.intellectualcrafters.plot.object.PlotArea;
-import com.intellectualcrafters.plot.object.PlotId;
-import com.intellectualcrafters.plot.object.PlotPlayer;
-import com.plotsquared.bukkit.util.BukkitUtil;
+import com.plotsquared.bukkit.player.BukkitPlayer;
+import com.plotsquared.core.PlotSquared;
+import com.plotsquared.core.api.PlotAPI;
+import com.plotsquared.core.player.PlotPlayer;
+import com.plotsquared.core.plot.Plot;
+import com.plotsquared.core.plot.PlotArea;
+import com.plotsquared.core.plot.PlotId;
 import network.palace.core.Core;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
@@ -30,10 +30,10 @@ import java.util.UUID;
  */
 @CommandMeta(description = "Creator Project", rank = Rank.GUEST)
 public class CreatorCommand extends CoreCommand {
-    private static FormattedMessage msg = new FormattedMessage("Learn how to join The Creator Project: ")
+    private static final FormattedMessage msg = new FormattedMessage("Learn how to join The Creator Project: ")
             .color(ChatColor.YELLOW).style(ChatColor.BOLD).then("https://palnet.us/creator").color(ChatColor.AQUA)
             .link("https://palnet.us/creator").tooltip(ChatColor.GREEN + "Click to visit https://palnet.us/creator");
-    private static PlotAPI api = new PlotAPI();
+    private static final PlotAPI api = new PlotAPI();
 
     public CreatorCommand() {
         super("creator");
@@ -52,7 +52,7 @@ public class CreatorCommand extends CoreCommand {
             case 1: {
                 switch (args[0].toLowerCase()) {
                     case "plot": {
-                        List<Plot> plots = new ArrayList<>(api.getPlayerPlots(Bukkit.getWorld("creator"), player));
+                        List<Plot> plots = new ArrayList<>(PlotPlayer.wrap(player).getPlots("creator"));
                         if (plots.isEmpty()) {
                             giveCreatorPlot(player);
                         } else {
@@ -90,40 +90,38 @@ public class CreatorCommand extends CoreCommand {
                 return;
             }
             case 3: {
-                switch (args[0].toLowerCase()) {
-                    case "set": {
-                        if (p.getRank().getRankId() < Rank.COORDINATOR.getRankId()) {
-                            helpMenu(player, p.getRank());
-                            return;
-                        }
-                        String username = args[1];
-                        Boolean value = Boolean.valueOf(args[2]);
-                        UUID uuid;
-                        Player tp = Bukkit.getPlayer(username);
-                        if (tp == null) {
-                            uuid = Core.getMongoHandler().usernameToUUID(username);
-                            if (uuid == null) {
-                                player.sendMessage(ChatColor.RED + "Player not found!");
-                                return;
-                            }
-                        } else {
-                            username = tp.getName();
-                            uuid = tp.getUniqueId();
-                            if (value) {
-                                tp.sendMessage(ChatColor.GREEN + "You are now part of The Creator Project!");
-                            } else {
-                                tp.sendMessage(ChatColor.RED + "You are no longer a part of The Creator Project!");
-                            }
-                            Creative.getInstance().getPlayerData(uuid).setCreator(value);
-                        }
-                        Core.getMongoHandler().setCreativeValue(uuid, "creator", value);
-                        if (value) {
-                            player.sendMessage(ChatColor.GREEN + username + " is now part of The Creator Project!");
-                        } else {
-                            player.sendMessage(ChatColor.RED + username + " is no longer a part of The Creator Project!");
-                        }
+                if (args[0].equalsIgnoreCase("set")) {
+                    if (p.getRank().getRankId() < Rank.COORDINATOR.getRankId()) {
+                        helpMenu(player, p.getRank());
                         return;
                     }
+                    String username = args[1];
+                    boolean value = Boolean.parseBoolean(args[2]);
+                    UUID uuid;
+                    Player tp = Bukkit.getPlayer(username);
+                    if (tp == null) {
+                        uuid = Core.getMongoHandler().usernameToUUID(username);
+                        if (uuid == null) {
+                            player.sendMessage(ChatColor.RED + "Player not found!");
+                            return;
+                        }
+                    } else {
+                        username = tp.getName();
+                        uuid = tp.getUniqueId();
+                        if (value) {
+                            tp.sendMessage(ChatColor.GREEN + "You are now part of The Creator Project!");
+                        } else {
+                            tp.sendMessage(ChatColor.RED + "You are no longer a part of The Creator Project!");
+                        }
+                        Creative.getInstance().getPlayerData(uuid).setCreator(value);
+                    }
+                    Core.getMongoHandler().setCreativeValue(uuid, "creator", value);
+                    if (value) {
+                        player.sendMessage(ChatColor.GREEN + username + " is now part of The Creator Project!");
+                    } else {
+                        player.sendMessage(ChatColor.RED + username + " is no longer a part of The Creator Project!");
+                    }
+                    return;
                 }
                 helpMenu(player, p.getRank());
                 return;
@@ -136,19 +134,19 @@ public class CreatorCommand extends CoreCommand {
         player.closeInventory();
         final long time = System.currentTimeMillis();
         player.sendMessage(ChatColor.GREEN + "Finding you a plot right now...");
-        PlotPlayer plr = BukkitUtil.getPlayer(player);
+        BukkitPlayer plr = (BukkitPlayer) PlotPlayer.wrap(player);
         final String worldname = "creator";
-        PlotArea plotarea = PS.get().getPlotArea(worldname, worldname);
+        PlotArea plotarea = PlotSquared.get().getPlotArea(worldname, worldname);
         plotarea.setMeta("lastPlot", new PlotId(0, 0));
         while (true) {
             PlotId start = getNextPlotId(getLastPlotId(plotarea), 1);
-            PlotId end = new PlotId(start.x, start.y);
+            PlotId end = new PlotId(start.getX(), start.getY());
             plotarea.setMeta("lastPlot", start);
             if (plotarea.canClaim(plr, start, end)) {
-                for (int i = start.x; i <= end.x; i++) {
-                    for (int j = start.y; j <= end.y; j++) {
+                for (int i = start.getX(); i <= end.getX(); i++) {
+                    for (int j = start.getY(); j <= end.getY(); j++) {
                         Plot plot = plotarea.getPlotAbs(new PlotId(i, j));
-                        boolean teleport = i == end.x && j == end.y;
+                        boolean teleport = i == end.getX() && j == end.getY();
                         plot.claim(plr, teleport, null);
                     }
                 }
@@ -160,31 +158,31 @@ public class CreatorCommand extends CoreCommand {
     }
 
     public static PlotId getNextPlotId(PlotId id, int step) {
-        int absX = Math.abs(id.x);
-        int absY = Math.abs(id.y);
+        int absX = Math.abs(id.getX());
+        int absY = Math.abs(id.getY());
         if (absX > absY) {
-            if (id.x > 0) {
-                return new PlotId(id.x, id.y + 1);
+            if (id.getX() > 0) {
+                return new PlotId(id.getX(), id.getY() + 1);
             } else {
-                return new PlotId(id.x, id.y - 1);
+                return new PlotId(id.getX(), id.getY() - 1);
             }
         } else if (absY > absX) {
-            if (id.y > 0) {
-                return new PlotId(id.x - 1, id.y);
+            if (id.getY() > 0) {
+                return new PlotId(id.getX() - 1, id.getY());
             } else {
-                return new PlotId(id.x + 1, id.y);
+                return new PlotId(id.getX() + 1, id.getY());
             }
         } else {
-            if (id.x == id.y && id.x > 0) {
-                return new PlotId(id.x, id.y + step);
+            if (id.getX() == id.getY() && id.getX() > 0) {
+                return new PlotId(id.getX(), id.getY() + step);
             }
-            if (id.x == absX) {
-                return new PlotId(id.x, id.y + 1);
+            if (id.getX() == absX) {
+                return new PlotId(id.getX(), id.getY() + 1);
             }
-            if (id.y == absY) {
-                return new PlotId(id.x, id.y - 1);
+            if (id.getY() == absY) {
+                return new PlotId(id.getX(), id.getY() - 1);
             }
-            return new PlotId(id.x + 1, id.y);
+            return new PlotId(id.getX() + 1, id.getY());
         }
     }
 

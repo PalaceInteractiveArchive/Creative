@@ -21,21 +21,17 @@ public class BannedItemCheckCommand extends CoreCommand {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     protected void handleCommand(CPlayer player, String[] args) throws CommandException {
         if (args.length == 0) {
-            Creative.getInstance().getItemExploitHandler().openPlayerMenu(player.getBukkitPlayer(), 0);
+            Creative.getInstance().getItemExploitHandler().openPlayerMenu(player, 0);
             return;
         }
 
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(args[0]);
-        if (offlinePlayer == null) {
-            player.sendMessage(ChatColor.RED + "Player not found.");
-            return;
-        }
-
         Optional<CaughtUserData> data = Creative.getInstance().getItemExploitHandler().getData(offlinePlayer.getUniqueId());
         if (data.isPresent()) {
-            Creative.getInstance().getItemExploitHandler().viewPlayer(player.getBukkitPlayer(), data.get(), offlinePlayer, 1);
+            Creative.getInstance().getItemExploitHandler().viewPlayer(player, data.get(), offlinePlayer, 1);
             return;
         }
 

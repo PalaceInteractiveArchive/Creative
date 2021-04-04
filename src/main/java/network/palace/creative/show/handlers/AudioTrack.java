@@ -1,8 +1,9 @@
 package network.palace.creative.show.handlers;
 
-import org.bukkit.Material;
-
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
+import org.bukkit.Material;
 
 /**
  * Created by Marc on 6/16/16
@@ -10,12 +11,12 @@ import java.util.Random;
 public class AudioTrack {
     private final String name;
     private final String audioPath;
-    private final int itemID;
+    private final Material material;
 
     public AudioTrack(String name, String audioPath) {
         this.name = name;
         this.audioPath = audioPath;
-        this.itemID = randomBetween(2256, 2267);
+        this.material = randomBetween();
     }
 
     public String getName() {
@@ -26,16 +27,12 @@ public class AudioTrack {
         return audioPath;
     }
 
-    public int getItemID() {
-        return itemID;
+    private Material randomBetween() {
+        List<Material> discs = Arrays.asList(Material.MUSIC_DISC_11, Material.MUSIC_DISC_13, Material.MUSIC_DISC_BLOCKS, Material.MUSIC_DISC_CAT, Material.MUSIC_DISC_CHIRP, Material.MUSIC_DISC_FAR, Material.MUSIC_DISC_MALL, Material.MUSIC_DISC_MELLOHI, Material.MUSIC_DISC_STAL, Material.MUSIC_DISC_STRAD, Material.MUSIC_DISC_WAIT, Material.MUSIC_DISC_WARD);
+        return discs.get(new Random().nextInt(discs.size()));
     }
 
-    private static int randomBetween(int min, int max) {
-        return new Random().nextInt(max - min + 1) + min;
-    }
-
-    @SuppressWarnings("deprecation")
     public Material getItem() {
-        return Material.getMaterial(itemID);
+        return material;
     }
 }

@@ -11,19 +11,18 @@ import java.util.Map;
 import java.util.Random;
 import java.util.function.Consumer;
 import network.palace.core.Core;
+import network.palace.core.menu.Menu;
+import network.palace.core.menu.MenuButton;
 import network.palace.core.player.CPlayer;
 import network.palace.core.resource.ResourcePack;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
 import network.palace.creative.handlers.PlayerData;
-import network.palace.creative.inventory.Menu;
-import network.palace.creative.inventory.MenuButton;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -58,7 +57,7 @@ public class ResourceUtil {
         }
         YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
         List<String> s = config.getStringList("packs");
-        if (s == null || s.isEmpty()) {
+        if (s.isEmpty()) {
             Core.logMessage("Creative", ChatColor.RED + "No Resource Packs defined!");
             return;
         }
@@ -119,12 +118,11 @@ public class ResourceUtil {
             add = !add;
         }
 
-        new Menu(Bukkit.createInventory(player.getBukkitPlayer(), 27, ChatColor.BLUE + "Resource Pack"), player.getBukkitPlayer(), buttons);
+        new Menu(27, ChatColor.BLUE + "Resource Pack", player, buttons).open();
     }
 
-    private ImmutableMap<ClickType, Consumer<Player>> getResourcePackAction(String name, PlayerData data) {
+    private ImmutableMap<ClickType, Consumer<CPlayer>> getResourcePackAction(String name, PlayerData data) {
         return ImmutableMap.of(ClickType.LEFT, p -> {
-            CPlayer cPlayer = Core.getPlayerManager().getPlayer(p);
             ResourcePack pack = Core.getResourceManager().getPack(name);
             if (pack == null) {
                 p.sendMessage(ChatColor.RED + "We couldn't find the pack you clicked on! Try another one.");
@@ -138,39 +136,15 @@ public class ResourceUtil {
                 Core.getMongoHandler().setCreativeValue(p.getUniqueId(), "pack", pack.getName());
                 p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 0);
                 p.closeInventory();
-                if (!cPlayer.getPack().equalsIgnoreCase(pack.getName())) {
-                    Core.getResourceManager().sendPack(cPlayer, pack);
+                if (!p.getPack().equalsIgnoreCase(pack.getName())) {
+                    Core.getResourceManager().sendPack(p, pack);
                 }
             });
         });
     }
 
     public Material randomDisc() {
-        switch (random.nextInt(12) + 1) {
-            case 1:
-                return Material.GOLD_RECORD;
-            case 2:
-                return Material.GREEN_RECORD;
-            case 3:
-                return Material.RECORD_3;
-            case 4:
-                return Material.RECORD_4;
-            case 5:
-                return Material.RECORD_5;
-            case 6:
-                return Material.RECORD_6;
-            case 7:
-                return Material.RECORD_7;
-            case 8:
-                return Material.RECORD_8;
-            case 9:
-                return Material.RECORD_9;
-            case 10:
-                return Material.RECORD_10;
-            case 11:
-                return Material.RECORD_11;
-            default:
-                return Material.RECORD_12;
-        }
+        List<Material> discs = Arrays.asList(Material.MUSIC_DISC_11, Material.MUSIC_DISC_13, Material.MUSIC_DISC_BLOCKS, Material.MUSIC_DISC_CAT, Material.MUSIC_DISC_CHIRP, Material.MUSIC_DISC_FAR, Material.MUSIC_DISC_MALL, Material.MUSIC_DISC_MELLOHI, Material.MUSIC_DISC_STAL, Material.MUSIC_DISC_STRAD, Material.MUSIC_DISC_WAIT, Material.MUSIC_DISC_WARD);
+        return discs.get(new Random().nextInt(discs.size()));
     }
 }

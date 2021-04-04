@@ -1,6 +1,5 @@
 package network.palace.creative.commands;
 
-import java.util.Collection;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
 import network.palace.core.command.CoreCommand;
@@ -10,10 +9,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.Collection;
+
 /**
  * Created by Marc on 5/25/15
  */
-@CommandMeta(description = "Enable Night Vision", rank = Rank.PASSHOLDER)
+@CommandMeta(description = "Enable Night Vision", rank = Rank.PASSPORT)
 public class NightvisionCommand extends CoreCommand {
 
     public NightvisionCommand() {

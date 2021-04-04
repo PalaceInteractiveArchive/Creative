@@ -13,6 +13,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -23,9 +25,9 @@ import java.util.List;
  * Created by Marc on 6/12/15
  */
 public class InventoryClick implements Listener {
-    private List<Material> clickBlacklist = Arrays.asList(Material.MOB_SPAWNER, Material.PORTAL, Material.ENDER_PORTAL,
-            Material.DRAGON_EGG, Material.COMMAND, Material.COMMAND_CHAIN, Material.COMMAND_REPEATING,
-            Material.COMMAND_MINECART, Material.END_GATEWAY, Material.END_CRYSTAL,
+    private List<Material> clickBlacklist = Arrays.asList(Material.SPAWNER, Material.NETHER_PORTAL, Material.END_PORTAL,
+            Material.DRAGON_EGG, Material.COMMAND_BLOCK, Material.CHAIN_COMMAND_BLOCK, Material.REPEATING_COMMAND_BLOCK,
+            Material.COMMAND_BLOCK_MINECART, Material.END_GATEWAY, Material.END_CRYSTAL,
             Material.STRUCTURE_BLOCK, Material.STRUCTURE_VOID);
     private ItemStack air = ItemUtil.create(Material.AIR);
 
@@ -37,8 +39,6 @@ public class InventoryClick implements Listener {
         if (player.getRank().getRankId() >= Rank.TRAINEE.getRankId())
             return;
         ItemStack cursor = event.getCursor();
-        if (cursor == null)
-            return;
         Material type = cursor.getType();
         if (type != null && clickBlacklist.contains(type)) {
             event.setCancelled(true);
@@ -51,15 +51,14 @@ public class InventoryClick implements Listener {
         long t = System.currentTimeMillis();
         Inventory inv = event.getClickedInventory();
 
-        if (inv == null || inv.getTitle() == null) {
+        if (inv == null) {
             return;
         }
-        if (event.getWhoClicked() != null) {
-            if (event.getWhoClicked() instanceof Player) {
-                PlayerData data = Creative.getInstance().getPlayerData(event.getWhoClicked().getUniqueId());
-                if (data != null) {
-                    data.resetAction();
-                }
+
+        if (event.getWhoClicked() instanceof Player) {
+            PlayerData data = Creative.getInstance().getPlayerData(event.getWhoClicked().getUniqueId());
+            if (data != null) {
+                data.resetAction();
             }
         }
 
@@ -70,10 +69,14 @@ public class InventoryClick implements Listener {
                 if (cp == null)
                     continue;
                 if (cp.getRank().getRankId() >= Rank.DEVELOPER.getRankId()) {
-                    cp.sendMessage(ChatColor.RED + "Click event took " + diff + "ms! " + ChatColor.GREEN +
-                            event.getWhoClicked().getName() + " " + ChatColor.stripColor(inv.getTitle()) + " ");
+                    cp.sendMessage(ChatColor.RED + "Click event took " + diff + "ms! " + ChatColor.GREEN + event.getWhoClicked().getName());
                 }
             }
         }
+    }
+
+    @EventHandler
+    public void onInventoryOpen(InventoryOpenEvent event) {
+//        if (event.getView().getType().equals(InventoryType.SHULKER_BOX)) event.setCancelled(true);
     }
 }

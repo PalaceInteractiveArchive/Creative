@@ -1,6 +1,7 @@
 package network.palace.creative.show.actions;
 
 import java.util.Arrays;
+import java.util.Collections;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
@@ -54,7 +55,7 @@ public class ParticleAction extends ShowAction {
 
     @Override
     public ItemStack getItem() {
-        return ItemUtil.create(Material.NETHER_STAR, ChatColor.AQUA + "Particle Action", Arrays.asList(ChatColor.GREEN + "Time: " + (time / 1000) + " Particle: " + caps(particle == null ? "none" : ParticleUtil.getName(particle)) + " Loc: " + strLoc(loc)));
+        return ItemUtil.create(Material.NETHER_STAR, ChatColor.AQUA + "Particle Action", Collections.singletonList(ChatColor.GREEN + "Time: " + (time / 1000) + " Particle: " + caps(particle == null ? "none" : ParticleUtil.getName(particle)) + " Loc: " + strLoc(loc)));
     }
 
     @Override

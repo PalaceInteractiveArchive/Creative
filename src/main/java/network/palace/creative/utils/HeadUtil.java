@@ -1,5 +1,6 @@
 package network.palace.creative.utils;
 
+import com.comphenix.protocol.wrappers.nbt.NbtBase;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtFactory;
 import com.google.common.collect.ImmutableMap;
@@ -9,15 +10,15 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import lombok.Getter;
 import network.palace.core.Core;
+import network.palace.core.menu.Menu;
+import network.palace.core.menu.MenuButton;
+import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.Creative;
-import network.palace.creative.inventory.Menu;
-import network.palace.creative.inventory.MenuButton;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.json.simple.JSONArray;
@@ -83,11 +84,11 @@ public class HeadUtil {
                     ItemStack head = network.palace.core.utils.HeadUtil.getPlayerHead(hash, ChatColor.GREEN + lastName);
                     try {
                         NbtCompound compound = (NbtCompound) NbtFactory.fromItemTag(head);
-                        JsonReader reader = new JsonReader(new StringReader(String.valueOf(compound.getValue("SkullOwner").getValue())));
+                        NbtCompound skullOwner = (NbtCompound) ((NbtBase<?>) compound.getValue("SkullOwner"));
+                        JsonReader reader = new JsonReader(new StringReader(skullOwner.getValue("Properties").toString()));
                         reader.setLenient(true);
                         JsonObject object = (JsonObject) new JsonParser().parse(reader);
-                        JsonObject properties = object.getAsJsonObject("Properties");
-                        JsonObject textures = properties.getAsJsonObject("textures");
+                        JsonObject textures = object.getAsJsonObject("textures");
                         JsonArray value = textures.getAsJsonArray("value");
                         JsonObject entry = (JsonObject) value.get(0);
                         String texture = entry.get("Value").getAsString();
@@ -130,7 +131,7 @@ public class HeadUtil {
         return sb.toString();
     }
 
-    public void openCategory(Player player, String name, int page) {
+    public void openCategory(CPlayer player, String name, int page) {
         List<MenuButton> buttons = new ArrayList<>();
         List<ItemStack> heads = map.get(name);
         int size = heads.size();
@@ -156,6 +157,6 @@ public class HeadUtil {
             buttons.add(new MenuButton(s - 1, Creative.getInstance().getMenuUtil().next, ImmutableMap.of(ClickType.LEFT, p -> openCategory(p, name, page + 1))));
         }
 
-        new Menu(Bukkit.createInventory(player, s, ChatColor.BLUE + "Heads - " + name + " - " + page), player, buttons);
+        new Menu(s, ChatColor.BLUE + "Heads - " + name + " - " + page, player, buttons).open();
     }
 }

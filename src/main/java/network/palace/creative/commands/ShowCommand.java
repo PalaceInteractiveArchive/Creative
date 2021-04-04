@@ -1,13 +1,7 @@
 package network.palace.creative.commands;
 
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
+import com.plotsquared.core.player.PlotPlayer;
+import com.plotsquared.core.plot.Plot;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
 import network.palace.core.command.CoreCommand;
@@ -21,12 +15,19 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.metadata.FixedMetadataValue;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
 /**
  * Created by Marc on 12/11/15
  */
 @CommandMeta(description = "Show Manager", rank = Rank.GUEST)
 public class ShowCommand extends CoreCommand {
-    private FormattedMessage msg = new FormattedMessage("[Show] ").color(ChatColor.BLUE)
+    private final FormattedMessage msg = new FormattedMessage("[Show] ").color(ChatColor.BLUE)
             .then("Purchase the Show Creator in the Creative Shop to use this! ").color(ChatColor.YELLOW)
             .then("Click here to open the Shop").color(ChatColor.AQUA).style(ChatColor.BOLD).tooltip(ChatColor.GREEN +
                     "Open the Creative Shop").command("/shop");
@@ -56,8 +57,7 @@ public class ShowCommand extends CoreCommand {
                             List<String> showName = new ArrayList<>(Arrays.asList(args));
                             showName.remove(0);
                             player.setMetadata("showname", new FixedMetadataValue(Creative.getInstance(), ChatColor.stripColor(String.join(" ", showName))));
-                        }
-                        else {
+                        } else {
                             File shows = new File("plugins/Creative/shows/" + player.getUniqueId().toString());
                             File[] files = shows.listFiles();
                             if (files == null) {
@@ -77,8 +77,7 @@ public class ShowCommand extends CoreCommand {
                         }
 
                         player.removeMetadata("showname", Creative.getInstance());
-                    }
-                    else {
+                    } else {
                         creative.getShowManager().messagePlayer(player, ChatColor.RED + "Please specify the name of your show.");
                     }
                 });
@@ -108,7 +107,7 @@ public class ShowCommand extends CoreCommand {
                         showName.remove(0);
                         String temp = String.join(" ", showName).replace("\\W", " ");
                         Optional<File> file = Stream.of(files).filter(f -> f.getName().contains(temp)).findFirst();
-                        if (!file.isPresent()) {
+                        if (file.isEmpty()) {
                             player.sendMessage(ChatColor.RED + "You do not have a show named: " + temp);
                             return;
                         }
@@ -122,16 +121,15 @@ public class ShowCommand extends CoreCommand {
                         return;
                     }
 
-                    Plot plot = new PlotAPI().getPlot(player.getBukkitPlayer());
+                    Plot plot = PlotPlayer.wrap(player.getBukkitPlayer()).getCurrentPlot();
                     if (plot == null || !player.getUniqueId().equals(plot.getOwners().iterator().next())) {
                         player.sendMessage(ChatColor.RED + "You must be on your own plot to edit this show.");
                         return;
                     }
 
-                    creative.getShowManager().editShow(player.getBukkitPlayer(), 1, new Show(file, player, plot));
-                }
-                else {
-                    creative.getShowManager().selectShow(player.getBukkitPlayer());
+                    creative.getShowManager().editShow(player, 1, new Show(file, player, plot));
+                } else {
+                    creative.getShowManager().selectShow(player);
                 }
 
                 return;

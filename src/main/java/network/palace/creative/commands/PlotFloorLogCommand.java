@@ -1,9 +1,7 @@
 package network.palace.creative.commands;
 
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.plotsquared.core.player.PlotPlayer;
+import com.plotsquared.core.plot.Plot;
 import network.palace.core.command.CommandException;
 import network.palace.core.command.CommandMeta;
 import network.palace.core.command.CoreCommand;
@@ -13,6 +11,9 @@ import network.palace.creative.utils.PlotFloorUtil.LogSection;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @CommandMeta(aliases = {"pfl"}, description = "Check the last time a person set the floor of their plot.", rank = Rank.CM)
 public class PlotFloorLogCommand extends CoreCommand {
@@ -29,8 +30,7 @@ public class PlotFloorLogCommand extends CoreCommand {
         }
 
         Player player = (Player) sender;
-        PlotAPI plotAPI = new PlotAPI();
-        Plot plot = plotAPI.getPlot(player);
+        Plot plot = PlotPlayer.wrap(player).getCurrentPlot();
         if (plot == null) {
             player.sendMessage(ChatColor.RED + "You must be on a plot to do that.");
             return;

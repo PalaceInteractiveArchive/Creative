@@ -34,8 +34,8 @@ public class ParticleManager {
         data.setParticle(null);
         stop(player.getUniqueId());
         player.sendMessage(ChatColor.GREEN + "Cleared your particle effects!");
-        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 100, 2);
-        Core.runTaskAsynchronously(() -> Core.getMongoHandler().setCreativeValue(player.getUniqueId(),
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 100, 2);
+        Core.runTaskAsynchronously(Creative.getInstance(), () -> Core.getMongoHandler().setCreativeValue(player.getUniqueId(),
                 "particle", "none"));
     }
 
@@ -84,7 +84,7 @@ public class ParticleManager {
         player.sendMessage(ChatColor.GREEN + "You have selected the " + displayName + ChatColor.GREEN + " Particle!");
         player.closeInventory();
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-        Core.runTaskAsynchronously(() -> Core.getMongoHandler().setCreativeValue(player.getUniqueId(),
+        Core.runTaskAsynchronously(Creative.getInstance(), () -> Core.getMongoHandler().setCreativeValue(player.getUniqueId(),
                 "particle", ParticleUtil.getName(effect)));
     }
 }

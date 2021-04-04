@@ -1,6 +1,7 @@
 package network.palace.creative.show.actions;
 
 import java.util.Arrays;
+import java.util.Collections;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.show.Show;
 import org.bukkit.ChatColor;
@@ -22,7 +23,7 @@ public class TextAction extends ShowAction {
 
     @Override
     public ItemStack getItem() {
-        return ItemUtil.create(Material.SIGN, ChatColor.AQUA + "Text Action", Arrays.asList(ChatColor.GREEN + "Time: " + (time / 1000) + " Text: \"" + text + ChatColor.GREEN + "\""));
+        return ItemUtil.create(Material.OAK_SIGN, ChatColor.AQUA + "Text Action", Collections.singletonList(ChatColor.GREEN + "Time: " + (time / 1000) + " Text: \"" + text + ChatColor.GREEN + "\""));
     }
 
     @Override

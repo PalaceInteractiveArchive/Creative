@@ -1,8 +1,8 @@
 package network.palace.creative.show;
 
-import com.intellectualcrafters.plot.api.PlotAPI;
-import com.intellectualcrafters.plot.object.Plot;
-import com.intellectualcrafters.plot.object.PlotId;
+import com.plotsquared.core.player.PlotPlayer;
+import com.plotsquared.core.plot.Plot;
+import com.plotsquared.core.plot.PlotId;
 import lombok.Getter;
 import lombok.Setter;
 import network.palace.audio.Audio;
@@ -60,7 +60,7 @@ public class Show {
         startTime = System.currentTimeMillis();
         this.plotId = plot.getId();
         for (Player tp : Bukkit.getOnlinePlayers()) {
-            Plot p = new PlotAPI().getPlot(tp.getLocation());
+            Plot p = PlotPlayer.wrap(tp).getCurrentPlot();
             if (p != null && p.getId().equals(plot.getId())) {
                 nearbyPlayers.add(tp.getUniqueId());
             }
@@ -204,7 +204,7 @@ public class Show {
         }
         List<UUID> list = new ArrayList<>();
         for (Player tp : Bukkit.getOnlinePlayers()) {
-            Plot p = new PlotAPI().getPlot(tp.getLocation());
+            Plot p = PlotPlayer.wrap(tp).getCurrentPlot();
             if (p != null && p.getId().equals(plotId)) {
                 list.add(tp.getUniqueId());
             }
@@ -465,7 +465,7 @@ public class Show {
         if (area == null) return;
         area.triggerPlayer(tp);
         tp.sendMessage(ChatColor.GREEN + "Syncing your audio!");
-        Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () -> area.sync(((System.currentTimeMillis() - musicTime + 300) / 1000.0), tp), 20L);
+        Bukkit.getScheduler().runTaskLater(Creative.getInstance(), () -> area.sync(((System.currentTimeMillis() - musicTime + 300) / 1000D), tp), 20L);
     }
 
     public void setName(String name) {

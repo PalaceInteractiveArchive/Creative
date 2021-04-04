@@ -153,7 +153,7 @@ public class ShowManager implements Listener {
         }
 
         Show show = new Show(showFile, player, plot);
-        if (show.getActions().isEmpty()) {
+        if (show.getActions().isEmpty() || show.getPlotId() == null) {
             return null;
         }
 
@@ -304,6 +304,9 @@ public class ShowManager implements Listener {
                 List<String> lore = meta.getLore();
                 lore.add(ChatColor.YELLOW + "Left-Click " + ChatColor.GREEN + "to Edit this Action!");
                 lore.add(ChatColor.YELLOW + "Right-Click " + ChatColor.RED + "to Remove this Action!");
+                if (action.isNeedsLocationUpdate())
+                    lore.addAll(Arrays.asList("", ChatColor.RED + "" + ChatColor.BOLD + "Important:",
+                            ChatColor.AQUA + "This action needs to be updated to", ChatColor.AQUA + "a location inside of your plot!"));
                 meta.setLore(lore);
                 itemStack.setItemMeta(meta);
                 buttons.add(new MenuButton(x, itemStack, ImmutableMap.of(ClickType.LEFT, p -> editAction(p, show, action), ClickType.RIGHT, p -> {
@@ -445,10 +448,12 @@ public class ShowManager implements Listener {
             new Menu(27, ChatColor.BLUE + "Edit Text Action", player, buttons).open();
         } else if (action instanceof ParticleAction) {
             buttons.add(new MenuButton(11, setTimeItem, setTimeActions));
+            buttons.add(new MenuButton(13, ItemUtil.create(Material.FILLED_MAP, ChatColor.GREEN + "Update Location", Collections.singletonList(ChatColor.YELLOW + "Move action to where you're currently standing")), ImmutableMap.of(ClickType.LEFT, p -> moveAction(p, show, action))));
             buttons.add(new MenuButton(15, ItemUtil.create(Material.NETHER_STAR, ChatColor.GREEN + "Set Particle", Collections.singletonList(ChatColor.YELLOW + "Some Minecraft Particles are not allowed")), ImmutableMap.of(ClickType.LEFT, p -> setParticle(p, show, (ParticleAction) action))));
             new Menu(27, ChatColor.BLUE + "Edit Particle Action", player, buttons).open();
         } else if (action instanceof FireworkAction) {
             FireworkAction a = (FireworkAction) action;
+            buttons.add(new MenuButton(4, ItemUtil.create(Material.FILLED_MAP, ChatColor.GREEN + "Update Location", Collections.singletonList(ChatColor.YELLOW + "Move action to where you're currently standing")), ImmutableMap.of(ClickType.LEFT, p -> moveAction(p, show, action))));
             buttons.add(new MenuButton(10, setTimeItem, setTimeActions));
             buttons.add(new MenuButton(11, ItemUtil.create(Material.FIREWORK_STAR, ChatColor.GREEN + "Select Type", Collections.singletonList(ChatColor.YELLOW + "Choose shape of the Firework!")), ImmutableMap.of(ClickType.LEFT, p -> selectType(p, show, (FireworkAction) action))));
             buttons.add(new MenuButton(12, ItemUtil.create(Material.LIGHT_BLUE_WOOL, 1, ChatColor.GREEN + "Select Colors", Collections.singletonList(ChatColor.YELLOW + "The first colors of the Firework")), ImmutableMap.of(ClickType.LEFT, p -> selectColors(p, show, (FireworkAction) action))));
@@ -471,6 +476,20 @@ public class ShowManager implements Listener {
                 editAction(p, show, action);
             })));
             new Menu(27, ChatColor.BLUE + "Edit Firework Action", player, buttons).open();
+        }
+    }
+
+    private void moveAction(CPlayer p, Show show, ShowAction action) {
+        if (action instanceof FireworkAction) {
+            ((FireworkAction) action).setLocation(p.getLocation());
+            action.setNeedsLocationUpdate(false);
+            show.saveFile();
+            editAction(p, show, action);
+        } else if (action instanceof ParticleAction) {
+            ((ParticleAction) action).setLocation(p.getLocation());
+            action.setNeedsLocationUpdate(false);
+            show.saveFile();
+            editAction(p, show, action);
         }
     }
 
@@ -633,14 +652,14 @@ public class ShowManager implements Listener {
         buttons.add(new MenuButton(12, music, ImmutableMap.of(ClickType.LEFT, p -> selectTrack(p, 1, show))));
         buttons.add(new MenuButton(14, particle, ImmutableMap.of(ClickType.LEFT, p -> {
             ParticleAction action = new ParticleAction(show, null, null, player.getLocation(),
-                    .75f, .5f, .75f, 0, 20);
+                    .75f, .5f, .75f, 0, 20, false);
             show.actions.add(action);
             editAction(p, show, action);
         })));
         buttons.add(new MenuButton(16, ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.GREEN + "Firework Action"), ImmutableMap.of(ClickType.LEFT, p -> {
             FireworkAction action = new FireworkAction(show, null, player.getLocation(),
                     new ShowFireworkData(FireworkEffect.Type.BALL, new ArrayList<>(Collections.singletonList(ShowColor.BLACK)), new ArrayList<>(Collections.singletonList(ShowColor.WHITE)),
-                            false, true), 1);
+                            false, true), 1, false);
             show.actions.add(action);
             editAction(p, show, action);
         })));

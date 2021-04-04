@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 public class Show {
     private final UUID owner;
     private String name;
-    private final PlotId plotId;
+    @Getter private final PlotId plotId;
     private final World world;
     private final long startTime;
     public List<ShowAction> actions;
@@ -47,8 +47,9 @@ public class Show {
         world = player.getLocation().getWorld();
         invalidLines = new HashMap<>();
         actions = new ArrayList<>();
+        boolean locationsNeedUpdate = false;
         if (file != null) {
-            loadActions(file);
+            locationsNeedUpdate = loadActions(file, plot);
         }
         if (name == null) {
             if (file == null) {
@@ -56,6 +57,12 @@ public class Show {
             } else {
                 name = file.getName().replace(".show", "");
             }
+        }
+        if (locationsNeedUpdate) {
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "There are actions in your show " + name + " that exist outside of your plot! These locations need to be updated before it can be run.");
+            startTime = 0;
+            plotId = null;
+            return;
         }
         startTime = System.currentTimeMillis();
         this.plotId = plot.getId();
@@ -85,9 +92,10 @@ public class Show {
         return null;
     }
 
-    private void loadActions(File file) {
+    private boolean loadActions(File file, Plot plot) {
         List<ShowAction> actions = new ArrayList<>();
         String strLine = "";
+        boolean locationsNeedUpdate = false;
         try {
             FileInputStream fstream = new FileInputStream(file);
             DataInputStream in = new DataInputStream(fstream);
@@ -152,6 +160,8 @@ public class Show {
                         invalidLines.put(strLine, "Invalid Location");
                         continue;
                     }
+                    boolean needsLocationUpdate = isOutsidePlot(plot, loc);
+                    if (needsLocationUpdate) locationsNeedUpdate = true;
                     // Power
                     int power;
                     try {
@@ -164,26 +174,28 @@ public class Show {
                         invalidLines.put(strLine, "Invalid Power");
                         continue;
                     }
-                    FireworkEffect.Type type = Creative.getInstance().getShowManager().getType(tokens[4]);
+                    Type type = Creative.getInstance().getShowManager().getType(tokens[4]);
                     List<ShowColor> colors = Stream.of(tokens[5].split(",")).map(ShowColor::fromString).collect(Collectors.toList());
                     List<ShowColor> fade = Stream.of(tokens[6].split(",")).map(ShowColor::fromString).collect(Collectors.toList());
                     boolean flicker = tokens[7].equalsIgnoreCase("true");
                     boolean trail = tokens[8].equalsIgnoreCase("true");
                     ShowFireworkData data = new ShowFireworkData(type, colors, fade, flicker, trail);
-                    actions.add(new FireworkAction(this, time, loc, data, power));
+                    actions.add(new FireworkAction(this, time, loc, data, power, needsLocationUpdate));
                     continue;
                 }
                 if (tokens[1].contains("Particle")) {
                     // 0 Particle type x,y,z oX oY oZ speed amount
                     Particle effect = ParticleUtil.getParticle(tokens[2]);
-                    Location location = strToLoc(world.getName() + "," + tokens[3]);
+                    Location loc = strToLoc(world.getName() + "," + tokens[3]);
+                    boolean needsLocationUpdate = isOutsidePlot(plot, loc);
+                    if (needsLocationUpdate) locationsNeedUpdate = true;
                     double offsetX = Float.parseFloat(tokens[4]);
                     double offsetY = Float.parseFloat(tokens[5]);
                     double offsetZ = Float.parseFloat(tokens[6]);
                     float speed = Float.parseFloat(tokens[7]);
                     int amount = Integer.parseInt(tokens[8]);
-                    actions.add(new ParticleAction(this, time, effect, location, offsetX, offsetY, offsetZ,
-                            speed, amount));
+                    actions.add(new ParticleAction(this, time, effect, loc, offsetX, offsetY, offsetZ,
+                            speed, amount, needsLocationUpdate));
                 }
             }
             in.close();
@@ -192,6 +204,11 @@ public class Show {
             System.out.println("Error on Line [" + strLine + "]");
             e.printStackTrace();
         }
+        return locationsNeedUpdate;
+    }
+
+    private boolean isOutsidePlot(Plot plot, Location loc) {
+        return !plot.getLargestRegion().contains(Creative.wrapLocation(loc).getBlockVector3());
     }
 
     private int getInt(String s) {

@@ -1,10 +1,5 @@
 package network.palace.creative.show.actions;
 
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 import network.palace.core.utils.ItemUtil;
 import network.palace.creative.handlers.ShowColor;
 import network.palace.creative.handlers.ShowFireworkData;
@@ -18,13 +13,19 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class FireworkAction extends ShowAction implements Listener {
     private Show show;
     public Location loc;
     public ShowFireworkData showData;
     public int power;
 
-    public FireworkAction(Show show, Long time, Location loc, ShowFireworkData data, int power) {
+    public FireworkAction(Show show, Long time, Location loc, ShowFireworkData data, int power, boolean needsLocationUpdate) {
         super(show, time == null ? 0 : time);
         DecimalFormat df = new DecimalFormat("#.##");
         df.setRoundingMode(RoundingMode.CEILING);
@@ -33,6 +34,7 @@ public class FireworkAction extends ShowAction implements Listener {
                 Double.parseDouble(df.format(loc.getY())), Double.parseDouble(df.format(loc.getZ())));
         this.showData = data;
         this.power = power;
+        this.needsLocationUpdate = needsLocationUpdate;
     }
 
     @Override
@@ -62,7 +64,7 @@ public class FireworkAction extends ShowAction implements Listener {
         // Set data
         fw.setFireworkMeta(data);
         if (instaburst) {
-            FireworkExplodeAction explode = new FireworkExplodeAction(show,time + 50, fw);
+            FireworkExplodeAction explode = new FireworkExplodeAction(show, time + 50, fw);
             show.actions.add(explode);
         }
     }
@@ -82,6 +84,7 @@ public class FireworkAction extends ShowAction implements Listener {
     @Override
     public ItemStack getItem() {
         return ItemUtil.create(Material.FIREWORK_ROCKET, ChatColor.AQUA + "Firework Action", Arrays.asList(ChatColor.GREEN + "Time: " + (time / 1000) + " Type: " + showData.getType().name(),
+                ChatColor.GREEN + "Loc: " + strLoc(loc),
                 ChatColor.GREEN + "Colors: " + showData.getColors().stream().map(ShowColor::name).collect(Collectors.joining(", ")),
                 ChatColor.GREEN + "Fade: " + showData.getFade().stream().map(ShowColor::name).collect(Collectors.joining(", ")),
                 ChatColor.GREEN + "Flicker: " + showData.isFlicker() + " Trail: " + showData.isTrail()));
@@ -107,5 +110,9 @@ public class FireworkAction extends ShowAction implements Listener {
 
     public void setPower(int power) {
         this.power = power;
+    }
+
+    public void setLocation(Location loc) {
+        this.loc = loc;
     }
 }

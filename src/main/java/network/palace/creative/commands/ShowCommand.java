@@ -73,7 +73,7 @@ public class ShowCommand extends CoreCommand {
                             creative.getShowManager().messagePlayer(player, "Your show " + ChatColor.AQUA + show.getNameColored() +
                                     ChatColor.GREEN + " has started!");
                         } else {
-                            creative.getShowManager().messagePlayer(player, "Error starting your show! (Did you create one yet?)");
+                            creative.getShowManager().messagePlayer(player, "Error starting your show!");
                         }
 
                         player.removeMetadata("showname", Creative.getInstance());

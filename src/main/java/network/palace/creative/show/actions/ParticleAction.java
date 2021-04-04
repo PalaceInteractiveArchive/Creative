@@ -1,7 +1,8 @@
 package network.palace.creative.show.actions;
 
-import java.util.Arrays;
 import java.util.Collections;
+
+import lombok.Getter;
 import network.palace.core.Core;
 import network.palace.core.player.CPlayer;
 import network.palace.core.utils.ItemUtil;
@@ -28,7 +29,7 @@ public class ParticleAction extends ShowAction {
     public float speed;
     public int amount;
 
-    public ParticleAction(Show show, Long time, Particle particle, Location loc, double offsetX, double offsetY, double offsetZ, float speed, int amount) {
+    public ParticleAction(Show show, Long time, Particle particle, Location loc, double offsetX, double offsetY, double offsetZ, float speed, int amount, boolean needsLocationUpdate) {
         super(show, time == null ? 0 : time);
         DecimalFormat df = new DecimalFormat("#.##");
         df.setRoundingMode(RoundingMode.CEILING);
@@ -40,6 +41,7 @@ public class ParticleAction extends ShowAction {
         this.offsetZ = offsetZ;
         this.speed = speed;
         this.amount = amount;
+        this.needsLocationUpdate = needsLocationUpdate;
     }
 
     @Override
@@ -66,5 +68,9 @@ public class ParticleAction extends ShowAction {
 
     public void setParticle(Particle particle) {
         this.particle = particle;
+    }
+
+    public void setLocation(Location loc) {
+        this.loc = loc;
     }
 }

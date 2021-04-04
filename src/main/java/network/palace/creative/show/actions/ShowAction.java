@@ -1,5 +1,7 @@
 package network.palace.creative.show.actions;
 
+import lombok.Getter;
+import lombok.Setter;
 import network.palace.creative.show.Show;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
@@ -10,6 +12,7 @@ import java.text.DecimalFormat;
 public abstract class ShowAction {
     public Show show;
     public long time;
+    @Getter @Setter protected boolean needsLocationUpdate = false;
 
     public ShowAction(Show show, Long time) {
         this.show = show;

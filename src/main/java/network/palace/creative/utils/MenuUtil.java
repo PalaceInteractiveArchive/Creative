@@ -18,6 +18,7 @@ import lombok.Setter;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
+import net.wesjd.anvilgui.AnvilGUI;
 import network.palace.core.Core;
 import network.palace.core.economy.currency.CurrencyType;
 import network.palace.core.menu.Menu;
@@ -653,79 +654,103 @@ public class MenuUtil implements Listener {
         List<MenuButton> buttons = new ArrayList<>();
         buttons.add(new MenuButton(11, member, ImmutableMap.of(ClickType.LEFT, p -> {
             p.closeInventory();
-            p.getBukkitPlayer().sendTitle(ChatColor.GREEN + "Add a Member", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
-            new TextInput(p, (ply, s) -> {
-                String owner = getOwner(plot);
-                if (s.equalsIgnoreCase(ply.getName()) && plot.getOwners().contains(ply.getUniqueId())) {
-                    ply.sendMessage(ChatColor.RED + "You're already added to this Plot!");
-                    return;
-                }
-                if (s.equals("*")) {
-                    ply.sendMessage(ChatColor.RED + "You should never add " + ChatColor.ITALIC + "everyone " +
-                            ChatColor.RED + "to your plot!");
-                    return;
-                }
-                Player op = getPlayer(s);
-                if (op == null) {
-                    ply.sendMessage(ChatColor.RED + "No player was found by that name! (They have to be online)");
-                    return;
-                }
-                if (plot.isDenied(op.getUniqueId())) {
-                    ply.sendMessage(ChatColor.RED + "This player is Denied from this Plot! You must un-deny them first.");
-                    return;
-                }
-                if ((plot.getMembers().size() + plot.getTrusted().size()) >= 18) {
-                    ply.sendMessage(ChatColor.RED + "You cannot add more than 18 people to your Plot!");
-                    return;
-                }
-                if (isAdded(plot, op)) {
-                    ply.sendMessage(ChatColor.RED + "This player is already added to this Plot!");
-                    return;
-                }
-                plot.addMember(op.getUniqueId());
-                PlotSquared.get().getEventDispatcher().callMember(PlotPlayer.wrap(ply.getBukkitPlayer()), plot, op.getUniqueId(), true);
-                ply.sendMessage(ChatColor.GREEN + "Successfully added " + op.getName() + " to Plot " + plot.getId().toString());
-                op.sendMessage(ChatColor.GREEN + "You were added to " + ChatColor.YELLOW + owner + "'s Plot! " +
-                        ChatColor.GREEN + "Use /menu to get to it.");
-            });
+            new AnvilGUI.Builder()
+                    .onComplete((pp, s) -> {
+                        CPlayer ply = Core.getPlayerManager().getPlayer(pp);
+                        String owner = getOwner(plot);
+                        if (s.equalsIgnoreCase(ply.getName()) && plot.getOwners().contains(ply.getUniqueId())) {
+                            ply.sendMessage(ChatColor.RED + "You're already added to this Plot!");
+                            return AnvilGUI.Response.close();
+                        }
+                        if (s.equals("*")) {
+                            ply.sendMessage(ChatColor.RED + "You should never add " + ChatColor.ITALIC + "everyone " +
+                                    ChatColor.RED + "to your plot!");
+                            return AnvilGUI.Response.close();
+                        }
+                        Player op = getPlayer(s);
+                        if (op == null) {
+                            ply.sendMessage(ChatColor.RED + "No player was found by that name! (They have to be online)");
+                            return AnvilGUI.Response.close();
+                        }
+                        if (plot.isDenied(op.getUniqueId())) {
+                            ply.sendMessage(ChatColor.RED + "This player is Denied from this Plot! You must un-deny them first.");
+                            return AnvilGUI.Response.close();
+                        }
+                        if ((plot.getMembers().size() + plot.getTrusted().size()) >= 18) {
+                            ply.sendMessage(ChatColor.RED + "You cannot add more than 18 people to your Plot!");
+                            return AnvilGUI.Response.close();
+                        }
+                        if (isAdded(plot, op)) {
+                            ply.sendMessage(ChatColor.RED + "This player is already added to this Plot!");
+                            return AnvilGUI.Response.close();
+                        }
+                        plot.addMember(op.getUniqueId());
+                        PlotSquared.get().getEventDispatcher().callMember(PlotPlayer.wrap(ply.getBukkitPlayer()), plot, op.getUniqueId(), true);
+                        ply.sendMessage(ChatColor.GREEN + "Successfully added " + op.getName() + " to Plot " + plot.getId().toString());
+                        op.sendMessage(ChatColor.GREEN + "You were added to " + ChatColor.YELLOW + owner + "'s Plot! " +
+                                ChatColor.GREEN + "Use /menu to get to it.");
+                        return AnvilGUI.Response.close();
+                    })
+                    .text("Username")
+                    .itemLeft(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
+                    .onLeftInputClick(player -> {
+                        p.sendMessage(ChatColor.RED + "You cancelled adding players to the plot");
+                        p.closeInventory();
+                    })
+                    .title("Add a member")
+                    .plugin(Creative.getInstance())
+                    .open(p.getBukkitPlayer());
         })));
         buttons.add(new MenuButton(15, trusted, ImmutableMap.of(ClickType.LEFT, p -> {
             p.closeInventory();
             p.getTitle().show(ChatColor.GREEN + "Add a Member", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
-            new TextInput(p, (ply, s) -> {
-                String owner = getOwner(plot);
-                if (s.equalsIgnoreCase(ply.getName()) && plot.getOwners().contains(ply.getUniqueId())) {
-                    ply.sendMessage(ChatColor.RED + "You're already added to this Plot!");
-                    return;
-                }
-                if (s.equals("*")) {
-                    ply.sendMessage(ChatColor.RED + "You should never add " + ChatColor.ITALIC + "everyone " +
-                            ChatColor.RED + "to your plot!");
-                    return;
-                }
-                Player op = getPlayer(s);
-                if (op == null) {
-                    ply.sendMessage(ChatColor.RED + "No player was found by that name! (They have to be online)");
-                    return;
-                }
-                if (plot.isDenied(op.getUniqueId())) {
-                    ply.sendMessage(ChatColor.RED + "This player is Denied from this Plot! You must un-deny them first.");
-                    return;
-                }
-                if ((plot.getMembers().size() + plot.getTrusted().size()) >= 18) {
-                    ply.sendMessage(ChatColor.RED + "You cannot add more than 18 people to your Plot!");
-                    return;
-                }
-                if (isAdded(plot, op)) {
-                    ply.sendMessage(ChatColor.RED + "This player is already added to this Plot!");
-                    return;
-                }
-                plot.addTrusted(op.getUniqueId());
-                PlotSquared.get().getEventDispatcher().callTrusted(PlotPlayer.wrap(ply.getBukkitPlayer()), plot, op.getUniqueId(), true);
-                ply.sendMessage(ChatColor.GREEN + "Successfully trusted " + op.getName() + " to Plot " + plot.getId().toString());
-                op.sendMessage(ChatColor.GREEN + "You were " + ChatColor.GOLD + ChatColor.ITALIC + "trusted " + ChatColor.GREEN
-                        + "to " + ChatColor.YELLOW + owner + "'s Plot! " + ChatColor.GREEN + "Use /menu to get to it.");
-            });
+
+            new AnvilGUI.Builder()
+                    .onComplete((pp, s) -> {
+                        CPlayer ply = Core.getPlayerManager().getPlayer(pp);
+                        String owner = getOwner(plot);
+                        if (s.equalsIgnoreCase(ply.getName()) && plot.getOwners().contains(ply.getUniqueId())) {
+                            ply.sendMessage(ChatColor.RED + "You're already added to this Plot!");
+                            return AnvilGUI.Response.close();
+                        }
+                        if (s.equals("*")) {
+                            ply.sendMessage(ChatColor.RED + "You should never add " + ChatColor.ITALIC + "everyone " +
+                                    ChatColor.RED + "to your plot!");
+                            return AnvilGUI.Response.close();
+                        }
+                        Player op = getPlayer(s);
+                        if (op == null) {
+                            ply.sendMessage(ChatColor.RED + "No player was found by that name! (They have to be online)");
+                            return AnvilGUI.Response.close();
+                        }
+                        if (plot.isDenied(op.getUniqueId())) {
+                            ply.sendMessage(ChatColor.RED + "This player is Denied from this Plot! You must un-deny them first.");
+                            return AnvilGUI.Response.close();
+                        }
+                        if ((plot.getMembers().size() + plot.getTrusted().size()) >= 18) {
+                            ply.sendMessage(ChatColor.RED + "You cannot add more than 18 people to your Plot!");
+                            return AnvilGUI.Response.close();
+                        }
+                        if (isAdded(plot, op)) {
+                            ply.sendMessage(ChatColor.RED + "This player is already added to this Plot!");
+                            return AnvilGUI.Response.close();
+                        }
+                        plot.addTrusted(op.getUniqueId());
+                        PlotSquared.get().getEventDispatcher().callTrusted(PlotPlayer.wrap(ply.getBukkitPlayer()), plot, op.getUniqueId(), true);
+                        ply.sendMessage(ChatColor.GREEN + "Successfully trusted " + op.getName() + " to Plot " + plot.getId().toString());
+                        op.sendMessage(ChatColor.GREEN + "You were " + ChatColor.GOLD + ChatColor.ITALIC + "trusted " + ChatColor.GREEN
+                                + "to " + ChatColor.YELLOW + owner + "'s Plot! " + ChatColor.GREEN + "Use /menu to get to it.");
+                        return AnvilGUI.Response.close();
+                    })
+                    .text("Username")
+                    .itemLeft(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
+                    .onLeftInputClick(player -> {
+                        p.sendMessage(ChatColor.RED + "You cancelled adding players to the plot");
+                        p.closeInventory();
+                    })
+                    .title("Add a member")
+                    .plugin(Creative.getInstance())
+                    .open(p.getBukkitPlayer());
         })));
         buttons.add(new MenuButton(22, back, ImmutableMap.of(ClickType.LEFT, p -> openManagePlot(p, plot))));
         new Menu(27, ChatColor.BLUE + "Add Player to Plot " + plot.getId().toString(), tp, buttons).open();
@@ -743,47 +768,60 @@ public class MenuUtil implements Listener {
         List<MenuButton> buttons = new ArrayList<>();
         buttons.add(new MenuButton(9, HeadUtil.getPlayerHead(player.getTextureValue(), ChatColor.GREEN + "Add a Player"), ImmutableMap.of(ClickType.LEFT, p -> openAddOrTrust(p, plot))));
         buttons.add(new MenuButton(11, deny, ImmutableMap.of(ClickType.LEFT, p -> {
-            new TextInput(p, (ply, s) -> {
-                if (s.equalsIgnoreCase(player.getName()) && plot.getOwners().contains(player.getUniqueId())) {
-                    player.sendMessage(ChatColor.RED + "You cannot deny yourself, you'll never get on again!");
-                    return;
-                }
-                if (s.equals("*")) {
-                    player.sendMessage(ChatColor.RED + "You should never deny " + ChatColor.ITALIC + "everyone " +
-                            ChatColor.RED + "from your plot!");
-                    return;
-                }
-                Player tp = getPlayer(s);
-                if (tp == null) {
-                    player.sendMessage(ChatColor.RED + "No player was found by that name! (They have to be online)");
-                    return;
-                }
-                if (plot.getDenied().size() >= 18) {
-                    player.sendMessage(ChatColor.RED + "You cannot deny more than 18 people on your Plot!");
-                    return;
-                }
-                if (plot.getDenied().contains(tp.getUniqueId())) {
-                    player.sendMessage(ChatColor.RED + "This player is already denied on this Plot!");
-                    return;
-                }
-
-                Plot tpPlot = plotSquared.getPlotAreaAbs(Creative.wrapLocation(tp.getLocation())).getPlot(Creative.wrapLocation(tp.getLocation()));
-                if (tpPlot != null) {
-                    if (tpPlot.getId().toString().equals(plot.getId().toString())) {
-                        denyTask.add(tp.getUniqueId());
-                        tp.sendMessage(ChatColor.RED + "You were denied from " + player.getName() + "'s Plot!");
-                    }
-                }
-                if (isAdded(plot, tp)) {
-                    plot.removeMember(tp.getUniqueId());
-                    plot.removeTrusted(tp.getUniqueId());
-                }
-                plot.addDenied(tp.getUniqueId());
-                player.sendMessage(ChatColor.GREEN + "Successfully denied " + tp.getName() + " from Plot " +
-                        plot.getId().toString());
-            });
             p.closeInventory();
-            p.getTitle().show(ChatColor.RED + "Deny a Player", ChatColor.GREEN + "Type the player's name in chat", 0, 0, 200);
+            new AnvilGUI.Builder()
+                    .onClose(pp -> {
+                        p.sendMessage(ChatColor.RED + "You cancelled denying players to the plot");
+                    })
+                    .onComplete((pp, s) -> {
+                        if (s.equalsIgnoreCase(player.getName()) && plot.getOwners().contains(player.getUniqueId())) {
+                            player.sendMessage(ChatColor.RED + "You cannot deny yourself, you'll never get on again!");
+                            return AnvilGUI.Response.close();
+                        }
+                        if (s.equals("*")) {
+                            player.sendMessage(ChatColor.RED + "You should never deny " + ChatColor.ITALIC + "everyone " +
+                                    ChatColor.RED + "from your plot!");
+                            return AnvilGUI.Response.close();
+                        }
+                        Player tp = getPlayer(s);
+                        if (tp == null) {
+                            player.sendMessage(ChatColor.RED + "No player was found by that name! (They have to be online)");
+                            return AnvilGUI.Response.close();
+                        }
+                        if (plot.getDenied().size() >= 18) {
+                            player.sendMessage(ChatColor.RED + "You cannot deny more than 18 people on your Plot!");
+                            return AnvilGUI.Response.close();
+                        }
+                        if (plot.getDenied().contains(tp.getUniqueId())) {
+                            player.sendMessage(ChatColor.RED + "This player is already denied on this Plot!");
+                            return AnvilGUI.Response.close();
+                        }
+
+                        Plot tpPlot = plotSquared.getPlotAreaAbs(Creative.wrapLocation(tp.getLocation())).getPlot(Creative.wrapLocation(tp.getLocation()));
+                        if (tpPlot != null) {
+                            if (tpPlot.getId().toString().equals(plot.getId().toString())) {
+                                denyTask.add(tp.getUniqueId());
+                                tp.sendMessage(ChatColor.RED + "You were denied from " + player.getName() + "'s Plot!");
+                            }
+                        }
+                        if (isAdded(plot, tp)) {
+                            plot.removeMember(tp.getUniqueId());
+                            plot.removeTrusted(tp.getUniqueId());
+                        }
+                        plot.addDenied(tp.getUniqueId());
+                        player.sendMessage(ChatColor.GREEN + "Successfully denied " + tp.getName() + " from Plot " +
+                                plot.getId().toString());
+                        return AnvilGUI.Response.close();
+                    })
+                    .text("Username")
+                    .itemLeft(new ItemStack(Material.GRAY_STAINED_GLASS_PANE))
+                    .onLeftInputClick(pp -> {
+                        p.sendMessage(ChatColor.RED + "You cancelled denying players to the plot");
+                        p.closeInventory();
+                    })
+                    .title("Deny a member")
+                    .plugin(Creative.getInstance())
+                    .open(p.getBukkitPlayer());
         })));
         buttons.add(new MenuButton(13, teleport, ImmutableMap.of(ClickType.LEFT, p -> {
             Location location = getHome(plot);

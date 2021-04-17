@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.9.18", apiversion = "1.16")
+@PluginInfo(name = "Creative", depend = {"Core", "PlotSquared", "ProtocolLib"}, version = "2.9.2", apiversion = "1.16")
 public class Creative extends Plugin {
     private Location spawn;
     @Getter private YamlConfiguration config;
